@@ -339,13 +339,13 @@
         border-right: 1px solid rgba(200, 217, 204, 0.08);
       }
     }
-    .section-tile.tile-varonil:hover { background: #182720; }
+    .section-tile.tile-varonil:hover { background: var(--green); }
 
     .section-tile.tile-femenil {
-      background: var(--cream);
+      background: var(--cream-2);
       color: var(--green);
     }
-    .section-tile.tile-femenil:hover { background: #F0E8D5; }
+    .section-tile.tile-femenil:hover { background: var(--cream); }
 
     .tile-name {
       font-family: var(--font-display);
@@ -382,11 +382,11 @@
       align-self: flex-start;
       transition: gap 0.3s, color 0.25s, border-color 0.25s;
     }
-    .tile-varonil .tile-cta { color: var(--gold-soft); }
-    .tile-femenil .tile-cta { color: var(--gold); }
+    .tile-varonil .tile-cta { color: var(--cream); }
+    .tile-femenil .tile-cta { color: var(--green); }
     .section-tile:hover .tile-cta { gap: 18px; }
-    .tile-varonil:hover .tile-cta { color: var(--cream); border-color: var(--cream); }
-    .tile-femenil:hover .tile-cta { color: var(--green); border-color: var(--green); }
+    .tile-varonil:hover .tile-cta { color: var(--gold-soft); border-color: var(--gold-soft); }
+    .tile-femenil:hover .tile-cta { color: var(--gold); border-color: var(--gold); }
     .tile-cta svg { flex-shrink: 0; transition: transform 0.3s; }
     .section-tile:hover .tile-cta svg { transform: translateX(3px); }
 
