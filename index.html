@@ -329,23 +329,23 @@
     }
 
     .section-tile.tile-varonil {
-      background: var(--cream);
-      color: var(--green);
-      border-bottom: 1px solid rgba(42, 64, 48, 0.08);
+      background: var(--green-deep);
+      color: var(--cream);
+      border-bottom: 1px solid rgba(200, 217, 204, 0.08);
     }
     @media (min-width: 720px) {
       .section-tile.tile-varonil {
         border-bottom: 0;
-        border-right: 1px solid rgba(42, 64, 48, 0.08);
+        border-right: 1px solid rgba(200, 217, 204, 0.08);
       }
     }
-    .section-tile.tile-varonil:hover { background: #F0E8D5; }
+    .section-tile.tile-varonil:hover { background: #182720; }
 
     .section-tile.tile-femenil {
-      background: var(--green-deep);
-      color: var(--cream);
+      background: var(--cream);
+      color: var(--green);
     }
-    .section-tile.tile-femenil:hover { background: #182720; }
+    .section-tile.tile-femenil:hover { background: #F0E8D5; }
 
     .tile-name {
       font-family: var(--font-display);
@@ -355,19 +355,21 @@
       letter-spacing: -0.03em;
       margin-bottom: 32px;
     }
-    .tile-varonil .tile-name { color: var(--green); }
-    .tile-femenil .tile-name {
+    .tile-varonil .tile-name {
       color: var(--cream);
+    }
+    .tile-femenil .tile-name {
+      color: var(--green);
       font-style: italic;
     }
 
     .tile-rule {
       width: 72px; height: 1px;
-      background: var(--gold);
+      background: var(--gold-soft);
       margin-bottom: 44px;
       transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
-    .tile-femenil .tile-rule { background: var(--gold-soft); }
+    .tile-femenil .tile-rule { background: var(--gold); }
     .section-tile:hover .tile-rule { width: 160px; }
 
     .tile-cta {
@@ -380,11 +382,11 @@
       align-self: flex-start;
       transition: gap 0.3s, color 0.25s, border-color 0.25s;
     }
-    .tile-varonil .tile-cta { color: var(--green); }
-    .tile-femenil .tile-cta { color: var(--cream); }
+    .tile-varonil .tile-cta { color: var(--cream); }
+    .tile-femenil .tile-cta { color: var(--green); }
     .section-tile:hover .tile-cta { gap: 18px; }
-    .tile-varonil:hover .tile-cta { color: var(--gold); border-color: var(--gold); }
-    .tile-femenil:hover .tile-cta { color: var(--gold-soft); border-color: var(--gold-soft); }
+    .tile-varonil:hover .tile-cta { color: var(--gold-soft); border-color: var(--gold-soft); }
+    .tile-femenil:hover .tile-cta { color: var(--gold); border-color: var(--gold); }
     .tile-cta svg { flex-shrink: 0; transition: transform 0.3s; }
     .section-tile:hover .tile-cta svg { transform: translateX(3px); }
 
@@ -706,6 +708,27 @@
     </div>
   </section>
 
+  <!-- SECCIONES — editorial tipográfico -->
+  <section class="sections-split reveal">
+    <a href="/varonil" class="section-tile tile-varonil">
+      <h2 class="tile-name">Varonil</h2>
+      <div class="tile-rule"></div>
+      <span class="tile-cta">
+        Ver actividades
+        <svg width="14" height="10" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </span>
+    </a>
+
+    <a href="/femenil" class="section-tile tile-femenil">
+      <h2 class="tile-name">Femenil</h2>
+      <div class="tile-rule"></div>
+      <span class="tile-cta">
+        Ver actividades
+        <svg width="14" height="10" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </span>
+    </a>
+  </section>
+
   <!-- APARTADO -->
   <section class="apartado reveal">
     <div class="apartado-block">
@@ -723,27 +746,6 @@
         </a>
       </div>
     </div>
-  </section>
-
-  <!-- SECCIONES — editorial tipográfico -->
-  <section class="sections-split reveal">
-    <a href="/varonil" class="section-tile tile-varonil">
-      <h2 class="tile-name">Varonil</h2>
-      <div class="tile-rule"></div>
-      <span class="tile-cta">
-        Ver catálogo
-        <svg width="14" height="10" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      </span>
-    </a>
-
-    <a href="/femenil" class="section-tile tile-femenil">
-      <h2 class="tile-name">Femenil</h2>
-      <div class="tile-rule"></div>
-      <span class="tile-cta">
-        Ver catálogo
-        <svg width="14" height="10" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      </span>
-    </a>
   </section>
 
   <!-- CASAS -->
