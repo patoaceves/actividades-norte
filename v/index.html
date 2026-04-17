@@ -204,6 +204,25 @@
       color: var(--muted);
     }
 
+    .action-menu {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--cream-3);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .action-menu-label {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--gold);
+    }
+    .action-menu-value {
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--charcoal);
+      font-style: italic;
+      line-height: 1.4;
+    }
+
     .action-cuota {
       font-family: var(--font-display);
       font-size: clamp(26px, 3.2vw, 34px);
@@ -712,11 +731,19 @@
             <div class="action-label">Fecha de inicio</div>
             <div class="action-value" id="info-inicio-day">—</div>
             <div class="action-sub" id="info-inicio-time"></div>
+            <div class="action-menu" id="info-menu-inicio" style="display:none;">
+              <span class="action-menu-label">Menú</span>
+              <span class="action-menu-value" id="info-menu-inicio-value"></span>
+            </div>
           </div>
           <div class="action-card compact">
             <div class="action-label">Fecha de fin</div>
             <div class="action-value" id="info-fin-day">—</div>
             <div class="action-sub" id="info-fin-time"></div>
+            <div class="action-menu" id="info-menu-fin" style="display:none;">
+              <span class="action-menu-label">Menú</span>
+              <span class="action-menu-value" id="info-menu-fin-value"></span>
+            </div>
           </div>
           <div class="action-card wide highlighted">
             <div class="action-card-left">
@@ -1167,6 +1194,16 @@
       document.getElementById('info-inicio-time').textContent = data.fechaInicio ? formatFechaTime(data.fechaInicio) : '';
       document.getElementById('info-fin-day').textContent     = data.fechaFin    ? formatFechaDay(data.fechaFin)    : '—';
       document.getElementById('info-fin-time').textContent    = data.fechaFin    ? formatFechaTime(data.fechaFin)    : '';
+
+      /* Menú */
+      if (data.menuInicio && data.menuInicio.trim()) {
+        document.getElementById('info-menu-inicio').style.display = '';
+        document.getElementById('info-menu-inicio-value').textContent = data.menuInicio.trim();
+      }
+      if (data.menuFin && data.menuFin.trim()) {
+        document.getElementById('info-menu-fin').style.display = '';
+        document.getElementById('info-menu-fin-value').textContent = data.menuFin.trim();
+      }
 
       /* Location */
       const hasAddress = data.direccion && data.direccion.trim() !== '';

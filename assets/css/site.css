@@ -97,11 +97,16 @@ button { font: inherit; cursor: pointer; background: none; border: none; color: 
   font-family: var(--font-mono); font-size: 11px;
   letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--cream);
+  background: rgba(245, 239, 227, 0.05);
   transition: all 0.25s;
 }
 .nav-cta svg { flex-shrink: 0; transition: transform 0.25s; }
 .nav-cta:hover svg { transform: translateX(-3px); }
-.nav-cta:hover { background: var(--cream); color: var(--green); border-color: var(--cream); }
+.nav-cta:hover {
+  background: rgba(245, 239, 227, 0.12);
+  border-color: var(--gold-soft);
+  color: var(--gold-soft);
+}
 
 .nav-menu-btn { display: flex; flex-direction: column; gap: 4px; padding: 8px; }
 .nav-menu-btn span { width: 20px; height: 1px; background: var(--cream); }

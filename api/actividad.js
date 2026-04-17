@@ -21,6 +21,8 @@ const FIELDS = {
   coordNombre:    'fldZHaRin61NSuHSM',
   coordWhatsapp:  'fld0zWc2reFz5IkmN',
   coordEmail:     'fldXjfW9suvjTiJ8I',
+  menuInicio:     'fldAfRzp1icbT91jv',
+  menuFin:        'fldVZ8wXIgwiw3AcM',
 };
 
 // Helper: primer valor si es array (campos lookup/link)
@@ -113,6 +115,8 @@ module.exports = async function handler(req, res) {
       lugares,
       direccion:      String(firstVal(f[FIELDS.direccion])     || '').trim(),
       googleMapsUrl:  String(firstVal(f[FIELDS.googleMapsUrl]) || '').trim(),
+      menuInicio:     String(firstVal(f[FIELDS.menuInicio])    || '').trim(),
+      menuFin:        String(firstVal(f[FIELDS.menuFin])       || '').trim(),
       coordinador: {
         nombre:   String(firstVal(f[FIELDS.coordNombre])   || '').trim(),
         whatsapp: String(firstVal(f[FIELDS.coordWhatsapp]) || '').trim(),
