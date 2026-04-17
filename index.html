@@ -249,7 +249,7 @@
 
     /* ──────────── APARTADO — cremita con acentos verde/dorado ──────────── */
     .apartado {
-      padding: clamp(60px, 9vh, 100px) var(--gutter) 0;
+      padding: clamp(60px, 9vh, 100px) var(--gutter);
       max-width: var(--max); margin: 0 auto;
     }
     .apartado-block {
@@ -401,11 +401,16 @@
     }
     .casas-section::before {
       content: ''; position: absolute; inset: 0;
-      background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='480' viewBox='0 0 480 480'%3E%3Cg fill='none' stroke='%232A4030' stroke-opacity='0.06' stroke-width='1.2' stroke-linecap='round'%3E%3Cpath d='M20 120 Q 60 80 110 100 T 200 70 Q 250 50 290 90'/%3E%3Cpath d='M360 140 Q 400 110 440 160'/%3E%3Cpath d='M80 240 Q 140 220 180 260 T 260 280'/%3E%3Cpath d='M300 260 Q 340 230 400 270'/%3E%3Cpath d='M30 360 Q 80 330 140 370 T 240 380'/%3E%3Cpath d='M280 400 Q 340 370 420 410'/%3E%3Cpath d='M60 50 Q 70 70 50 90 Q 30 80 40 60'/%3E%3Cpath d='M200 180 Q 220 200 210 220 Q 180 210 190 190'/%3E%3Cpath d='M380 50 Q 395 70 380 90'/%3E%3Cpath d='M440 320 Q 450 340 440 360'/%3E%3Cpath d='M120 420 Q 110 440 130 450'/%3E%3Cpath d='M10 200 Q 30 210 20 240'/%3E%3Cpath d='M250 100 Q 255 115 242 125'/%3E%3Cpath d='M170 330 Q 178 345 165 355'/%3E%3C/g%3E%3C/svg%3E");
-      background-size: 480px 480px;
-      background-repeat: repeat;
+      /* Capa 1: ruido SVG (turbulence) - textura de papel real */
+      /* Capa 2: manchitas dispersas - fibras del papel */
+      background-image:
+        url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.165 0 0 0 0 0.251 0 0 0 0 0.188 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cg fill='%232A4030' fill-opacity='0.04'%3E%3Ccircle cx='40' cy='60' r='0.8'/%3E%3Ccircle cx='180' cy='30' r='1.2'/%3E%3Ccircle cx='310' cy='90' r='0.6'/%3E%3Ccircle cx='80' cy='180' r='1'/%3E%3Ccircle cx='260' cy='200' r='0.7'/%3E%3Ccircle cx='350' cy='280' r='1.1'/%3E%3Ccircle cx='50' cy='320' r='0.9'/%3E%3Ccircle cx='200' cy='370' r='0.6'/%3E%3Ccircle cx='140' cy='140' r='0.5'/%3E%3Ccircle cx='280' cy='50' r='0.4'/%3E%3Ccircle cx='370' cy='160' r='0.5'/%3E%3Ccircle cx='20' cy='230' r='0.7'/%3E%3Ccircle cx='230' cy='310' r='0.5'/%3E%3Ccircle cx='100' cy='80' r='0.4'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: 300px 300px, 400px 400px;
+      background-repeat: repeat, repeat;
       pointer-events: none;
-      opacity: 0.8;
+      opacity: 0.75;
+      mix-blend-mode: multiply;
     }
     .casas-inner { max-width: var(--max); margin: 0 auto; position: relative; }
 
