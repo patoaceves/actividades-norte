@@ -64,8 +64,14 @@ module.exports = async function handler(req, res) {
       if (!r.ok) throw new Error(JSON.stringify(data));
 
       found = (data.records || []).find(rec => {
-        const recId = String(firstVal(rec.fields[FIELDS.idActividad]) || '').trim().toUpperCase();
-        return recId === id;
+        const fields = rec.fields;
+        // Match directo por idActividad
+        const recId = String(firstVal(fields[FIELDS.idActividad]) || '').trim().toUpperCase();
+        if (recId === id) return true;
+        // Fallback: match por prefijo del nombre "AF027 - ..." o "AF027-1 - ..."
+        const nombre = String(firstVal(fields[FIELDS.nombre]) || '').trim().toUpperCase();
+        if (nombre.startsWith(id + ' ') || nombre.startsWith(id + '-') || nombre === id) return true;
+        return false;
       });
 
       offset = found ? '' : (data.offset || '');

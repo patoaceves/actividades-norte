@@ -348,7 +348,7 @@
 .card-lugares.full .card-lugares-dot { background: var(--error); box-shadow: 0 0 8px rgba(139, 32, 32, 0.4); }
 
 .card-cta {
-  display: inline-flex; align-items: center; gap: 10px;
+  display: inline-flex; align-items: center; gap: 8px;
   padding: 10px 16px;
   background: var(--green);
   color: var(--cream);
@@ -359,10 +359,10 @@
   border-radius: var(--radius);
 }
 .card-cta-arrow {
-  width: 18px; height: 12px; flex-shrink: 0;
+  width: 14px; height: 10px; flex-shrink: 0;
   transition: transform 0.25s;
 }
-.card:hover .card-cta { background: var(--green-2); gap: 14px; }
+.card:hover .card-cta { background: var(--green-2); gap: 12px; }
 .card:hover .card-cta-arrow { transform: translateX(2px); }
 .card-cta.disabled {
   background: var(--cream-3);

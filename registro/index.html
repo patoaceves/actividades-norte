@@ -765,7 +765,8 @@
       </a>
       <div class="activity-badge" id="act-badge">Registro · Varonil</div>
       <h1 class="activity-title">
-        <span class="activity-title-id" id="act-title-id">AV000</span><span id="act-title-name">Cargando actividad…</span>
+        <span class="activity-title-id" id="act-title-id">AV000</span>
+        <span id="act-title-name">Cargando actividad…</span>
       </h1>
       <div class="activity-meta">
         <span id="act-casa"></span>
@@ -1302,9 +1303,14 @@
       try {
         const res  = await fetch('/api/actividad?id=' + encodeURIComponent(actividadId));
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        console.log('[registro] actividad cargada:', data);
+        if (!res.ok) throw new Error(data.error || 'Error al cargar');
 
-        document.getElementById('act-title-name').textContent = cleanNombreRegistro(data.nombre, actividadId);
+        // Título: nombre sin prefijo
+        const nombreEl = document.getElementById('act-title-name');
+        if (nombreEl) {
+          nombreEl.textContent = cleanNombreRegistro(data.nombre, actividadId);
+        }
 
         // Casa como array o string
         let casasArr = [];
@@ -1313,9 +1319,11 @@
           casasArr = data.casa.split(/[,;]\s*/).map(s => s.trim()).filter(Boolean);
         }
         const casaDisplay = casasArr.join(', ');
-        if (casaDisplay) {
-          document.getElementById('act-casa').textContent = casaDisplay;
-          document.getElementById('act-sep').style.display = '';
+        const casaEl = document.getElementById('act-casa');
+        const sepEl = document.getElementById('act-sep');
+        if (casaDisplay && casaEl) {
+          casaEl.textContent = casaDisplay;
+          if (sepEl) sepEl.style.display = '';
         }
 
         let fechas = '';
@@ -1324,16 +1332,21 @@
         } else if (data.fechaCompleta) {
           fechas = data.fechaCompleta;
         }
-        document.getElementById('act-fechas').textContent = fechas;
+        const fechasEl = document.getElementById('act-fechas');
+        if (fechasEl) fechasEl.textContent = fechas;
 
       } catch (err) {
-        console.error('loadActividad:', err.message);
-        document.getElementById('act-title-name').textContent = '';
+        console.error('[registro] loadActividad error:', err.message);
+        const nombreEl = document.getElementById('act-title-name');
+        if (nombreEl) nombreEl.textContent = '';
         if (err.message && err.message.toLowerCase().includes('no encontrada')) {
-          document.getElementById('progress-wrap').style.display = 'none';
+          const pw = document.getElementById('progress-wrap');
+          if (pw) pw.style.display = 'none';
           document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
-          document.getElementById('err-id-wrap').classList.add('show');
-          document.getElementById('err-id-desc').textContent = `La actividad ${actividadId} no existe o no está disponible.`;
+          const errWrap = document.getElementById('err-id-wrap');
+          if (errWrap) errWrap.classList.add('show');
+          const errDesc = document.getElementById('err-id-desc');
+          if (errDesc) errDesc.textContent = `La actividad ${actividadId} no existe o no está disponible.`;
         }
       }
     }

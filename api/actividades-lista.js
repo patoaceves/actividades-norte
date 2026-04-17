@@ -90,9 +90,16 @@ module.exports = async function handler(req, res) {
           ? firstVal(f[FIELDS.lugaresF])
           : firstVal(f[FIELDS.lugaresV]);
         const casas = toCasasArray(f[FIELDS.casa]);
+        const nombreRaw = String(firstVal(f[FIELDS.nombreCompleto]) || '').trim();
+        // Intenta idActividad, si falla extrae del prefijo del nombre: "AF027 - Título"
+        let id = String(firstVal(f[FIELDS.idActividad]) || '').trim().toUpperCase();
+        if (!id && nombreRaw) {
+          const m = nombreRaw.match(/^([A-Z]{2}\d+(?:-\d+)?)/);
+          if (m) id = m[1];
+        }
         return {
-          id:             String(firstVal(f[FIELDS.idActividad]) || '').trim(),
-          nombre:         String(firstVal(f[FIELDS.nombreCompleto]) || '').trim(),
+          id,
+          nombre:         nombreRaw,
           casa:           casas,                // ahora siempre array
           casaPrincipal:  casas[0] || '',       // para retrocompatibilidad
           fechaCompleta:  String(firstVal(f[FIELDS.fechaCompleta]) || '').trim(),

@@ -222,7 +222,7 @@
               </div>
               <span class="card-cta">
                 ${escapeHtml(ctaLabel)}
-                <svg class="card-cta-arrow" width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                <svg class="card-cta-arrow" width="14" height="10" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
               </span>
             </div>
           </div>
