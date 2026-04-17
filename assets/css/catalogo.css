@@ -345,7 +345,8 @@
   box-shadow: 0 0 8px rgba(92, 140, 106, 0.4);
 }
 .card-lugares.low .card-lugares-dot { background: #C49738; box-shadow: 0 0 8px rgba(196, 151, 56, 0.4); }
-.card-lugares.full .card-lugares-dot { background: var(--error); box-shadow: 0 0 8px rgba(139, 32, 32, 0.4); }
+.card-lugares.full .card-lugares-dot { background: #9CA098; box-shadow: 0 0 8px rgba(156, 160, 152, 0.3); }
+.card-lugares.full { color: #9CA098; }
 
 .card-cta {
   display: inline-flex; align-items: center; gap: 8px;
