@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -53,7 +54,40 @@
     button { font: inherit; cursor: pointer; background: none; border: none; color: inherit; }
     img { max-width: 100%; display: block; }
 
-    /* ──────────── HEADER ──────────── */
+    /* ──────────── NAV override: fixed transparente sobre foto ──────────── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: linear-gradient(to bottom, rgba(30, 47, 35, 0.72) 0%, rgba(30, 47, 35, 0) 100%);
+      border-bottom-color: transparent;
+      transition: background 0.3s, border-color 0.3s, backdrop-filter 0.3s;
+    }
+    .nav .nav-logo, .nav .nav-logo span { color: var(--cream); }
+    .nav .nav-links a { color: rgba(245, 239, 227, 0.85); }
+    .nav .nav-cta { color: var(--cream); border-color: rgba(245, 239, 227, 0.3); }
+
+    .nav-logo-img-wrap {
+      position: relative;
+      width: 30px; height: 30px;
+      flex-shrink: 0;
+    }
+    .nav-logo-img-light, .nav-logo-img-dark {
+      position: absolute; inset: 0;
+      width: 30px; height: 30px; object-fit: contain;
+      transition: opacity 0.3s;
+    }
+    .nav-logo-img-dark { opacity: 0; }
+
+    .nav.scrolled {
+      background: rgba(30, 47, 35, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(200, 217, 204, 0.1);
+    }
+    .nav.scrolled .nav-logo, .nav.scrolled .nav-logo span { color: var(--cream); }
+    .nav.scrolled .nav-links a { color: rgba(245, 239, 227, 0.75); }
+    .nav.scrolled .nav-links a:hover,
+    .nav.scrolled .nav-links a.active { color: var(--cream); }
+    .nav.scrolled .nav-cta { color: var(--cream); border-color: rgba(245, 239, 227, 0.3); }
+
     /* ──────────── ACTIVITY CARD (hero oscuro con foto) ──────────── */
     .activity-card {
       position: relative;
