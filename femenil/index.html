@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Femenil · Actividades Norte</title>
+  <link rel="icon" href="/assets/png/isotipo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/assets/css/catalogo.css">
+  <script defer src="/assets/js/catalogo.js" data-seccion="FEMENIL"></script>
+  <script defer src="/assets/js/reveal.js"></script>
+  <script>
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('nav');
+      if (nav) nav.classList.toggle('scrolled', window.scrollY > 60);
+    }, { passive: true });
+  </script>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-logo">
+      <span class="nav-logo-img-wrap">
+        <img class="nav-logo-img-light" src="/assets/png/isotipo.png" alt="">
+        <img class="nav-logo-img-dark" src="/assets/png/isotipo-dark.png" alt="">
+      </span>
+      <span>Actividades Norte</span>
+    </a>
+    <div class="nav-links">
+      <a href="/varonil">Varonil</a>
+      <a href="/femenil" class="active">Femenil</a>
+      <a href="/#casas">Casas</a>
+      <a href="/contacto">Contacto</a>
+    </div>
+    <a href="/" class="nav-cta">
+      <svg width="16" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Inicio</span>
+    </a>
+    <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
+  </nav>
+
+  <header class="cat-header">
+    <div class="cat-header-bg">
+      <img src="/assets/png/catalogo-background.jpg" alt="">
+    </div>
+    <div class="cat-header-inner reveal">
+      <div class="cat-eyebrow">
+        <span class="cat-eyebrow-line"></span>
+        <span>Sección Femenil</span>
+      </div>
+      <h1 class="cat-title">Actividades <em>Femenil</em></h1>
+    </div>
+  </header>
+
+  <section class="filters">
+    <div class="filters-inner">
+      <div class="filter-group filter-search-group">
+        <label class="filter-label">Buscar</label>
+        <input type="text" id="f-search" class="filter-input" placeholder="ID, nombre o casa" autocomplete="off">
+        <div class="search-suggestions" id="f-suggestions" hidden></div>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Casa</label>
+        <select id="f-casa" class="filter-select">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Mes</label>
+        <select id="f-mes" class="filter-select">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <button class="filter-reset" id="f-reset">Limpiar</button>
+    </div>
+  </section>
+
+  <main class="cards-wrap">
+    <div class="cards-grid" id="cards"></div>
+    <div class="cards-empty" id="cards-empty" hidden>
+      <div class="cards-empty-inner">
+        <div class="cards-empty-mono">No hay resultados</div>
+        <p>Intenta con otros filtros o limpia la búsqueda.</p>
+      </div>
+    </div>
+    <div class="cards-loading" id="cards-loading">
+      <div class="spinner"></div>
+      <span>Cargando actividades…</span>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/png/isotipo.png" alt="">
+        <div class="footer-brand-name">Actividades Norte</div>
+        <p class="footer-brand-desc">Plataforma de reservaciones.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Secciones</div>
+        <ul>
+          <li><a href="/varonil">Varonil</a></li>
+          <li><a href="/femenil">Femenil</a></li>
+          <li><a href="/#casas">Casas</a></li>
+          <li><a href="/apartado">Completar pago</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Oficinas</div>
+        <ul>
+          <li class="contact-line">Níspero 211-A · Valle del Campestre<br>San Pedro Garza García, NL 66265</li>
+          <li><a href="tel:+528183357430">81 8335 7430</a></li>
+          <li><a href="mailto:portalnortemx@gmail.com">portalnortemx@gmail.com</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Horario</div>
+        <ul>
+          <li class="contact-line">Lun – Vie<br>10:00 a 13:00 · 16:00 a 19:00</li>
+          <li class="contact-line">Sábado<br>10:00 a 13:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-payments">
+      <div class="footer-payments-left">
+        <span class="footer-payments-label">Aceptamos</span>
+        <div class="footer-payments-icons">
+          <img src="/assets/png/icons/visa.png" alt="Visa">
+          <img src="/assets/png/icons/master-card.png" alt="Mastercard">
+          <img src="/assets/png/icons/amex.png" alt="American Express">
+          <img src="/assets/png/icons/oxxo.png" alt="OXXO">
+        </div>
+      </div>
+      <span class="footer-payments-label">Pagos seguros vía Stripe</span>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Actividades Norte</span>
+      <div class="footer-bottom-links">
+        <a href="/terminos">Términos</a>
+        <a href="/privacidad">Privacidad</a>
+        <a href="/politicas">Políticas de reservación</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

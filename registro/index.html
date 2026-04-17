@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro · Actividades Norte</title>
+  <link rel="icon" href="/assets/png/isotipo.png" type="image/png">
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:       #F6F1E7;
+      --cream-2:     #EDE6D8;
+      --cream-3:     #E4DBC7;
+      --green:       #2A4030;
+      --green-deep:  #1E2F23;
+      --green-2:     #3B5E46;
+      --green-3:     #C8D9CC;
+      --gold:        #A07840;
+      --gold-soft:   #C69B5F;
+      --charcoal:    #1A1C18;
+      --muted:       #6B7066;
+      --error:       #8B2020;
+
+      --font-display:  'Playfair Display', Georgia, serif;
+      --font-body:     'Lora', Georgia, serif;
+      --font-mono:     'JetBrains Mono', ui-monospace, monospace;
+
+      --radius:      6px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--cream);
+      color: var(--charcoal);
+      min-height: 100vh;
+      line-height: 1.6;
+      display: flex; flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; background: none; border: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    /* ──────────── HEADER ──────────── */
+    /* ──────────── ACTIVITY CARD (hero oscuro con foto) ──────────── */
+    .activity-card {
+      position: relative;
+      padding: clamp(100px, 15vh, 140px) var(--gutter) clamp(50px, 7vh, 80px);
+      overflow: hidden;
+      text-align: left;
+      color: var(--cream);
+    }
+    .activity-card-bg { position: absolute; inset: 0; z-index: 0; }
+    .activity-card-bg img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: brightness(0.75);
+    }
+    .activity-card-bg::after {
+      content: ''; position: absolute; inset: 0;
+      background:
+        linear-gradient(135deg, rgba(26, 46, 34, 0.55) 0%, rgba(32, 58, 42, 0.45) 50%, rgba(28, 52, 38, 0.68) 100%);
+    }
+    .activity-card-content {
+      position: relative; z-index: 1;
+      max-width: var(--max); margin: 0 auto;
+    }
+
+    .back-to-detail {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 10px 16px;
+      background: rgba(245, 239, 227, 0.1);
+      border: 1px solid rgba(245, 239, 227, 0.25);
+      border-radius: 4px;
+      color: var(--cream);
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.2s;
+      margin-bottom: 24px;
+    }
+    .back-to-detail:hover {
+      background: rgba(245, 239, 227, 0.15);
+      border-color: var(--gold-soft);
+      color: var(--gold-soft);
+    }
+    .back-to-detail svg { transition: transform 0.25s; }
+    .back-to-detail:hover svg { transform: translateX(-3px); }
+
+    .activity-badge {
+      display: inline-flex; align-items: center; gap: 12px;
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--gold-soft);
+      margin-bottom: 20px;
+    }
+    .activity-badge::before {
+      content: ''; width: 24px; height: 1px;
+      background: var(--gold-soft);
+    }
+    .activity-title {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 500; line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 22px;
+      color: var(--cream);
+      max-width: 900px;
+    }
+    .activity-title-id {
+      color: var(--gold-soft);
+      margin-right: 18px;
+      opacity: 0.92;
+      letter-spacing: -0.01em;
+    }
+    .activity-title em { font-style: italic; color: var(--gold-soft); }
+    .activity-meta {
+      display: flex; align-items: center; justify-content: flex-start;
+      gap: 14px; flex-wrap: wrap;
+      font-family: var(--font-mono); font-size: 12px;
+      letter-spacing: 0.08em;
+      color: rgba(200, 217, 204, 0.9);
+    }
+    .activity-meta .sep { opacity: 0.45; }
+
+    /* ──────────── PROGRESS (sobre cremita) ──────────── */
+    .progress-wrap {
+      background: var(--cream-2);
+      padding: 18px 24px;
+      border-bottom: 1px solid rgba(42, 64, 48, 0.1);
+    }
+    .progress-steps {
+      max-width: 520px; margin: 0 auto;
+      display: flex; align-items: center;
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      flex: 0 0 auto;
+    }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1.5px solid var(--green-3);
+      background: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+      color: var(--muted);
+      transition: all 0.3s;
+    }
+    .step.active .step-dot {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+    .step.done .step-dot {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #fff;
+    }
+    .step.done .step-dot::before { content: '✓'; font-size: 13px; }
+    .step.done .step-dot-num { display: none; }
+    .step-label {
+      font-family: var(--font-mono); font-size: 9px;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.3s;
+    }
+    .step.active .step-label { color: var(--green); }
+    .step.done .step-label { color: var(--gold); }
+    .step-line {
+      flex: 1; height: 1px;
+      background: var(--green-3);
+      margin: 0 8px 20px;
+      transition: background 0.3s;
+    }
+    .step-line.done { background: var(--gold); }
+
+    /* ──────────── MAIN FORM ──────────── */
+    main {
+      flex: 1;
+      padding: 40px 24px 72px;
+      max-width: 640px; margin: 0 auto;
+      width: 100%;
+    }
+
+    .section { display: none; animation: fadeIn 0.4s ease both; }
+    .section.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .sec-head { margin-bottom: 32px; }
+    .sec-eyebrow {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .sec-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--gold); }
+    .sec-title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 36px);
+      font-weight: 500; line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin-bottom: 10px;
+      color: var(--green);
+    }
+    .sec-title em { font-style: italic; color: var(--gold); }
+    .sec-desc {
+      font-size: 15px; line-height: 1.6;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ──────────── FIELDS ──────────── */
+    .field-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 18px; margin-bottom: 20px;
+    }
+    .field-row.single { grid-template-columns: 1fr; }
+    @media (max-width: 520px) {
+      .field-row { grid-template-columns: 1fr; gap: 18px; }
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--green);
+      font-weight: 500;
+    }
+    .field label .req { color: var(--gold); margin-left: 2px; }
+
+    .input, .select {
+      width: 100%;
+      padding: 13px 14px;
+      background: #fff;
+      border: 1.5px solid var(--green-3);
+      border-radius: var(--radius);
+      color: var(--charcoal);
+      font-family: var(--font-body); font-size: 15px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .input:focus, .select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(42, 64, 48, 0.08);
+    }
+    .input.error { border-color: var(--error); }
+    .input::placeholder { color: #B0B4AA; font-style: italic; }
+
+    .select {
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232A4030' stroke-width='1.4' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 40px;
+      cursor: pointer;
+    }
+
+    .wa-row {
+      display: flex; gap: 8px; align-items: stretch;
+    }
+    .wa-lada { flex-shrink: 0; width: 108px; }
+
+    .field-hint {
+      font-family: var(--font-body); font-size: 12px; font-style: italic;
+      color: var(--muted);
+    }
+    .field-error {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--error);
+      display: none;
+    }
+    .field-error.show { display: block; }
+
+    /* ──────────── PAYMENT TOGGLE (Contado/Apartado) ──────────── */
+    .pay-toggle {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 32px;
+    }
+    .pay-opt { position: relative; }
+    .pay-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .pay-opt label {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; padding: 22px 12px;
+      background: #fff;
+      border: 2px solid var(--green-3);
+      border-radius: var(--radius);
+      cursor: pointer; text-align: center;
+      transition: all 0.25s;
+    }
+    .pay-opt label svg {
+      color: var(--green);
+      transition: color 0.25s;
+    }
+    .pay-opt label:hover {
+      border-color: var(--green-2);
+      background: #FDFBF5;
+    }
+    .pay-opt input:checked + label {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+    .pay-opt input:checked + label svg { color: var(--gold-soft); }
+    .pay-opt label strong {
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 500;
+      color: var(--green);
+      transition: color 0.25s;
+    }
+    .pay-opt input:checked + label strong { color: #fff; }
+    .pay-opt label small {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .pay-opt input:checked + label small { color: rgba(255, 255, 255, 0.72); }
+
+    /* ──────────── METHOD CARDS ──────────── */
+    .method-group { display: none; animation: fadeIn 0.3s ease both; }
+    .method-group.show { display: block; }
+
+    .method-heading {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--green-3);
+    }
+    .methods { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .method { position: relative; }
+    .method input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .method label {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px;
+      background: #fff;
+      border: 1.5px solid var(--green-3);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .method label:hover { border-color: var(--green-2); }
+    .method input:checked + label {
+      border-color: var(--green);
+      background: rgba(42, 64, 48, 0.04);
+    }
+    .method-radio {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 1.5px solid var(--green-3);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .method input:checked + label .method-radio {
+      border-color: var(--green);
+      background: var(--green);
+    }
+    .method input:checked + label .method-radio::after {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: #fff;
+    }
+    .method-info { flex: 1; min-width: 0; }
+    .method-info strong {
+      display: block;
+      font-family: var(--font-body); font-size: 14px; font-weight: 500;
+      color: var(--charcoal);
+      margin-bottom: 2px;
+    }
+    .method-info small {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .method-icons {
+      display: flex; gap: 6px; align-items: center; flex-shrink: 0;
+    }
+    .method-icons img {
+      height: 22px; width: auto; border-radius: 2px;
+    }
+    .method-icons svg { color: var(--muted); opacity: 0.55; }
+
+    /* ──────────── SUMMARY ──────────── */
+    #summary-card {
+      background: #fff;
+      border: 1.5px solid var(--green-3);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 22px;
+    }
+    .sum-row {
+      display: flex; justify-content: space-between; gap: 16px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--cream-3);
+      font-size: 13px;
+    }
+    .sum-row:last-child { border-bottom: none; }
+    .sum-row .sum-key {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .sum-row .sum-val {
+      text-align: right;
+      color: var(--charcoal);
+      font-weight: 500;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, rgba(42, 64, 48, 0.06), rgba(42, 64, 48, 0.02));
+      border: 1px solid var(--green-3);
+      border-left: 3px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 22px;
+    }
+    .info-box p {
+      font-size: 13px; line-height: 1.6;
+      color: var(--charcoal);
+    }
+    .info-box strong { color: var(--green); }
+
+    .ornament {
+      text-align: center;
+      color: var(--green-3);
+      font-family: var(--font-mono);
+      letter-spacing: 10px;
+      margin: 20px 0 20px;
+      font-size: 11px;
+    }
+
+    /* ──────────── AGREEMENTS ──────────── */
+    .agreements {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .agreement {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 16px;
+      background: #fff;
+      border: 1.5px solid var(--green-3);
+      border-radius: var(--radius);
+      cursor: pointer; user-select: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .agreement:has(input:checked) {
+      border-color: var(--green);
+      background: rgba(42, 64, 48, 0.03);
+    }
+    .agreement input {
+      appearance: none;
+      width: 18px; height: 18px;
+      border: 1.5px solid var(--green-3);
+      border-radius: 3px;
+      flex-shrink: 0; margin-top: 2px;
+      cursor: pointer;
+      pointer-events: none;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .agreement input:checked {
+      border-color: var(--green);
+      background: var(--green);
+    }
+    .agreement input:checked::after {
+      content: ''; position: absolute;
+      left: 5px; top: 1px;
+      width: 5px; height: 10px;
+      border: solid #fff;
+      border-width: 0 1.5px 1.5px 0;
+      transform: rotate(45deg);
+    }
+    .agreement-text strong {
+      display: block; margin-bottom: 4px;
+      font-family: var(--font-body); font-size: 14px; font-weight: 500;
+      color: var(--charcoal);
+    }
+    .agreement-text strong .req { color: var(--gold); margin-left: 2px; }
+    .agreement-text p {
+      font-size: 12px; line-height: 1.5;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .agreement-text a {
+      color: var(--green);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    #err-acuerdos { margin-top: 12px; display: none; }
+    #err-acuerdos.show { display: block; }
+
+    /* ──────────── BUTTONS ──────────── */
+    .btn-row {
+      display: flex; gap: 12px; margin-top: 28px;
+    }
+    .btn {
+      padding: 15px 28px;
+      border-radius: var(--radius);
+      font-family: var(--font-mono); font-size: 12px;
+      font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 10px;
+      border: 1.5px solid transparent;
+    }
+    .btn-back {
+      background: transparent;
+      border-color: var(--green-3);
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .btn-back:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .btn-next, .btn-submit {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+      flex: 1;
+    }
+    .btn-next:hover, .btn-submit:hover {
+      background: var(--green-2);
+      border-color: var(--green-2);
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .btn.loading .spinner { display: block; }
+    .btn.loading .btn-text { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ──────────── STRIPE PAYMENT ──────────── */
+    .pay-summary {
+      background: #fff;
+      border: 1.5px solid var(--green-3);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      margin-bottom: 20px;
+      display: flex; justify-content: space-between;
+      align-items: flex-start; gap: 16px;
+    }
+    .pay-sum-left { flex: 1; min-width: 0; }
+    .pay-sum-name {
+      font-family: var(--font-display); font-size: 16px; font-weight: 500;
+      color: var(--green); line-height: 1.3;
+      margin-bottom: 5px;
+    }
+    .pay-sum-meta {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .pay-sum-right { flex-shrink: 0; text-align: right; }
+    .pay-sum-label {
+      font-family: var(--font-mono); font-size: 9px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .pay-sum-amount {
+      font-family: var(--font-display); font-size: 26px; font-weight: 500;
+      color: var(--green);
+      letter-spacing: -0.02em;
+    }
+
+    .pay-context {
+      margin-bottom: 18px;
+      padding: 14px 18px;
+      background: rgba(42, 64, 48, 0.04);
+      border: 1px solid var(--green-3);
+      border-radius: var(--radius);
+      font-size: 13px; line-height: 1.6;
+      color: var(--charcoal);
+      font-style: italic;
+    }
+    .pay-context-oxxo {
+      display: flex; align-items: flex-start; gap: 14px;
+      font-style: normal; background: #fff;
+    }
+    .pay-context-oxxo img { height: 28px; width: auto; flex-shrink: 0; margin-top: 2px; }
+    .pay-context-oxxo strong { display: block; margin-bottom: 4px; color: var(--charcoal); font-weight: 500; }
+    .pay-context-oxxo span { font-style: italic; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .pay-context-oxxo span strong { display: inline; color: var(--green); font-style: normal; }
+
+    #payment-element-wrap {
+      background: #fff;
+      border: 1.5px solid var(--green-3);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    #payment-element-loading {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--muted);
+      font-family: var(--font-body); font-size: 13px;
+      font-style: italic;
+      padding: 10px 0;
+    }
+    #payment-element-loading .spinner {
+      display: block;
+      border-color: var(--green-3);
+      border-top-color: var(--green);
+    }
+
+    #payment-message {
+      font-size: 13px;
+      color: var(--error);
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: rgba(139, 32, 32, 0.06);
+      border: 1px solid rgba(139, 32, 32, 0.25);
+      border-radius: var(--radius);
+      display: none;
+    }
+
+    /* ──────────── SUCCESS SCREEN embebido (Transferencia) ──────────── */
+    .success-wrap {
+      display: none;
+      text-align: center;
+      padding: 56px 20px;
+      max-width: 500px; margin: 0 auto;
+    }
+    .success-wrap.show { display: block; }
+    .success-icon {
+      width: 68px; height: 68px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 26px;
+    }
+    .success-title {
+      font-family: var(--font-display);
+      font-size: 30px; font-weight: 500;
+      color: var(--green);
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+    .success-title em { font-style: italic; color: var(--gold); }
+    .success-desc {
+      font-size: 15px; line-height: 1.7;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 28px;
+    }
+    .success-id-card {
+      background: var(--cream-2);
+      border: 1.5px solid var(--green-3);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+    }
+    .success-id-label {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .success-id-value {
+      font-family: var(--font-mono); font-size: 20px; font-weight: 500;
+      color: var(--green);
+      letter-spacing: 0.08em;
+    }
+
+    /* ──────────── ERR ID ──────────── */
+    .err-id-wrap {
+      display: none;
+      text-align: center;
+      padding: 64px 20px;
+      max-width: 500px; margin: 0 auto;
+    }
+    .err-id-wrap.show { display: block; }
+    .err-id-icon {
+      width: 56px; height: 56px; margin: 0 auto 20px;
+      color: rgba(139, 32, 32, 0.6);
+    }
+    .err-id-title {
+      font-family: var(--font-display);
+      font-size: 26px; font-weight: 500;
+      color: var(--green);
+      margin-bottom: 12px;
+    }
+    .err-id-desc {
+      font-size: 14px; color: var(--muted);
+      font-style: italic; line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .err-id-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 28px;
+      background: var(--green); color: #fff;
+      font-family: var(--font-mono); font-size: 12px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      border-radius: var(--radius);
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .err-id-cta:hover { background: var(--green-2); }
+  </style>
+  <script defer src="/assets/js/reveal.js"></script>
+  <script>
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('nav');
+      if (nav) nav.classList.toggle('scrolled', window.scrollY > 60);
+    }, { passive: true });
+  </script>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-logo">
+      <span class="nav-logo-img-wrap">
+        <img class="nav-logo-img-light" src="/assets/png/isotipo.png" alt="">
+        <img class="nav-logo-img-dark" src="/assets/png/isotipo-dark.png" alt="">
+      </span>
+      <span>Actividades Norte</span>
+    </a>
+    <div class="nav-links">
+      <a href="/varonil">Varonil</a>
+      <a href="/femenil">Femenil</a>
+      <a href="/#casas">Casas</a>
+      <a href="/contacto">Contacto</a>
+    </div>
+    <a href="/" class="nav-cta">
+      <svg width="16" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Inicio</span>
+    </a>
+    <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
+  </nav>
+
+  <!-- ACTIVITY CARD -->
+  <section class="activity-card">
+    <div class="activity-card-bg">
+      <img src="/assets/png/registro-background.jpg" alt="">
+    </div>
+    <div class="activity-card-content reveal">
+      <a href="#" id="back-to-detail" class="back-to-detail">
+        <svg width="14" height="10" viewBox="0 0 16 10" fill="none"><path d="M15 5H1m0 0l4-4M1 5l4 4" stroke="currentColor" stroke-width="1.3"/></svg>
+        <span>Regresar al detalle</span>
+      </a>
+      <div class="activity-badge" id="act-badge">Registro · Varonil</div>
+      <h1 class="activity-title">
+        <span class="activity-title-id" id="act-title-id">AV000</span><span id="act-title-name">Cargando actividad…</span>
+      </h1>
+      <div class="activity-meta">
+        <span id="act-casa"></span>
+        <span class="sep" id="act-sep" style="display:none;">·</span>
+        <span id="act-fechas"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section class="progress-wrap reveal" id="progress-wrap">
+    <div class="progress-steps">
+      <div class="step active" id="step-1">
+        <div class="step-dot"><span class="step-dot-num">1</span></div>
+        <div class="step-label">Datos</div>
+      </div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step" id="step-2">
+        <div class="step-dot"><span class="step-dot-num">2</span></div>
+        <div class="step-label">Pago</div>
+      </div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step" id="step-3">
+        <div class="step-dot"><span class="step-dot-num">3</span></div>
+        <div class="step-label">Confirmar</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- Error: ID no existe -->
+    <div class="err-id-wrap" id="err-id-wrap">
+      <svg class="err-id-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <circle cx="12" cy="16" r="0.8" fill="currentColor"/>
+      </svg>
+      <h2 class="err-id-title">Actividad no encontrada</h2>
+      <p class="err-id-desc" id="err-id-desc">
+        El ID de actividad no existe o no está disponible en este momento.
+      </p>
+      <a href="/" class="err-id-cta">
+        Volver al inicio
+        <svg width="16" height="10" viewBox="0 0 16 10" fill="none"><path d="M1 5h14m0 0L11 1m4 4L11 9" stroke="currentColor" stroke-width="1.3"/></svg>
+      </a>
+    </div>
+
+    <!-- PASO 1: Datos -->
+    <div class="section active reveal" id="section-1">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Paso 1 de 3</div>
+        <h2 class="sec-title">Información del <em>asistente</em></h2>
+        <p class="sec-desc">Ingresa tus datos personales para completar el registro.</p>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="nombre">Nombre<span class="req">*</span></label>
+          <input class="input" type="text" id="nombre" placeholder="Tu nombre" autocomplete="given-name">
+          <span class="field-error" id="err-nombre">Campo requerido</span>
+        </div>
+        <div class="field">
+          <label for="apellidos">Apellidos<span class="req">*</span></label>
+          <input class="input" type="text" id="apellidos" placeholder="Tus apellidos" autocomplete="family-name">
+          <span class="field-error" id="err-apellidos">Campo requerido</span>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="email">Correo electrónico<span class="req">*</span></label>
+          <input class="input" type="email" id="email" placeholder="correo@ejemplo.com" autocomplete="email">
+          <span class="field-error" id="err-email">Ingresa un correo válido</span>
+        </div>
+        <div class="field">
+          <label for="whatsapp-num">WhatsApp<span class="req">*</span></label>
+          <div class="wa-row">
+            <select class="select wa-lada" id="whatsapp-lada">
+              <option value="+52" selected>🇲🇽 +52</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+502">🇬🇹 +502</option>
+              <option value="+503">🇸🇻 +503</option>
+              <option value="+504">🇭🇳 +504</option>
+              <option value="+505">🇳🇮 +505</option>
+              <option value="+506">🇨🇷 +506</option>
+              <option value="+507">🇵🇦 +507</option>
+              <option value="+57">🇨🇴 +57</option>
+              <option value="+58">🇻🇪 +58</option>
+              <option value="+51">🇵🇪 +51</option>
+              <option value="+56">🇨🇱 +56</option>
+              <option value="+54">🇦🇷 +54</option>
+              <option value="+34">🇪🇸 +34</option>
+            </select>
+            <input class="input" type="tel" id="whatsapp-num" placeholder="81 1234 5678" maxlength="10" autocomplete="tel">
+          </div>
+          <span class="field-error" id="err-whatsapp">Ingresa tu número de WhatsApp</span>
+        </div>
+      </div>
+
+      <!-- Varonil: texto libre -->
+      <div class="field-row single" id="field-encargado-varonil">
+        <div class="field">
+          <label for="encargado">Encargado · Centro · Institución<span class="req">*</span></label>
+          <input class="input" type="text" id="encargado" placeholder="Ej. Sillares, Monte Real, Sierra Alta">
+          <span class="field-hint">Encargado de la actividad, centro al que asistes o institución.</span>
+          <span class="field-error" id="err-encargado">Campo requerido</span>
+        </div>
+      </div>
+
+      <!-- Femenil: select -->
+      <div class="field-row single" id="field-encargado-femenil" style="display:none;">
+        <div class="field">
+          <label for="centro-femenil">Centro al que asistes<span class="req">*</span></label>
+          <select class="select" id="centro-femenil">
+            <option value="">Selecciona tu centro…</option>
+            <option>Alera Valle Señoras</option>
+            <option>Alsak Niñas</option>
+            <option>Alsak Señoras</option>
+            <option>Arenal Niñas</option>
+            <option>Arenal Señoras</option>
+            <option>Casavalle</option>
+            <option>Club Alera</option>
+            <option>Cumbres</option>
+            <option>Curso de Estudios (Lindero - San Gabriel)</option>
+            <option>Lairén</option>
+            <option>Lairén - San Gabriel</option>
+            <option>Lindero</option>
+            <option>Los Pinos</option>
+            <option>Mirasierra</option>
+            <option>Redaya</option>
+            <option>Redaya - San Gabriel</option>
+            <option>Ronda</option>
+            <option>Yalam</option>
+            <option>Yalam - San Gabriel</option>
+            <option>Zumaya</option>
+            <option>Otro</option>
+          </select>
+          <span class="field-error" id="err-centro-femenil">Selecciona un centro</span>
+        </div>
+      </div>
+
+      <div class="field-row single">
+        <div class="field">
+          <label for="ciudad">Ciudad de residencia<span class="req">*</span></label>
+          <input class="input" type="text" id="ciudad" placeholder="Ej. Monterrey, N.L." autocomplete="address-level2">
+          <span class="field-error" id="err-ciudad">Campo requerido</span>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-next" onclick="goStep(2)">
+          <span class="btn-text">Continuar</span>
+          <svg width="16" height="10" viewBox="0 0 16 10" fill="none"><path d="M1 5h14m0 0L11 1m4 4L11 9" stroke="currentColor" stroke-width="1.3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 2: Pago -->
+    <div class="section" id="section-2">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Paso 2 de 3</div>
+        <h2 class="sec-title">Método de <em>pago</em></h2>
+        <p class="sec-desc">Selecciona cómo realizarás tu pago.</p>
+      </div>
+
+      <div class="pay-toggle">
+        <div class="pay-opt">
+          <input type="radio" name="pago-tipo" id="pago-contado" value="Contado" checked onchange="updatePayment()">
+          <label for="pago-contado">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+            </svg>
+            <strong>Contado</strong>
+            <small>Pago total</small>
+          </label>
+        </div>
+        <div class="pay-opt">
+          <input type="radio" name="pago-tipo" id="pago-apartado" value="Apartado" onchange="updatePayment()">
+          <label for="pago-apartado">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="3" y="8" width="18" height="13" rx="2"/><path d="M7 8V6a5 5 0 0 1 10 0v2"/>
+            </svg>
+            <strong>Apartado</strong>
+            <small>Pago parcial</small>
+          </label>
+        </div>
+      </div>
+
+      <!-- Métodos Contado -->
+      <div class="method-group show" id="methods-contado">
+        <div class="method-heading">Forma de pago — Contado</div>
+        <div class="methods">
+          <div class="method">
+            <input type="radio" name="metodo-contado" id="mc-tarjeta" value="Tarjeta de Crédito o Débito" checked>
+            <label for="mc-tarjeta">
+              <div class="method-radio"></div>
+              <div class="method-info">
+                <strong>Tarjeta de Crédito o Débito</strong>
+                <small>Pago seguro vía Stripe</small>
+              </div>
+              <div class="method-icons">
+                <img src="/assets/png/icons/visa.png" alt="Visa">
+                <img src="/assets/png/icons/master-card.png" alt="Mastercard">
+                <img src="/assets/png/icons/amex.png" alt="Amex">
+              </div>
+            </label>
+          </div>
+          <div class="method">
+            <input type="radio" name="metodo-contado" id="mc-oxxo" value="OXXO en Efectivo">
+            <label for="mc-oxxo">
+              <div class="method-radio"></div>
+              <div class="method-info">
+                <strong>OXXO en Efectivo</strong>
+                <small>Paga en cualquier tienda OXXO</small>
+              </div>
+              <div class="method-icons">
+                <img src="/assets/png/icons/oxxo.png" alt="OXXO">
+              </div>
+            </label>
+          </div>
+          <div class="method">
+            <input type="radio" name="metodo-contado" id="mc-transfer" value="Transferencia o Depósito Bancario">
+            <label for="mc-transfer">
+              <div class="method-radio"></div>
+              <div class="method-info">
+                <strong>Transferencia o Depósito</strong>
+                <small>SPEI · Sube tu comprobante al finalizar</small>
+              </div>
+              <div class="method-icons">
+                <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                  <path d="M3 12L16 3L29 12"/>
+                  <line x1="2" y1="12" x2="30" y2="12"/>
+                  <line x1="7" y1="14" x2="7" y2="25"/>
+                  <line x1="13" y1="14" x2="13" y2="25"/>
+                  <line x1="19" y1="14" x2="19" y2="25"/>
+                  <line x1="25" y1="14" x2="25" y2="25"/>
+                  <line x1="2" y1="26" x2="30" y2="26"/>
+                  <line x1="2" y1="29" x2="30" y2="29"/>
+                </svg>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Métodos Apartado -->
+      <div class="method-group" id="methods-apartado">
+        <div class="method-heading">Forma de pago — Apartado</div>
+        <div class="methods">
+          <div class="method">
+            <input type="radio" name="metodo-apartado" id="ma-tarjeta" value="Tarjeta de Crédito o Débito" checked>
+            <label for="ma-tarjeta">
+              <div class="method-radio"></div>
+              <div class="method-info">
+                <strong>Tarjeta de Crédito o Débito</strong>
+                <small>Pago seguro vía Stripe</small>
+              </div>
+              <div class="method-icons">
+                <img src="/assets/png/icons/visa.png" alt="Visa">
+                <img src="/assets/png/icons/master-card.png" alt="Mastercard">
+                <img src="/assets/png/icons/amex.png" alt="Amex">
+              </div>
+            </label>
+          </div>
+          <div class="method">
+            <input type="radio" name="metodo-apartado" id="ma-oxxo" value="OXXO en Efectivo">
+            <label for="ma-oxxo">
+              <div class="method-radio"></div>
+              <div class="method-info">
+                <strong>OXXO en Efectivo</strong>
+                <small>Paga en cualquier tienda OXXO</small>
+              </div>
+              <div class="method-icons">
+                <img src="/assets/png/icons/oxxo.png" alt="OXXO">
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goStep(1)">
+          <svg width="16" height="10" viewBox="0 0 16 10" fill="none"><path d="M15 5H1m0 0l4-4M1 5l4 4" stroke="currentColor" stroke-width="1.3"/></svg>
+          Regresar
+        </button>
+        <button class="btn btn-next" onclick="goStep(3)">
+          <span class="btn-text">Continuar</span>
+          <svg width="16" height="10" viewBox="0 0 16 10" fill="none"><path d="M1 5h14m0 0L11 1m4 4L11 9" stroke="currentColor" stroke-width="1.3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 3: Confirmar -->
+    <div class="section" id="section-3">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Paso 3 de 3</div>
+        <h2 class="sec-title">Confirmación <em>final</em></h2>
+        <p class="sec-desc">Revisa tus datos y acepta los términos para completar tu registro.</p>
+      </div>
+
+      <div id="summary-card"></div>
+
+      <div class="info-box">
+        <p>Recibirás un <strong>correo electrónico</strong> con tu <strong>ID de Asistente</strong>. Esta clave es importante para completar tu proceso de pago. Revisa tu bandeja de entrada y spam.</p>
+      </div>
+
+      <div class="ornament">· · ·</div>
+
+      <div class="agreements">
+        <label class="agreement" for="chk-aviso">
+          <input type="checkbox" id="chk-aviso">
+          <div class="agreement-text">
+            <strong>Aviso importante de pago</strong>
+            <p>Entiendo que recibiré un correo con mi ID de Asistente y que debo completar mi proceso de pago para confirmar mi lugar.</p>
+          </div>
+        </label>
+        <label class="agreement" for="chk-tc">
+          <input type="checkbox" id="chk-tc">
+          <div class="agreement-text">
+            <strong>Términos y Condiciones<span class="req">*</span></strong>
+            <p>He leído y acepto los <a href="https://stripe.com/mx/legal/consumer" target="_blank">Términos y Condiciones</a> del servicio.</p>
+          </div>
+        </label>
+        <label class="agreement" for="chk-pp">
+          <input type="checkbox" id="chk-pp">
+          <div class="agreement-text">
+            <strong>Políticas de Reservación<span class="req">*</span></strong>
+            <p>He leído y acepto las <a href="https://www.actividadesnorte.com/_files/ugd/78c590_d53188cd5f3843b1837e89fa65655e98.pdf" target="_blank">Políticas de Reservación</a>.</p>
+          </div>
+        </label>
+      </div>
+
+      <span class="field-error" id="err-acuerdos">Debes aceptar todos los puntos para continuar.</span>
+
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goStep(2)">
+          <svg width="16" height="10" viewBox="0 0 16 10" fill="none"><path d="M15 5H1m0 0l4-4M1 5l4 4" stroke="currentColor" stroke-width="1.3"/></svg>
+          Regresar
+        </button>
+        <button class="btn btn-submit" id="btn-submit" onclick="submitForm()">
+          <span class="btn-text">Completar registro</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 4: Stripe Payment Element -->
+    <div class="section" id="section-4">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Pago seguro · Stripe</div>
+        <h2 class="sec-title" id="pay-title">Completa tu <em>pago</em></h2>
+        <p class="sec-desc" id="pay-desc">Ingresa los datos de pago para confirmar tu lugar.</p>
+      </div>
+
+      <div class="pay-summary">
+        <div class="pay-sum-left">
+          <div class="pay-sum-name" id="pay-act-nombre">—</div>
+          <div class="pay-sum-meta" id="pay-act-casa"></div>
+          <div class="pay-sum-meta" id="pay-act-fechas"></div>
+        </div>
+        <div class="pay-sum-right">
+          <div class="pay-sum-label">Total</div>
+          <div class="pay-sum-amount" id="pay-amount">—</div>
+        </div>
+      </div>
+
+      <div id="pay-context"></div>
+
+      <div id="payment-element-wrap">
+        <div id="payment-element">
+          <div id="payment-element-loading">
+            <div class="spinner"></div>
+            Cargando formulario de pago…
+          </div>
+        </div>
+      </div>
+
+      <div id="payment-message"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="cancelarPago()">
+          <svg width="16" height="10" viewBox="0 0 16 10" fill="none"><path d="M15 5H1m0 0l4-4M1 5l4 4" stroke="currentColor" stroke-width="1.3"/></svg>
+          Regresar
+        </button>
+        <button class="btn btn-submit" id="btn-pay" onclick="confirmPago()">
+          <span class="btn-text" id="btn-pay-text">Completar pago</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Éxito (Transferencia) -->
+    <div class="success-wrap" id="success-wrap">
+      <div class="success-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h2 class="success-title">¡Registro <em>recibido!</em></h2>
+      <p class="success-desc">
+        En breve recibirás un correo con tu ID de Asistente y los datos bancarios para completar tu transferencia.
+      </p>
+      <div class="success-id-card">
+        <div class="success-id-label">Tu ID de Asistente</div>
+        <div class="success-id-value" id="success-id-asistente">—</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/png/isotipo.png" alt="">
+        <div class="footer-brand-name">Actividades Norte</div>
+        <p class="footer-brand-desc">Plataforma de reservaciones.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Secciones</div>
+        <ul>
+          <li><a href="/varonil">Varonil</a></li>
+          <li><a href="/femenil">Femenil</a></li>
+          <li><a href="/#casas">Casas</a></li>
+          <li><a href="/apartado">Completar pago</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Oficinas</div>
+        <ul>
+          <li class="contact-line">Níspero 211-A<br>Valle del Campestre<br>San Pedro Garza García, NL 66265</li>
+          <li><a href="tel:+528183357430">81 8335 7430</a></li>
+          <li><a href="mailto:portalnortemx@gmail.com">portalnortemx@gmail.com</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Horario</div>
+        <ul>
+          <li class="contact-line">Lun – Vie<br>10:00 a 13:00 · 16:00 a 19:00</li>
+          <li class="contact-line">Sábado<br>10:00 a 13:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-payments">
+      <div class="footer-payments-left">
+        <span class="footer-payments-label">Aceptamos</span>
+        <div class="footer-payments-icons">
+          <img src="/assets/png/icons/visa.png" alt="Visa">
+          <img src="/assets/png/icons/master-card.png" alt="Mastercard">
+          <img src="/assets/png/icons/amex.png" alt="American Express">
+          <img src="/assets/png/icons/oxxo.png" alt="OXXO">
+        </div>
+      </div>
+      <span class="footer-payments-label">Pagos seguros vía Stripe</span>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Actividades Norte</span>
+      <div class="footer-bottom-links">
+        <a href="/terminos">Términos</a>
+        <a href="/privacidad">Privacidad</a>
+        <a href="/politicas">Políticas de reservación</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* CONFIG */
+    const STRIPE_PK = {
+      varonil: 'pk_live_51OjmP3InV3BygPkLbM6REVHFHEiobBOKxqNBeLkkgSy2vKKF9Dql43zFWaKHjKrZnSOgalfQ9kVXa9Ipml7X8PZK00ZGyQyJPV',
+      femenil: 'pk_live_51O4UzxHq3UG7g1p33TB6zQbG3AQ6WMk7PMVyiQD3w0j1Ue0SO7sgdnIlDUBiwmYyg1m85X2mTlYtMAIPpCK6jUUQ00NPPRf6D6',
+    };
+    const BASE_URL = 'https://launch.actividadesnorte.com';
+
+    /* DETECCIÓN DE GÉNERO POR ID */
+    const params      = new URLSearchParams(window.location.search);
+    const actividadId = (params.get('id') || '').trim().toUpperCase();
+
+    let genero = 'varonil';
+    if (actividadId.startsWith('AF')) genero = 'femenil';
+    else if (actividadId.startsWith('AV')) genero = 'varonil';
+
+    if (!actividadId || (!actividadId.startsWith('AV') && !actividadId.startsWith('AF'))) {
+      document.getElementById('progress-wrap').style.display = 'none';
+      document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+      document.getElementById('err-id-wrap').classList.add('show');
+      if (!actividadId) {
+        document.getElementById('err-id-desc').textContent = 'No se especificó un ID de actividad.';
+      }
+    } else {
+      document.getElementById('act-badge').textContent = `Registro · ${genero === 'femenil' ? 'Femenil' : 'Varonil'}`;
+      document.getElementById('act-title-id').textContent = actividadId;
+      // Back to detail button
+      const backBtn = document.getElementById('back-to-detail');
+      if (backBtn) backBtn.href = '/v?id=' + encodeURIComponent(actividadId);
+      if (genero === 'femenil') {
+        document.getElementById('field-encargado-varonil').style.display = 'none';
+        document.getElementById('field-encargado-femenil').style.display = '';
+      }
+    }
+
+    // Helper: limpia prefijo "AV024 - " / "AF035-1 - "
+    function cleanNombreRegistro(nombre, id) {
+      if (!nombre) return id || '';
+      const m = nombre.match(/^[A-Z]{2}\d+(?:-\d+)?\s*[-·:]\s*(.+)$/);
+      return m ? m[1] : nombre;
+    }
+
+    /* FORMAT FECHA */
+    function formatFecha(iso) {
+      if (!iso) return '';
+      try {
+        const d = new Date(iso);
+        const parts = new Intl.DateTimeFormat('es-MX', {
+          timeZone: 'America/Mexico_City',
+          year: 'numeric', month: 'long', day: 'numeric',
+          hour: '2-digit', minute: '2-digit', hour12: false
+        }).formatToParts(d);
+        const get = t => parts.find(p => p.type === t)?.value || '';
+        const mes = get('month');
+        const mesC = mes.charAt(0).toUpperCase() + mes.slice(1);
+        const hora = get('hour'), min = get('minute');
+        const soloFecha = (hora === '00' && min === '00');
+        return soloFecha
+          ? `${mesC} ${get('day')}, ${get('year')}`
+          : `${mesC} ${get('day')}, ${get('year')} · ${hora}:${min}hrs`;
+      } catch(e) { return iso; }
+    }
+
+    /* CARGAR ACTIVIDAD */
+    async function loadActividad() {
+      if (!actividadId) return;
+      try {
+        const res  = await fetch('/api/actividad?id=' + encodeURIComponent(actividadId));
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        document.getElementById('act-title-name').textContent = cleanNombreRegistro(data.nombre, actividadId);
+
+        // Casa como array o string
+        let casasArr = [];
+        if (Array.isArray(data.casa)) casasArr = data.casa.filter(Boolean);
+        else if (typeof data.casa === 'string' && data.casa.trim()) {
+          casasArr = data.casa.split(/[,;]\s*/).map(s => s.trim()).filter(Boolean);
+        }
+        const casaDisplay = casasArr.join(', ');
+        if (casaDisplay) {
+          document.getElementById('act-casa').textContent = casaDisplay;
+          document.getElementById('act-sep').style.display = '';
+        }
+
+        let fechas = '';
+        if (data.fechaInicio && data.fechaFin) {
+          fechas = formatFecha(data.fechaInicio) + '  –  ' + formatFecha(data.fechaFin);
+        } else if (data.fechaCompleta) {
+          fechas = data.fechaCompleta;
+        }
+        document.getElementById('act-fechas').textContent = fechas;
+
+      } catch (err) {
+        console.error('loadActividad:', err.message);
+        document.getElementById('act-title-name').textContent = '';
+        if (err.message && err.message.toLowerCase().includes('no encontrada')) {
+          document.getElementById('progress-wrap').style.display = 'none';
+          document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+          document.getElementById('err-id-wrap').classList.add('show');
+          document.getElementById('err-id-desc').textContent = `La actividad ${actividadId} no existe o no está disponible.`;
+        }
+      }
+    }
+    if (actividadId) loadActividad();
+
+    /* STEPS */
+    let currentStep = 1;
+    function goStep(n) {
+      if (n > currentStep && !validateStep(currentStep)) return;
+      currentStep = n;
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      const t = document.getElementById('section-' + n);
+      if (t) { t.classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      for (let i = 1; i <= 3; i++) {
+        const dot = document.getElementById('step-' + i);
+        const ln  = document.getElementById('line-' + i);
+        dot.classList.remove('active','done');
+        if (i < n) dot.classList.add('done');
+        else if (i === n) dot.classList.add('active');
+        if (ln) ln.classList.toggle('done', i < n);
+      }
+      if (n === 3) buildSummary();
+    }
+
+    /* PAYMENT TOGGLE */
+    function updatePayment() {
+      const ap = document.getElementById('pago-apartado').checked;
+      document.getElementById('methods-contado').classList.toggle('show', !ap);
+      document.getElementById('methods-apartado').classList.toggle('show', ap);
+    }
+    function getTipoPago()  { return document.getElementById('pago-apartado').checked ? 'Apartado' : 'Contado'; }
+    function getMetodo() {
+      const ap  = document.getElementById('pago-apartado').checked;
+      const sel = document.querySelector(
+        (ap ? 'input[name="metodo-apartado"]' : 'input[name="metodo-contado"]') + ':checked'
+      );
+      return sel ? sel.value : '';
+    }
+    function esTransferencia() { return getMetodo() === 'Transferencia o Depósito Bancario'; }
+
+    function mapMetodoPago(tipo, metodo) {
+      if (metodo === 'Transferencia o Depósito Bancario') {
+        return 'Contado - Depósito Bancario';
+      }
+      return `${tipo} - Pago con Tarjeta/OXXO`;
+    }
+
+    /* VALIDATION */
+    function validateStep(step) {
+      let ok = true;
+      if (step === 1) {
+        ok = vf('nombre',   'err-nombre',   v => v.trim() !== '') && ok;
+        ok = vf('apellidos','err-apellidos',v => v.trim() !== '') && ok;
+        ok = vf('email',    'err-email',    v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) && ok;
+        ok = vf('whatsapp-num', 'err-whatsapp', v => v.trim() !== '') && ok;
+        if (genero === 'femenil') {
+          ok = vf('centro-femenil','err-centro-femenil', v => v !== '') && ok;
+        } else {
+          ok = vf('encargado','err-encargado', v => v.trim() !== '') && ok;
+        }
+        ok = vf('ciudad',   'err-ciudad',   v => v.trim() !== '') && ok;
+      }
+      if (step === 3) {
+        const all = document.getElementById('chk-aviso').checked
+                 && document.getElementById('chk-tc').checked
+                 && document.getElementById('chk-pp').checked;
+        const e = document.getElementById('err-acuerdos');
+        if (!all) { e.classList.add('show'); ok = false; } else e.classList.remove('show');
+      }
+      return ok;
+    }
+    function vf(id, errId, test) {
+      const el = document.getElementById(id), er = document.getElementById(errId);
+      const ok = test(el.value);
+      el.classList.toggle('error', !ok); er.classList.toggle('show', !ok); return ok;
+    }
+    function v(id) { return document.getElementById(id).value.trim(); }
+
+    /* SUMMARY */
+    function buildSummary() {
+      const tipo   = getTipoPago();
+      const lada   = document.getElementById('whatsapp-lada')?.value || '';
+      const numWA  = document.getElementById('whatsapp-num')?.value?.trim() || '';
+      const centro = genero === 'femenil'
+        ? (document.getElementById('centro-femenil')?.value || '')
+        : v('encargado');
+      const rows = [
+        ['Nombre',               v('nombre') + ' ' + v('apellidos')],
+        ['Correo',               v('email')],
+        ['WhatsApp',             lada + ' ' + numWA],
+        ['Centro / Institución', centro],
+        ['Ciudad',               v('ciudad')],
+        ['Tipo de pago',         tipo],
+        ['Método',               getMetodo()],
+        ['ID Actividad',         actividadId || '—'],
+      ];
+      document.getElementById('summary-card').innerHTML = rows.map(([k, val]) => `
+        <div class="sum-row">
+          <span class="sum-key">${k}</span>
+          <span class="sum-val">${escapeHtml(val)}</span>
+        </div>
+      `).join('');
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+
+    /* SUBMIT */
+    function hideForm() {
+      document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+      document.getElementById('progress-wrap').style.display = 'none';
+    }
+
+    async function submitForm() {
+      if (!validateStep(3)) return;
+
+      const btn = document.getElementById('btn-submit');
+      btn.classList.add('loading'); btn.disabled = true;
+
+      const tipo   = getTipoPago();
+      const metodo = getMetodo();
+      const lada   = document.getElementById('whatsapp-lada').value;
+      const numWA  = document.getElementById('whatsapp-num').value.trim();
+
+      const fields = {
+        'Nombre':    v('nombre'),
+        'Apellidos': v('apellidos'),
+        'Email':     v('email'),
+        'WhatsApp':  numWA,
+        'Código País': lada,
+        'Encargado, Centro, Institución': genero === 'femenil'
+          ? (document.getElementById('centro-femenil').value)
+          : v('encargado'),
+        'Ciudad':       v('ciudad'),
+        'ID Actividad': actividadId,
+        'Pago':         tipo,
+        'Método de Pago': mapMetodoPago(tipo, metodo),
+        'T&C':   document.getElementById('chk-tc').checked,
+        'PP':    document.getElementById('chk-pp').checked,
+        'Aviso': document.getElementById('chk-aviso').checked,
+      };
+
+      try {
+        const submitRes  = await fetch('/api/submit', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ fields, genero }),
+        });
+        const submitData = await submitRes.json();
+        if (!submitRes.ok) throw new Error(submitData.error || 'Error al guardar registro');
+
+        const { recordId, idAsistente, actividad } = submitData;
+
+        if (esTransferencia()) {
+          hideForm();
+          document.getElementById('success-id-asistente').textContent = idAsistente;
+          document.getElementById('success-wrap').classList.add('show');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+
+        await initStripePayment({
+          email:       v('email'),
+          nombre:      v('nombre') + ' ' + v('apellidos'),
+          recordId,
+          idAsistente,
+          idActividad: actividadId,
+          tipoPago:    tipo,
+          metodoPago:  metodo,
+          genero,
+          cuota:       actividad?.cuota || '0',
+          actividad,
+        });
+
+      } catch (err) {
+        console.error(err);
+        document.querySelectorAll('.section').forEach(s => s.style.display = '');
+        document.getElementById('section-3').classList.add('active');
+        document.getElementById('progress-wrap').style.display = '';
+        btn.classList.remove('loading'); btn.disabled = false;
+        alert('Ocurrió un error: ' + err.message + '\n\nPor favor intenta de nuevo.');
+      }
+    }
+
+    /* STRIPE */
+    let stripeInstance = null;
+    let stripeElements = null;
+
+    async function initStripePayment(data) {
+      document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+      document.getElementById('progress-wrap').style.display = 'none';
+      document.getElementById('section-4').style.display = 'block';
+      document.getElementById('section-4').classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      const isApartado = data.tipoPago === 'Apartado';
+      document.getElementById('pay-title').innerHTML = isApartado ? 'Pago de <em>apartado</em>' : 'Pago <em>total</em>';
+      document.getElementById('pay-desc').textContent = isApartado
+        ? 'Pago parcial para reservar tu lugar. El restante se liquida antes de la actividad.'
+        : 'Pago total para confirmar tu lugar en la actividad.';
+
+      document.getElementById('pay-act-nombre').textContent = data.actividad?.nombre || data.idActividad || '—';
+      document.getElementById('pay-act-casa').textContent   = data.actividad?.casa   || '';
+      const fc = data.actividad?.fechaCompleta || '';
+      document.getElementById('pay-act-fechas').textContent = fc || '';
+
+      try {
+        const piRes  = await fetch('/api/payment-intent', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(data),
+        });
+        const piData = await piRes.json();
+        if (!piRes.ok) throw new Error(piData.error);
+
+        const mxn = (piData.amount / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+        document.getElementById('pay-amount').textContent = mxn;
+
+        stripeInstance = Stripe(STRIPE_PK[data.genero] || STRIPE_PK.varonil);
+        stripeElements = stripeInstance.elements({
+          clientSecret: piData.clientSecret,
+          appearance: {
+            theme: 'stripe',
+            variables: {
+              colorPrimary:    '#2A4030',
+              colorBackground: '#ffffff',
+              colorText:       '#1A1C18',
+              colorDanger:     '#8B2020',
+              fontFamily:      'Lora, Georgia, serif',
+              borderRadius:    '6px',
+              fontSizeBase:    '15px',
+            },
+          },
+        });
+
+        const isOXXO = (data.metodoPago === 'OXXO en Efectivo');
+        document.getElementById('btn-pay-text').textContent = isOXXO ? 'Generar guía de pago' : 'Completar pago';
+
+        const ctxEl = document.getElementById('pay-context');
+        if (isOXXO) {
+          ctxEl.className = 'pay-context pay-context-oxxo';
+          ctxEl.innerHTML = `
+            <img src="/assets/png/icons/oxxo.png" alt="OXXO">
+            <div>
+              <strong>Pago en efectivo en OXXO</strong>
+              <span>Al continuar generaremos una <strong>guía de pago OXXO</strong> que llegará a tu correo. Preséntala en cualquier tienda OXXO antes de <strong>3 días</strong>.</span>
+            </div>`;
+        } else {
+          ctxEl.className = 'pay-context';
+          ctxEl.innerHTML = 'Ingresa los datos de tu tarjeta para confirmar el pago. Tu nombre y correo se llenan automáticamente.';
+        }
+
+        const paymentEl = stripeElements.create('payment', {
+          layout: 'tabs',
+          defaultValues: {
+            billingDetails: {
+              name:  data.nombre || '',
+              email: data.email  || '',
+            },
+          },
+        });
+        paymentEl.mount('#payment-element');
+
+        window._stripePayData = data;
+
+      } catch (err) {
+        console.error('initStripePayment:', err.message);
+        alert('Error al inicializar el pago: ' + err.message);
+        document.getElementById('section-3').style.display = '';
+        document.getElementById('section-3').classList.add('active');
+        document.getElementById('progress-wrap').style.display = '';
+        document.getElementById('section-4').style.display = 'none';
+        document.getElementById('btn-submit').classList.remove('loading');
+        document.getElementById('btn-submit').disabled = false;
+      }
+    }
+
+    function cancelarPago() {
+      document.getElementById('section-4').style.display = 'none';
+      document.getElementById('section-4').classList.remove('active');
+      document.getElementById('progress-wrap').style.display = '';
+      document.querySelectorAll('.section').forEach(s => { s.style.display = ''; s.classList.remove('active'); });
+      document.getElementById('section-3').classList.add('active');
+      document.getElementById('btn-submit').classList.remove('loading');
+      document.getElementById('btn-submit').disabled = false;
+      stripeInstance = null;
+      stripeElements = null;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function confirmPago() {
+      const btn = document.getElementById('btn-pay');
+      btn.classList.add('loading'); btn.disabled = true;
+      document.getElementById('payment-message').style.display = 'none';
+
+      const data      = window._stripePayData || {};
+      const returnUrl = `${BASE_URL}/success?id=${encodeURIComponent(data.idAsistente || '')}`;
+
+      const { error, paymentIntent } = await stripeInstance.confirmPayment({
+        elements: stripeElements,
+        confirmParams: {
+          return_url: returnUrl,
+          payment_method_data: {
+            billing_details: {
+              email: data.email || '',
+              name:  data.nombre || '',
+            },
+          },
+        },
+        redirect: 'if_required',
+      });
+
+      if (error) {
+        const msg = document.getElementById('payment-message');
+        msg.textContent  = error.message;
+        msg.style.display = 'block';
+        btn.classList.remove('loading'); btn.disabled = false;
+        return;
+      }
+
+      if (paymentIntent?.status === 'succeeded') {
+        window.location.href = `${BASE_URL}/success?id=${encodeURIComponent(data.idAsistente || '')}`;
+      }
+    }
+  </script>
+
+</body>
+</html>
