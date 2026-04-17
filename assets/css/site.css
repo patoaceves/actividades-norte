@@ -30,7 +30,10 @@
   --radius:       6px;
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  background: var(--green-deep);
+}
 body {
   font-family: var(--font-body);
   background: var(--cream);
