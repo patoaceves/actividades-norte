@@ -358,6 +358,8 @@
   font-weight: 500;
   transition: background 0.2s, gap 0.3s;
   border-radius: var(--radius);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .card-cta-arrow {
   width: 14px; height: 10px; flex-shrink: 0;
