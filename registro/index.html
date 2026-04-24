@@ -91,6 +91,18 @@
     .nav.scrolled .nav-links a.active { color: var(--cream); }
     .nav.scrolled .nav-cta { color: var(--cream); border-color: rgba(245, 239, 227, 0.3); }
 
+    /* ──────────── BETA — portal aislado en mobile ────────────
+       Mientras registro está en beta, en mobile quitamos todas las
+       salidas al resto del sitio para que sea un flujo cerrado. */
+    @media (max-width: 879px) {
+      .nav .nav-menu-btn { display: none !important; }
+      .nav .nav-logo {
+        pointer-events: none;
+        cursor: default;
+      }
+      .back-to-detail-row { display: none !important; }
+    }
+
     /* ──────────── ACTIVITY CARD (hero oscuro con foto) ──────────── */
     .activity-card {
       position: relative;
