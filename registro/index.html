@@ -727,6 +727,27 @@
       letter-spacing: 0.08em;
     }
 
+    /* ──────────── LOADING STATE ──────────── */
+    .loading-state {
+      padding: 100px 24px 80px;
+      text-align: center;
+      max-width: 480px; margin: 0 auto;
+    }
+    .loading-state .spinner {
+      width: 40px; height: 40px; margin: 0 auto 20px;
+      border: 1.5px solid var(--cream-3);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-state-text {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .hidden { display: none !important; }
+
     /* ──────────── ERR ID ──────────── */
     .err-id-wrap {
       display: none;
@@ -820,7 +841,7 @@
   </section>
 
   <!-- PROGRESS -->
-  <section class="progress-wrap reveal" id="progress-wrap">
+  <section class="progress-wrap reveal hidden" id="progress-wrap">
     <div class="progress-steps">
       <div class="step active" id="step-1">
         <div class="step-dot"><span class="step-dot-num">1</span></div>
@@ -842,6 +863,12 @@
   <!-- MAIN -->
   <main>
 
+    <!-- Loading state -->
+    <div class="loading-state" id="loading-state">
+      <div class="spinner"></div>
+      <div class="loading-state-text">Cargando actividad…</div>
+    </div>
+
     <!-- Error: ID no existe -->
     <div class="err-id-wrap" id="err-id-wrap">
       <svg class="err-id-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
@@ -860,7 +887,7 @@
     </div>
 
     <!-- PASO 1: Datos -->
-    <div class="section active reveal" id="section-1">
+    <div class="section active reveal hidden" id="section-1">
       <div class="sec-head">
         <div class="sec-eyebrow">Paso 1 de 3</div>
         <h2 class="sec-title">Información del <em>asistente</em></h2>
@@ -1294,6 +1321,8 @@
     else if (actividadId.startsWith('AV')) genero = 'varonil';
 
     if (!actividadId || (!actividadId.startsWith('AV') && !actividadId.startsWith('AF'))) {
+      // Oculta loading, muestra err
+      document.getElementById('loading-state').classList.add('hidden');
       document.getElementById('progress-wrap').style.display = 'none';
       document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
       document.getElementById('err-id-wrap').classList.add('show');
@@ -1378,8 +1407,17 @@
         const fechasEl = document.getElementById('act-fechas');
         if (fechasEl) fechasEl.textContent = fechas;
 
+        // Al éxito: oculta loading, muestra progress + section-1
+        document.getElementById('loading-state').classList.add('hidden');
+        document.getElementById('progress-wrap').classList.remove('hidden');
+        document.getElementById('section-1').classList.remove('hidden');
+        // Re-dispara reveal observer para animar las secciones que se mostraron
+        if (typeof window.initReveal === 'function') window.initReveal();
+
       } catch (err) {
         console.error('[registro] loadActividad error:', err.message);
+        // Oculta loading en cualquier caso de error
+        document.getElementById('loading-state').classList.add('hidden');
         const nombreEl = document.getElementById('act-title-name');
         if (nombreEl) nombreEl.textContent = '';
         if (err.message && err.message.toLowerCase().includes('no encontrada')) {
@@ -1390,6 +1428,10 @@
           if (errWrap) errWrap.classList.add('show');
           const errDesc = document.getElementById('err-id-desc');
           if (errDesc) errDesc.textContent = `La actividad ${actividadId} no existe o no está disponible.`;
+        } else {
+          // Otro tipo de error — muestra progress + section-1 para no bloquear
+          document.getElementById('progress-wrap').classList.remove('hidden');
+          document.getElementById('section-1').classList.remove('hidden');
         }
       }
     }
