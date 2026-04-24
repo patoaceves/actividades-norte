@@ -166,19 +166,51 @@
       letter-spacing: -0.01em;
     }
     .activity-title em { font-style: italic; color: var(--gold-soft); }
-    .activity-meta {
-      display: flex; align-items: center; justify-content: center;
-      gap: 14px; flex-wrap: wrap;
-      font-family: var(--font-mono); font-size: 12px;
-      letter-spacing: 0.08em;
+    .activity-casa {
+      font-family: var(--font-display);
+      font-size: clamp(20px, 2.8vw, 26px);
+      font-weight: 400;
+      font-style: italic;
+      color: var(--gold-soft);
+      margin-bottom: 20px;
+      letter-spacing: -0.01em;
+    }
+    .activity-casa:empty { display: none; }
+    .activity-fechas {
+      display: flex; flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+    .activity-fecha-row {
+      display: inline-flex; align-items: baseline;
+      gap: 14px;
+      font-family: var(--font-mono); font-size: 13px;
+      letter-spacing: 0.05em;
       color: rgba(200, 217, 204, 0.9);
     }
-    .activity-meta .sep { opacity: 0.45; }
+    .activity-fecha-label {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(200, 217, 204, 0.55);
+      min-width: 42px;
+      text-align: right;
+    }
+    .activity-fecha-value {
+      color: var(--cream);
+    }
+    @media (max-width: 640px) {
+      .activity-fecha-row {
+        font-size: 12px;
+        gap: 12px;
+      }
+      .activity-fecha-label { min-width: 36px; }
+    }
 
     /* ──────────── PROGRESS (sobre cremita) ──────────── */
     .progress-wrap {
       background: var(--cream-2);
-      padding: 18px 24px;
+      padding: 22px 24px 30px;
       border-bottom: 1px solid rgba(42, 64, 48, 0.1);
     }
     .progress-steps {
@@ -186,8 +218,9 @@
       display: flex; align-items: center;
     }
     .step {
-      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      position: relative;
       flex: 0 0 auto;
+      width: 28px;
     }
     .step-dot {
       width: 28px; height: 28px; border-radius: 50%;
@@ -211,17 +244,22 @@
     .step.done .step-dot::before { content: '✓'; font-size: 13px; }
     .step.done .step-dot-num { display: none; }
     .step-label {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
       font-family: var(--font-mono); font-size: 9px;
       letter-spacing: 0.16em; text-transform: uppercase;
       color: var(--muted);
       transition: color 0.3s;
+      white-space: nowrap;
     }
     .step.active .step-label { color: var(--green); }
     .step.done .step-label { color: var(--gold); }
     .step-line {
       flex: 1; height: 1px;
       background: var(--green-3);
-      margin: 0 8px 20px;
+      margin: 0 8px;
       transition: background 0.3s;
     }
     .step-line.done { background: var(--gold); }
@@ -784,6 +822,7 @@
     .err-id-cta:hover { background: var(--green-2); }
   </style>
   <script defer src="/assets/js/reveal.js"></script>
+  <script defer src="/assets/js/mobile-nav.js"></script>
   <script>
     window.addEventListener('scroll', () => {
       const nav = document.getElementById('nav');
@@ -832,10 +871,16 @@
         <span class="activity-title-id" id="act-title-id">AV000</span>
         <span id="act-title-name">Cargando actividad…</span>
       </h1>
-      <div class="activity-meta">
-        <span id="act-casa"></span>
-        <span class="sep" id="act-sep" style="display:none;">·</span>
-        <span id="act-fechas"></span>
+      <div class="activity-casa" id="act-casa"></div>
+      <div class="activity-fechas">
+        <div class="activity-fecha-row" id="act-fecha-inicio" style="display:none;">
+          <span class="activity-fecha-label">Inicio</span>
+          <span class="activity-fecha-value" id="act-fecha-inicio-value"></span>
+        </div>
+        <div class="activity-fecha-row" id="act-fecha-fin" style="display:none;">
+          <span class="activity-fecha-label">Fin</span>
+          <span class="activity-fecha-value" id="act-fecha-fin-value"></span>
+        </div>
       </div>
     </div>
   </section>
@@ -1392,20 +1437,19 @@
         }
         const casaDisplay = casasArr.join(', ');
         const casaEl = document.getElementById('act-casa');
-        const sepEl = document.getElementById('act-sep');
         if (casaDisplay && casaEl) {
           casaEl.textContent = casaDisplay;
-          if (sepEl) sepEl.style.display = '';
         }
 
-        let fechas = '';
-        if (data.fechaInicio && data.fechaFin) {
-          fechas = formatFecha(data.fechaInicio) + '  –  ' + formatFecha(data.fechaFin);
-        } else if (data.fechaCompleta) {
-          fechas = data.fechaCompleta;
+        // Fechas en 2 rows separadas: Inicio / Fin
+        if (data.fechaInicio) {
+          document.getElementById('act-fecha-inicio').style.display = '';
+          document.getElementById('act-fecha-inicio-value').textContent = formatFecha(data.fechaInicio);
         }
-        const fechasEl = document.getElementById('act-fechas');
-        if (fechasEl) fechasEl.textContent = fechas;
+        if (data.fechaFin) {
+          document.getElementById('act-fecha-fin').style.display = '';
+          document.getElementById('act-fecha-fin-value').textContent = formatFecha(data.fechaFin);
+        }
 
         // Al éxito: oculta loading, muestra progress + section-1
         document.getElementById('loading-state').classList.add('hidden');
