@@ -130,7 +130,7 @@ module.exports = async function handler(req, res) {
 
     if (email) body.append('receipt_email', email);
     body.append('description',
-      `${idActividad} · ${idAsistente || ''} · ${tipoPago}`);
+      `${idActividad} - ${idAsistente || ''} - ${tipoPago}`);
 
     // ── Metadata DIRECTA en el PaymentIntent ────────────────────────
     // (la automation de Airtable la lee con un solo fetch al PI)
@@ -151,7 +151,9 @@ module.exports = async function handler(req, res) {
       body.append(`metadata[${k}]`, String(v || ''));
     });
 
-    const idemKey = `pi-${idAsistente || recordId || idActividad}-${tipoPago}-${metodoPago || 'auto'}`;
+    // Idempotency-Key debe ser ASCII puro (sin espacios, acentos, ni unicode)
+    const sanitize = s => String(s || '').normalize('NFD').replace(/[^\x20-\x7E]/g, '').replace(/\s+/g, '_').slice(0, 60);
+    const idemKey = sanitize(`pi-${idAsistente || recordId || idActividad}-${tipoPago}-${metodoPago || 'auto'}`);
 
     const r  = await fetch('https://api.stripe.com/v1/payment_intents', {
       method:  'POST',
