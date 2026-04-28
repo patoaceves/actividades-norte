@@ -163,7 +163,14 @@ module.exports = async function handler(req, res) {
       body: body.toString(),
     });
     const pi = await r.json();
-    if (pi.error) throw new Error(pi.error.message);
+    if (pi.error) {
+      // Logging completo en server (visible en Vercel Functions logs)
+      console.error('Stripe PI error:', JSON.stringify(pi.error));
+      console.error('Stripe PI request body was:', body.toString());
+      const detail = [pi.error.message, pi.error.param && `(param: ${pi.error.param})`]
+        .filter(Boolean).join(' ');
+      throw new Error(detail || 'Stripe rechazó el request');
+    }
 
     return res.status(200).json({
       clientSecret:    pi.client_secret,
