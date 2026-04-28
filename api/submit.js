@@ -100,22 +100,18 @@ async function fetchActividad(idActividad) {
   };
 }
 
-// ── Lista registros existentes en la tabla destino para esa actividad ───
-// Retorna {count, emails[], idsAsistente[]}
+// ── Lista idAsistentes existentes en la tabla destino para esa actividad ──
+// Solo se usa para evitar colisiones del random — no para validar duplicados.
 async function listarRegistrosActividad(pat, cfg, idActividad, fieldMap) {
   const idActividadFieldId = fieldMap['ID Actividad'];
-  const emailFieldId       = fieldMap['Email'];
   if (!idActividadFieldId) throw new Error('Campo "ID Actividad" no encontrado en tabla destino');
 
-  // Filtramos por field ID usando referencia con prefijo `__` (sintaxis estándar de Airtable formula)
-  // Si tu base usa el nombre "ID Actividad", esto funciona:
   const formula = encodeURIComponent(`{ID Actividad}='${idActividad}'`);
-  const fl      = [idActividadFieldId, emailFieldId, cfg.ids.idAsistente]
+  const fl      = [idActividadFieldId, cfg.ids.idAsistente]
     .filter(Boolean).map(f => `fields[]=${f}`).join('&');
 
-  let count = 0, offset = '', pages = 0;
-  const emails = [];
-  const ids    = [];
+  let offset = '', pages = 0;
+  const ids = [];
   do {
     const url = `https://api.airtable.com/v0/${cfg.base}/${cfg.table}`
       + `?returnFieldsByFieldId=true&filterByFormula=${formula}&${fl}&pageSize=100`
@@ -124,17 +120,14 @@ async function listarRegistrosActividad(pat, cfg, idActividad, fieldMap) {
     const data = await r.json();
     if (!r.ok) throw new Error(`Airtable list: ${JSON.stringify(data)}`);
     (data.records || []).forEach(rec => {
-      count++;
-      const e = String(firstVal(rec.fields[emailFieldId]) || '').toLowerCase().trim();
       const i = String(firstVal(rec.fields[cfg.ids.idAsistente]) || '').trim();
-      if (e) emails.push(e);
       if (i) ids.push(i);
     });
     offset = data.offset || '';
     pages++;
   } while (offset && pages < 20);
 
-  return { count, emails, idsAsistente: ids };
+  return { idsAsistente: ids };
 }
 
 // ── Construir payload con field IDs ─────────────────────────────────
@@ -197,7 +190,6 @@ module.exports = async function handler(req, res) {
     if (!pat) throw new Error(`AIRTABLE_PAT_${genero.toUpperCase()} no configurado`);
 
     const idActividad = String(fields['ID Actividad']).trim();
-    const emailNuevo  = String(fields['Email']).toLowerCase().trim();
 
     // 1. Buscar actividad
     const actividad = await fetchActividad(idActividad);
@@ -212,11 +204,12 @@ module.exports = async function handler(req, res) {
     // 3. Field map (Metadata API)
     const fieldMap = await getFieldMap(pat, cfg.base, cfg.table);
 
-    // 4. Listar registros existentes para validar duplicados (NO para capacidad)
+    // 4. Listar idAsistentes existentes (solo para evitar colisiones del random)
     //    Nota: el campo `Lugares Disponibles V/F` en Airtable ya es el cupo
     //    RESTANTE (típicamente fórmula: cupoTotal - COUNT(asistentes)).
-    //    No es necesario contar — basta con validar que sea > 0.
-    const { emails, idsAsistente } = await listarRegistrosActividad(
+    //    NO validamos email duplicado: una persona puede registrar a otros
+    //    asistentes con el mismo correo (ej: pareja, hijos, etc.).
+    const { idsAsistente } = await listarRegistrosActividad(
       pat, cfg, idActividad, fieldMap
     );
 
@@ -228,15 +221,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 6. Verificar duplicado (mismo email en misma actividad)
-    if (emails.includes(emailNuevo)) {
-      return res.status(409).json({
-        error: 'Ya existe un registro con este email para esta actividad',
-        duplicado: true,
-      });
-    }
-
-    // 7. Generar idAsistente único (con retry contra colisiones)
+    // 6. Generar idAsistente único (con retry contra colisiones)
     let idAsistente;
     const idsSet = new Set(idsAsistente);
     for (let i = 0; i < 5; i++) {
@@ -245,7 +230,7 @@ module.exports = async function handler(req, res) {
     }
     if (!idAsistente) throw new Error('No se pudo generar un ID de asistente único');
 
-    // 8. Construir payload
+    // 7. Construir payload
     const payload = buildPayload(fields, fieldMap, cfg, idAsistente, genero);
 
     // 9. Escribir
