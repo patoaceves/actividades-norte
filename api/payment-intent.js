@@ -108,6 +108,10 @@ module.exports = async function handler(req, res) {
     body.append('currency', 'mxn');
 
     // ── Métodos de pago según lo que pre-seleccionó el user ─────────
+    // NOTA: installments (MSI) no se habilita aquí porque requiere aprobación
+    // previa con los bancos en el dashboard de Stripe. Si la cuenta no está
+    // habilitada, el request entero falla con "Invalid request".
+    // Cuando se active MSI en Stripe, descomenta las líneas con `installments`.
     const isOXXO = metodoPago === 'OXXO en Efectivo';
 
     if (isOXXO) {
@@ -116,12 +120,12 @@ module.exports = async function handler(req, res) {
     } else if (metodoPago) {
       // Cualquier valor distinto de OXXO → solo card
       body.append('payment_method_types[]', 'card');
-      body.append('payment_method_options[card][installments][enabled]', 'true');
+      // body.append('payment_method_options[card][installments][enabled]', 'true');
     } else {
       // Sin pre-selección → Stripe muestra todos los métodos habilitados
       body.append('automatic_payment_methods[enabled]', 'true');
-      body.append('payment_method_options[card][installments][enabled]', 'true');
       body.append('payment_method_options[oxxo][expires_after_days]', '2');
+      // body.append('payment_method_options[card][installments][enabled]', 'true');
     }
 
     if (email) body.append('receipt_email', email);
