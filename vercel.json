@@ -2,11 +2,11 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/varonil",  "destination": "/pages/varonil/index.html" },
-    { "source": "/femenil",  "destination": "/pages/femenil/index.html" },
-    { "source": "/registro", "destination": "/pages/registro/index.html" },
-    { "source": "/success",  "destination": "/pages/success/index.html" },
-    { "source": "/v",        "destination": "/pages/v/index.html" }
+    { "source": "/varonil",  "destination": "/pages/varonil" },
+    { "source": "/femenil",  "destination": "/pages/femenil" },
+    { "source": "/registro", "destination": "/pages/registro" },
+    { "source": "/success",  "destination": "/pages/success" },
+    { "source": "/v",        "destination": "/pages/v" }
   ],
   "headers": [
     {
