@@ -212,17 +212,19 @@ module.exports = async function handler(req, res) {
     // 3. Field map (Metadata API)
     const fieldMap = await getFieldMap(pat, cfg.base, cfg.table);
 
-    // 4. Listar registros existentes para validar capacidad y duplicados
-    const { count, emails, idsAsistente } = await listarRegistrosActividad(
+    // 4. Listar registros existentes para validar duplicados (NO para capacidad)
+    //    Nota: el campo `Lugares Disponibles V/F` en Airtable ya es el cupo
+    //    RESTANTE (típicamente fórmula: cupoTotal - COUNT(asistentes)).
+    //    No es necesario contar — basta con validar que sea > 0.
+    const { emails, idsAsistente } = await listarRegistrosActividad(
       pat, cfg, idActividad, fieldMap
     );
 
-    // 5. Verificar capacidad
-    if (actividad.lugares != null && count >= actividad.lugares) {
+    // 5. Verificar capacidad — `lugares` es lugares DISPONIBLES, no cupo total
+    if (actividad.lugares != null && actividad.lugares <= 0) {
       return res.status(409).json({
         error: 'Esta actividad ya está llena',
-        cupo:  actividad.lugares,
-        registrados: count,
+        lugares: actividad.lugares,
       });
     }
 
