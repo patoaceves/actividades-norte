@@ -1,6 +1,9 @@
 // api/submit.js
-// Usa Metadata API para mapear field names → field IDs.
-// El PAT necesita: schema.bases:read + data.records:write + acceso a la base.
+// Crea un registro de asistente en Airtable.
+// — Verifica capacidad antes de escribir (no permite overbooking)
+// — Verifica que email+idActividad no esté ya registrado (idempotencia)
+// — idAsistente de 6 dígitos con retry si colisiona
+// — Headers CORS
 
 const ACTIVIDADES = {
   base:  'appxtlc0kwOVOI0lm',
@@ -12,6 +15,8 @@ const ACTIVIDADES = {
     casa:          'fldBg4qtC8fWw9I4n',
     fechaCompleta: 'fldSwY4v4Rhlf2iK3',
     seccion:       'fldXXEE93HzWeMoH1',
+    lugaresV:      'fldSZapFVdBE7vooa',
+    lugaresF:      'fld8OQ8NitjT2sHEA',
   },
 };
 
@@ -20,7 +25,6 @@ const DESTINO = {
     base:  'app38fvKJRzcjw6eG',
     table: 'tblJsudzO54IZxZBi',
     pat:   () => process.env.AIRTABLE_PAT_VARONIL,
-    // Field IDs conocidos (no dependen de Metadata API)
     ids: {
       idAsistente: 'fldOihfiaa06buyO5',
       codigoPais:  'fldkQVoEWdXG7JDZt',
@@ -39,8 +43,12 @@ const DESTINO = {
   },
 };
 
+function firstVal(v) { return Array.isArray(v) ? v[0] : v; }
+
+// 6 dígitos: 100000-999999 → 900K opciones
+// Con 50 inscritos por actividad, prob. de colisión ~0.14%
 function generateIdAsistente(idActividad) {
-  return `${idActividad}${Math.floor(1000 + Math.random() * 9000)}`;
+  return `${idActividad}${Math.floor(100000 + Math.random() * 900000)}`;
 }
 
 // ── Metadata API → { fieldName: fieldId } ───────────────────────────
@@ -71,30 +79,69 @@ async function fetchActividad(idActividad) {
     const data = await r.json();
     if (!r.ok) throw new Error(`Airtable actividades: ${JSON.stringify(data)}`);
     found  = data.records?.find(rec =>
-      String(rec.fields[ACTIVIDADES.fields.idActividad] || '').trim() === idActividad
+      String(firstVal(rec.fields[ACTIVIDADES.fields.idActividad]) || '').trim() === idActividad
     );
     offset = found ? '' : (data.offset || '');
   } while (!found && offset);
 
   if (!found) throw new Error(`Actividad no encontrada: ${idActividad}`);
-  const f = found.fields;
+  const f       = found.fields;
+  const seccion = String(firstVal(f[ACTIVIDADES.fields.seccion]) || '').toUpperCase();
+  const lugares = seccion === 'FEMENIL'
+    ? firstVal(f[ACTIVIDADES.fields.lugaresF])
+    : firstVal(f[ACTIVIDADES.fields.lugaresV]);
   return {
-    nombre:        f[ACTIVIDADES.fields.nombre]        || idActividad,
-    cuota:         f[ACTIVIDADES.fields.cuota]         || '0',
-    casa:          Array.isArray(f[ACTIVIDADES.fields.casa])
-                     ? f[ACTIVIDADES.fields.casa][0]
-                     : (f[ACTIVIDADES.fields.casa] || ''),
-    fechaCompleta: f[ACTIVIDADES.fields.fechaCompleta] || '',
-    seccion:       String(f[ACTIVIDADES.fields.seccion] || '').toUpperCase(),
+    nombre:        firstVal(f[ACTIVIDADES.fields.nombre])        || idActividad,
+    cuota:         firstVal(f[ACTIVIDADES.fields.cuota])         || '0',
+    casa:          firstVal(f[ACTIVIDADES.fields.casa])          || '',
+    fechaCompleta: firstVal(f[ACTIVIDADES.fields.fechaCompleta]) || '',
+    seccion,
+    lugares:       lugares != null ? Number(lugares) : null,
   };
+}
+
+// ── Lista registros existentes en la tabla destino para esa actividad ───
+// Retorna {count, emails[], idsAsistente[]}
+async function listarRegistrosActividad(pat, cfg, idActividad, fieldMap) {
+  const idActividadFieldId = fieldMap['ID Actividad'];
+  const emailFieldId       = fieldMap['Email'];
+  if (!idActividadFieldId) throw new Error('Campo "ID Actividad" no encontrado en tabla destino');
+
+  // Filtramos por field ID usando referencia con prefijo `__` (sintaxis estándar de Airtable formula)
+  // Si tu base usa el nombre "ID Actividad", esto funciona:
+  const formula = encodeURIComponent(`{ID Actividad}='${idActividad}'`);
+  const fl      = [idActividadFieldId, emailFieldId, cfg.ids.idAsistente]
+    .filter(Boolean).map(f => `fields[]=${f}`).join('&');
+
+  let count = 0, offset = '', pages = 0;
+  const emails = [];
+  const ids    = [];
+  do {
+    const url = `https://api.airtable.com/v0/${cfg.base}/${cfg.table}`
+      + `?returnFieldsByFieldId=true&filterByFormula=${formula}&${fl}&pageSize=100`
+      + (offset ? `&offset=${offset}` : '');
+    const r    = await fetch(url, { headers: { Authorization: `Bearer ${pat}` } });
+    const data = await r.json();
+    if (!r.ok) throw new Error(`Airtable list: ${JSON.stringify(data)}`);
+    (data.records || []).forEach(rec => {
+      count++;
+      const e = String(firstVal(rec.fields[emailFieldId]) || '').toLowerCase().trim();
+      const i = String(firstVal(rec.fields[cfg.ids.idAsistente]) || '').trim();
+      if (e) emails.push(e);
+      if (i) ids.push(i);
+    });
+    offset = data.offset || '';
+    pages++;
+  } while (offset && pages < 20);
+
+  return { count, emails, idsAsistente: ids };
 }
 
 // ── Construir payload con field IDs ─────────────────────────────────
 function buildPayload(formFields, fieldMap, cfg, idAsistente, genero) {
-  const get = name => fieldMap[name];
+  const get    = name => fieldMap[name];
   const result = {};
 
-  // Campos comunes — resueltos via fieldMap
   const commonFields = [
     'Nombre', 'Apellidos', 'Email', 'WhatsApp',
     'Ciudad', 'ID Actividad', 'Pago',
@@ -105,11 +152,9 @@ function buildPayload(formFields, fieldMap, cfg, idAsistente, genero) {
     if (id && formFields[name] !== undefined) result[id] = formFields[name];
   }
 
-  // Método de Pago — field ID conocido para varonil, por mapa para femenil
   const metodoPagoId = cfg.ids.metodoPago || get('Método de Pago');
   if (metodoPagoId) result[metodoPagoId] = formFields['Método de Pago'];
 
-  // Centro / Encargado — femenil usa ID directo
   const centroVal = formFields['Encargado, Centro, Institución'];
   if (genero === 'femenil' && cfg.ids.centro) {
     result[cfg.ids.centro] = centroVal;
@@ -118,12 +163,10 @@ function buildPayload(formFields, fieldMap, cfg, idAsistente, genero) {
     if (encId) result[encId] = centroVal;
   }
 
-  // Código País — field ID directo
   if (formFields['Código País'] && cfg.ids.codigoPais) {
     result[cfg.ids.codigoPais] = formFields['Código País'];
   }
 
-  // ID Asistente — field ID directo
   result[cfg.ids.idAsistente] = idAsistente;
 
   return result;
@@ -136,7 +179,11 @@ const REQUIRED = [
 ];
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST')    return res.status(405).json({ error: 'Method not allowed' });
 
   const { fields, genero = 'varonil' } = req.body || {};
   if (!DESTINO[genero]) return res.status(400).json({ error: `Género inválido: ${genero}` });
@@ -149,8 +196,11 @@ module.exports = async function handler(req, res) {
     const pat = cfg.pat();
     if (!pat) throw new Error(`AIRTABLE_PAT_${genero.toUpperCase()} no configurado`);
 
+    const idActividad = String(fields['ID Actividad']).trim();
+    const emailNuevo  = String(fields['Email']).toLowerCase().trim();
+
     // 1. Buscar actividad
-    const actividad = await fetchActividad(fields['ID Actividad']);
+    const actividad = await fetchActividad(idActividad);
 
     // 2. Validar sección
     if (actividad.seccion && actividad.seccion !== genero.toUpperCase()) {
@@ -159,16 +209,44 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 3. Metadata API → field map (requiere schema.bases:read en PAT)
+    // 3. Field map (Metadata API)
     const fieldMap = await getFieldMap(pat, cfg.base, cfg.table);
 
-    // 4. Generar ID Asistente
-    const idAsistente = generateIdAsistente(fields['ID Actividad']);
+    // 4. Listar registros existentes para validar capacidad y duplicados
+    const { count, emails, idsAsistente } = await listarRegistrosActividad(
+      pat, cfg, idActividad, fieldMap
+    );
 
-    // 5. Construir payload con field IDs
+    // 5. Verificar capacidad
+    if (actividad.lugares != null && count >= actividad.lugares) {
+      return res.status(409).json({
+        error: 'Esta actividad ya está llena',
+        cupo:  actividad.lugares,
+        registrados: count,
+      });
+    }
+
+    // 6. Verificar duplicado (mismo email en misma actividad)
+    if (emails.includes(emailNuevo)) {
+      return res.status(409).json({
+        error: 'Ya existe un registro con este email para esta actividad',
+        duplicado: true,
+      });
+    }
+
+    // 7. Generar idAsistente único (con retry contra colisiones)
+    let idAsistente;
+    const idsSet = new Set(idsAsistente);
+    for (let i = 0; i < 5; i++) {
+      const candidato = generateIdAsistente(idActividad);
+      if (!idsSet.has(candidato)) { idAsistente = candidato; break; }
+    }
+    if (!idAsistente) throw new Error('No se pudo generar un ID de asistente único');
+
+    // 8. Construir payload
     const payload = buildPayload(fields, fieldMap, cfg, idAsistente, genero);
 
-    // 6. Escribir — usando returnFieldsByFieldId=true en la URL
+    // 9. Escribir
     const r    = await fetch(
       `https://api.airtable.com/v0/${cfg.base}/${cfg.table}?returnFieldsByFieldId=true`,
       {

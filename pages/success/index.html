@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pago confirmado · Actividades Norte</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/isotipo.png">
+  <link rel="apple-touch-icon" href="/assets/png/isotipo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:      #F6F1E7;
+      --cream-2:    #EDE6D8;
+      --cream-3:    #E4DBC7;
+      --green:      #2A4030;
+      --green-deep: #1E2F23;
+      --green-2:    #3B5E46;
+      --green-3:    #C8D9CC;
+      --gold:       #A07840;
+      --charcoal:   #1A1C18;
+      --muted:      #6B7066;
+
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body:    'Lora', Georgia, serif;
+      --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+      --radius: 6px;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--cream);
+      color: var(--charcoal);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%232A4030' fill-opacity='0.025'%3E%3Cpath d='M40 40c0-11 9-20 20-20s20 9 20 20-9 20-20 20-20-9-20-20zm-40 0c0-11 9-20 20-20s20 9 20 20-9 20-20 20-20-9-20-20z'/%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    .site-header {
+      background: var(--green-deep);
+      padding: 18px 28px;
+      position: relative; z-index: 2;
+    }
+    .site-logo {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--cream);
+    }
+    .logo-isotipo { width: 32px; height: 32px; }
+    .logo-text {
+      font-family: var(--font-display); font-size: 16px; font-weight: 500;
+    }
+
+    main {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 60px clamp(20px, 4vw, 40px);
+      position: relative; z-index: 1;
+    }
+
+    .card {
+      max-width: 580px; width: 100%;
+      text-align: center;
+      padding: clamp(40px, 5vw, 64px) clamp(24px, 4vw, 56px);
+      background: #fff;
+      border: 1.5px solid var(--green-3);
+      border-radius: var(--radius);
+      position: relative;
+      box-shadow: 0 20px 60px rgba(42, 64, 48, 0.08);
+    }
+
+    .icon-wrap {
+      width: 76px; height: 76px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+      animation: popIn 0.5s 0.1s cubic-bezier(0.2, 1.3, 0.5, 1) both;
+    }
+    .icon-wrap.success { background: var(--green); }
+    .icon-wrap.pending { background: var(--gold); }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.3); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .eyebrow {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.24em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 14px;
+      display: inline-flex; align-items: center; gap: 12px;
+    }
+    .eyebrow::before, .eyebrow::after {
+      content: ''; width: 18px; height: 1px; background: var(--gold); opacity: 0.5;
+    }
+
+    .title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4.5vw, 40px);
+      font-weight: 500; line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      color: var(--green);
+    }
+    .title em { font-style: italic; color: var(--gold); }
+
+    .desc {
+      font-size: 15px; line-height: 1.7;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 28px;
+      max-width: 440px;
+      margin-left: auto; margin-right: auto;
+    }
+
+    .id-card {
+      background: var(--cream-2);
+      border: 1.5px solid var(--green-3);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      margin-bottom: 24px;
+    }
+    .id-card-label {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .id-card-value {
+      font-family: var(--font-mono); font-size: 22px; font-weight: 500;
+      color: var(--green); letter-spacing: 0.08em;
+    }
+
+    .voucher-cta {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 16px 28px;
+      background: var(--gold);
+      color: #fff;
+      font-family: var(--font-mono); font-size: 12px;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      font-weight: 500;
+      border-radius: var(--radius);
+      transition: background 0.2s, gap 0.3s;
+      margin-bottom: 16px;
+    }
+    .voucher-cta:hover { background: #8C6638; gap: 16px; }
+    .voucher-hint {
+      font-size: 12px; color: var(--muted);
+      font-style: italic;
+      margin-bottom: 24px;
+    }
+
+    .next-steps {
+      text-align: left;
+      margin-bottom: 28px;
+    }
+    .next-steps-title {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .next-steps-title::before, .next-steps-title::after {
+      content: ''; flex: 1; height: 1px; background: var(--green-3);
+    }
+    .next-steps ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .next-steps li {
+      display: flex; gap: 12px; align-items: flex-start;
+      font-size: 14px; line-height: 1.55;
+    }
+    .next-steps li::before {
+      content: '—'; color: var(--gold);
+      font-family: var(--font-mono); font-weight: 500; flex-shrink: 0;
+    }
+
+    .cta-home {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 14px 26px;
+      background: transparent;
+      color: var(--green);
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      font-weight: 500;
+      border: 1.5px solid var(--green);
+      border-radius: var(--radius);
+      transition: all 0.2s;
+    }
+    .cta-home:hover { background: var(--green); color: #fff; gap: 16px; }
+
+    .footer-note {
+      margin-top: 32px;
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    .loading {
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .spinner-big {
+      width: 32px; height: 32px;
+      border: 2px solid var(--cream-3);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a href="/" class="site-logo">
+      <img class="logo-isotipo" src="/assets/png/isotipo.png" alt="">
+      <span class="logo-text">Actividades Norte</span>
+    </a>
+  </header>
+
+  <main>
+    <div class="card" id="card">
+      <div class="loading">
+        <div class="spinner-big"></div>
+        <span>Verificando tu pago…</span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Stripe redirige aquí con: ?payment_intent=pi_xxx&payment_intent_client_secret=pi_xxx_secret&redirect_status=succeeded
+    // Y nosotros también ponemos: ?id=AV0241234
+    const params  = new URLSearchParams(location.search);
+    const idAsis  = (params.get('id') || '').trim();
+    const piCS    = params.get('payment_intent_client_secret');
+
+    // PK pública (la misma que en checkout)
+    const STRIPE_PK = {
+      varonil: 'pk_live_51OjmP3InV3BygPkLbM6REVHFHEiobBOKxqNBeLkkgSy2vKKF9Dql43zFWaKHjKrZnSOgalfQ9kVXa9Ipml7X8PZK00ZGyQyJPV',
+      femenil: 'pk_live_51O4UzxHq3UG7g1p33TB6zQbG3AQ6WMk7PMVyiQD3w0j1Ue0SO7sgdnIlDUBiwmYyg1m85X2mTlYtMAIPpCK6jUUQ00NPPRf6D6',
+    };
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s; return d.innerHTML;
+    }
+
+    function renderSuccess({ idAsistente }) {
+      document.getElementById('card').innerHTML = `
+        <div class="icon-wrap success">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div class="eyebrow">Confirmado</div>
+        <h1 class="title">¡Pago <em>recibido!</em></h1>
+        <p class="desc">
+          Tu registro ha sido completado con éxito. En breve recibirás un correo con la confirmación y los detalles de tu actividad.
+        </p>
+        <div class="id-card">
+          <div class="id-card-label">Tu ID de Asistente</div>
+          <div class="id-card-value">${escapeHtml(idAsistente || '—')}</div>
+        </div>
+        <div class="next-steps">
+          <div class="next-steps-title">Siguientes pasos</div>
+          <ul>
+            <li>Revisa tu correo (incluyendo spam) por la confirmación</li>
+            <li>Si pagaste en apartado, completa el resto antes del inicio de la actividad</li>
+          </ul>
+        </div>
+        <a href="/" class="cta-home">
+          Volver al inicio
+          <svg width="14" height="10" viewBox="0 0 16 10" fill="none"><path d="M1 5h14m0 0L11 1m4 4L11 9" stroke="currentColor" stroke-width="1.3"/></svg>
+        </a>
+        <div class="footer-note">Actividades Norte · 2026</div>
+      `;
+    }
+
+    function renderOxxo({ idAsistente, voucherUrl, expiresAt }) {
+      const expira = expiresAt
+        ? new Date(expiresAt * 1000).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })
+        : null;
+
+      document.getElementById('card').innerHTML = `
+        <div class="icon-wrap pending">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <polyline points="12 7 12 12 15 14"/>
+          </svg>
+        </div>
+        <div class="eyebrow">Pendiente de pago</div>
+        <h1 class="title">Tu ficha <em>OXXO</em> está lista</h1>
+        <p class="desc">
+          Tu registro está reservado. Para completarlo, paga en cualquier OXXO con la ficha generada${expira ? ` antes del <strong>${expira}</strong>` : ''}.
+        </p>
+        <a href="${voucherUrl}" target="_blank" rel="noopener" class="voucher-cta">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Ver mi ficha OXXO
+        </a>
+        <div class="voucher-hint">
+          También recibirás la ficha por correo electrónico
+        </div>
+        <div class="id-card">
+          <div class="id-card-label">Tu ID de Asistente</div>
+          <div class="id-card-value">${escapeHtml(idAsistente || '—')}</div>
+        </div>
+        <div class="next-steps">
+          <div class="next-steps-title">Cómo pagar</div>
+          <ul>
+            <li>Imprime o muestra la ficha desde tu celular</li>
+            <li>Acude a cualquier OXXO y paga en caja</li>
+            <li>Tu lugar quedará confirmado automáticamente al pagar</li>
+          </ul>
+        </div>
+        <a href="/" class="cta-home">
+          Volver al inicio
+          <svg width="14" height="10" viewBox="0 0 16 10" fill="none"><path d="M1 5h14m0 0L11 1m4 4L11 9" stroke="currentColor" stroke-width="1.3"/></svg>
+        </a>
+        <div class="footer-note">Actividades Norte · 2026</div>
+      `;
+    }
+
+    function renderProcessing({ idAsistente }) {
+      document.getElementById('card').innerHTML = `
+        <div class="icon-wrap pending">
+          <div class="spinner-big" style="width:34px;height:34px;border-color:rgba(255,255,255,0.3);border-top-color:#fff;"></div>
+        </div>
+        <div class="eyebrow">Procesando</div>
+        <h1 class="title">Tu pago se está <em>procesando</em></h1>
+        <p class="desc">
+          Recibirás un correo de confirmación tan pronto se complete. Esto puede tardar unos minutos.
+        </p>
+        <div class="id-card">
+          <div class="id-card-label">Tu ID de Asistente</div>
+          <div class="id-card-value">${escapeHtml(idAsistente || '—')}</div>
+        </div>
+        <a href="/" class="cta-home">Volver al inicio</a>
+        <div class="footer-note">Actividades Norte · 2026</div>
+      `;
+    }
+
+    function renderError(msg) {
+      document.getElementById('card').innerHTML = `
+        <div class="eyebrow" style="color:#B5443A;">Error</div>
+        <h1 class="title" style="color:#B5443A;">No se pudo verificar el pago</h1>
+        <p class="desc">${escapeHtml(msg)}</p>
+        <a href="/" class="cta-home">Volver al inicio</a>
+      `;
+    }
+
+    async function init() {
+      // Si no hay client_secret, mostramos vista simple (caso fallback)
+      if (!piCS) {
+        renderSuccess({ idAsistente: idAsis });
+        return;
+      }
+
+      // Necesitamos saber el género para usar la PK correcta.
+      // Stripe permite consultar PI con cualquiera de las dos PKs si fue creado
+      // con la secret correspondiente, pero hay que adivinar. Probamos varonil
+      // primero, luego femenil si falla.
+      let pi = null, lastErr = null;
+      for (const g of ['varonil', 'femenil']) {
+        try {
+          const stripe = Stripe(STRIPE_PK[g]);
+          const { paymentIntent, error } = await stripe.retrievePaymentIntent(piCS);
+          if (error) { lastErr = error; continue; }
+          pi = paymentIntent; break;
+        } catch (e) { lastErr = e; }
+      }
+
+      if (!pi) {
+        renderError(lastErr?.message || 'No se pudo obtener el estado del pago.');
+        return;
+      }
+
+      const id = pi.metadata?.id_asistente || idAsis;
+
+      switch (pi.status) {
+        case 'succeeded':
+          renderSuccess({ idAsistente: id });
+          break;
+        case 'processing':
+          renderProcessing({ idAsistente: id });
+          break;
+        case 'requires_action': {
+          // Típicamente OXXO
+          const oxxo = pi.next_action?.oxxo_display_details;
+          if (oxxo?.hosted_voucher_url) {
+            renderOxxo({
+              idAsistente: id,
+              voucherUrl:  oxxo.hosted_voucher_url,
+              expiresAt:   oxxo.expires_after,
+            });
+          } else {
+            renderProcessing({ idAsistente: id });
+          }
+          break;
+        }
+        case 'requires_payment_method':
+        case 'canceled':
+          renderError('El pago no se completó. Por favor intenta de nuevo.');
+          break;
+        default:
+          renderProcessing({ idAsistente: id });
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

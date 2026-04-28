@@ -1367,7 +1367,7 @@
       varonil: 'pk_live_51OjmP3InV3BygPkLbM6REVHFHEiobBOKxqNBeLkkgSy2vKKF9Dql43zFWaKHjKrZnSOgalfQ9kVXa9Ipml7X8PZK00ZGyQyJPV',
       femenil: 'pk_live_51O4UzxHq3UG7g1p33TB6zQbG3AQ6WMk7PMVyiQD3w0j1Ue0SO7sgdnIlDUBiwmYyg1m85X2mTlYtMAIPpCK6jUUQ00NPPRf6D6',
     };
-    const BASE_URL = 'https://launch.actividadesnorte.com';
+    const BASE_URL = location.origin;
 
     /* DETECCIÓN DE GÉNERO POR ID */
     const params      = new URLSearchParams(window.location.search);
@@ -1784,7 +1784,7 @@
       document.getElementById('payment-message').style.display = 'none';
 
       const data      = window._stripePayData || {};
-      const returnUrl = `${BASE_URL}/success?id=${encodeURIComponent(data.idAsistente || '')}`;
+      const returnUrl = `${BASE_URL}/success?id=${encodeURIComponent(data.idAsistente || '')}&genero=${encodeURIComponent(data.genero || '')}`;
 
       const { error, paymentIntent } = await stripeInstance.confirmPayment({
         elements: stripeElements,
@@ -1809,7 +1809,7 @@
       }
 
       if (paymentIntent?.status === 'succeeded') {
-        window.location.href = `${BASE_URL}/success?id=${encodeURIComponent(data.idAsistente || '')}`;
+        window.location.href = `${BASE_URL}/success?id=${encodeURIComponent(data.idAsistente || '')}&genero=${encodeURIComponent(data.genero || '')}`;
       }
     }
   </script>

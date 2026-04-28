@@ -1,4 +1,41 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/varonil",  "destination": "/pages/varonil/index.html" },
+    { "source": "/femenil",  "destination": "/pages/femenil/index.html" },
+    { "source": "/registro", "destination": "/pages/registro/index.html" },
+    { "source": "/success",  "destination": "/pages/success/index.html" },
+    { "source": "/v",        "destination": "/pages/v/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options",    "value": "nosniff" },
+        { "key": "Referrer-Policy",           "value": "strict-origin-when-cross-origin" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
+        { "key": "X-Frame-Options",           "value": "SAMEORIGIN" },
+        { "key": "Permissions-Policy",        "value": "geolocation=(), microphone=(), camera=()" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ],
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 15,
+      "memory": 256
+    }
+  }
 }
