@@ -108,10 +108,10 @@ module.exports = async function handler(req, res) {
     body.append('currency', 'mxn');
 
     // ── Métodos de pago según lo que pre-seleccionó el user ─────────
-    // MSI (Meses Sin Intereses) activado en tarjeta. Si tu cuenta de Stripe
-    // aún no tiene aprobación con bancos, igual funciona — el Element solo
-    // mostrará la opción de MSI cuando el banco emisor sea elegible.
-    const isOXXO = metodoPago === 'OXXO en Efectivo';
+    // MSI (Meses Sin Intereses) activado SOLO en pago de Contado. En Apartado
+    // se desactiva porque no tiene sentido financiar a meses el 33%.
+    const isOXXO     = metodoPago === 'OXXO en Efectivo';
+    const allowMSI   = tipoPago === 'Contado';   // ← Apartado nunca tiene MSI
 
     if (isOXXO) {
       body.append('payment_method_types[]', 'oxxo');
@@ -119,12 +119,16 @@ module.exports = async function handler(req, res) {
     } else if (metodoPago) {
       // Cualquier valor distinto de OXXO → solo card
       body.append('payment_method_types[]', 'card');
-      body.append('payment_method_options[card][installments][enabled]', 'true');
+      if (allowMSI) {
+        body.append('payment_method_options[card][installments][enabled]', 'true');
+      }
     } else {
       // Sin pre-selección → Stripe muestra todos los métodos habilitados
       body.append('automatic_payment_methods[enabled]', 'true');
       body.append('payment_method_options[oxxo][expires_after_days]', '2');
-      body.append('payment_method_options[card][installments][enabled]', 'true');
+      if (allowMSI) {
+        body.append('payment_method_options[card][installments][enabled]', 'true');
+      }
     }
 
     if (email) body.append('receipt_email', email);

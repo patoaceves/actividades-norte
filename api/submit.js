@@ -45,10 +45,10 @@ const DESTINO = {
 
 function firstVal(v) { return Array.isArray(v) ? v[0] : v; }
 
-// 6 dígitos: 100000-999999 → 900K opciones
-// Con 50 inscritos por actividad, prob. de colisión ~0.14%
+// 4 dígitos: 1000-9999 → 9000 opciones por actividad
+// Formato: ${idActividad}${4 dígitos} → ej. AV031 + 7098 = AV0317098
 function generateIdAsistente(idActividad) {
-  return `${idActividad}${Math.floor(100000 + Math.random() * 900000)}`;
+  return `${idActividad}${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
 // ── Metadata API → { fieldName: fieldId } ───────────────────────────
@@ -224,7 +224,7 @@ module.exports = async function handler(req, res) {
     // 6. Generar idAsistente único (con retry contra colisiones)
     let idAsistente;
     const idsSet = new Set(idsAsistente);
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 20; i++) {
       const candidato = generateIdAsistente(idActividad);
       if (!idsSet.has(candidato)) { idAsistente = candidato; break; }
     }
