@@ -1,3 +1,0 @@
-BUILD: 2026-05-13-tarde
-Si ves este archivo en https://actividades-norte.vercel.app/build.txt
-entonces el deploy más reciente está vivo y el catalogo.js debería tener el badge "No disponible".

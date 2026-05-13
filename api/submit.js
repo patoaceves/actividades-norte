@@ -255,7 +255,10 @@ module.exports = async function handler(req, res) {
     const payload = buildPayload(fields, fieldMap, cfg, idAsistente, genero);
 
     // 8. Escribir registro
-    const r    = await fetch(
+    //    Si Airtable rechaza una opción del Single Select "Método de Pago"
+    //    (porque la opción no existe y el PAT no puede crearla), retry sin
+    //    ese campo. El método real queda en metadata del PI de Stripe.
+    let r    = await fetch(
       `https://api.airtable.com/v0/${cfg.base}/${cfg.table}?returnFieldsByFieldId=true`,
       {
         method:  'POST',
@@ -263,7 +266,25 @@ module.exports = async function handler(req, res) {
         body:    JSON.stringify({ fields: payload }),
       }
     );
-    const data = await r.json();
+    let data = await r.json();
+
+    if (!r.ok && data?.error?.type === 'INVALID_MULTIPLE_CHOICE_OPTIONS') {
+      // Retry sin "Método de Pago"
+      const metodoPagoId = cfg.ids.metodoPago || fieldMap['Método de Pago'];
+      const retryPayload = { ...payload };
+      if (metodoPagoId) delete retryPayload[metodoPagoId];
+      console.warn('Airtable rechazó Método de Pago, reintentando sin ese campo. Valor original:', fields['Método de Pago']);
+      r = await fetch(
+        `https://api.airtable.com/v0/${cfg.base}/${cfg.table}?returnFieldsByFieldId=true`,
+        {
+          method:  'POST',
+          headers: { Authorization: `Bearer ${pat}`, 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ fields: retryPayload }),
+        }
+      );
+      data = await r.json();
+    }
+
     if (!r.ok) throw new Error(`Airtable write: ${JSON.stringify(data)}`);
 
     return res.status(200).json({

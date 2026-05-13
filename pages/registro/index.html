@@ -435,6 +435,18 @@
       border-bottom: 1px solid var(--green-3);
     }
     .methods { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .method-note {
+      padding: 10px 14px;
+      background: rgba(160, 120, 64, 0.06);
+      border-left: 2px solid var(--gold-soft, #A07840);
+      border-radius: 4px;
+    }
+    .method-note small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .method-note strong { color: var(--charcoal, #2A4030); font-weight: 600; }
     .method { position: relative; }
     .method input { position: absolute; opacity: 0; width: 0; height: 0; }
     .method label {
@@ -1160,18 +1172,8 @@
               </div>
             </label>
           </div>
-          <div class="method">
-            <input type="radio" name="metodo-apartado" id="ma-oxxo" value="OXXO en Efectivo">
-            <label for="ma-oxxo">
-              <div class="method-radio"></div>
-              <div class="method-info">
-                <strong>OXXO en Efectivo</strong>
-                <small>Paga en cualquier tienda OXXO</small>
-              </div>
-              <div class="method-icons">
-                <img src="/assets/png/icons/oxxo.png" alt="OXXO">
-              </div>
-            </label>
+          <div class="method-note">
+            <small>El pago en apartado solo se puede realizar con tarjeta. Si prefieres pagar en OXXO, elige <strong>Contado</strong>.</small>
           </div>
         </div>
       </div>
@@ -1587,13 +1589,9 @@
       if (metodo === 'Transferencia o Depósito Bancario') {
         return 'Contado - Depósito Bancario';
       }
-      if (metodo === 'OXXO en Efectivo') {
-        return `${tipo} - OXXO en Efectivo`;
-      }
-      if (metodo === 'Tarjeta de Crédito o Débito') {
-        return `${tipo} - Tarjeta de Crédito o Débito`;
-      }
-      // Fallback retrocompat
+      // Usamos el valor genérico para no requerir crear opciones nuevas en
+      // Airtable. La distinción OXXO vs Tarjeta queda guardada en la metadata
+      // del PaymentIntent de Stripe (campo `metodo_pago`).
       return `${tipo} - Pago con Tarjeta/OXXO`;
     }
 
