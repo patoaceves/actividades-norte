@@ -245,10 +245,11 @@
 
   <script>
     // Stripe redirige aquí con: ?payment_intent=pi_xxx&payment_intent_client_secret=pi_xxx_secret&redirect_status=succeeded
-    // Y nosotros también ponemos: ?id=AV0241234
+    // Y nosotros también ponemos: ?id=AV0241234&genero=varonil|femenil
     const params  = new URLSearchParams(location.search);
     const idAsis  = (params.get('id') || '').trim();
     const piCS    = params.get('payment_intent_client_secret');
+    const generoQ = (params.get('genero') || '').toLowerCase().trim();
 
     // PK pública (la misma que en checkout)
     const STRIPE_PK = {
@@ -371,12 +372,14 @@
         return;
       }
 
-      // Necesitamos saber el género para usar la PK correcta.
-      // Stripe permite consultar PI con cualquiera de las dos PKs si fue creado
-      // con la secret correspondiente, pero hay que adivinar. Probamos varonil
-      // primero, luego femenil si falla.
+      // Si nos pasaron el género en la URL, usamos esa PK directo.
+      // Si no, hacemos fallback al guess-and-retry (varonil primero, luego femenil).
+      const ordenGeneros = (generoQ === 'femenil' || generoQ === 'varonil')
+        ? [generoQ, generoQ === 'varonil' ? 'femenil' : 'varonil']
+        : ['varonil', 'femenil'];
+
       let pi = null, lastErr = null;
-      for (const g of ['varonil', 'femenil']) {
+      for (const g of ordenGeneros) {
         try {
           const stripe = Stripe(STRIPE_PK[g]);
           const { paymentIntent, error } = await stripe.retrievePaymentIntent(piCS);

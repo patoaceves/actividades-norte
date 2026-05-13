@@ -25,13 +25,32 @@ const FIELDS = {
   menuFin:        'fldVZ8wXIgwiw3AcM',
 };
 
+// ── CORS por allow-list ──────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://registro.actividadesnorte.com',
+  'https://www.registro.actividadesnorte.com',
+  'https://actividadesnorte.com',
+  'https://www.actividadesnorte.com',
+  process.env.PUBLIC_BASE_URL,
+].filter(Boolean);
+
+function setCors(req, res) {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin) || /^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+}
+
 // Helper: primer valor si es array (campos lookup/link)
 function firstVal(v) {
   return Array.isArray(v) ? v[0] : v;
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  setCors(req, res);
+  if (req.method === 'OPTIONS') return res.status(204).end();
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });

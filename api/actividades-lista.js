@@ -20,10 +20,26 @@ const FIELDS = {
   cuota:         'fldVePGXnIEkMWciI',
 };
 
-// Helper: primer valor si es array (campos lookup/link)
-function firstVal(v) {
-  return Array.isArray(v) ? v[0] : v;
+// ── CORS por allow-list ──────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://registro.actividadesnorte.com',
+  'https://www.registro.actividadesnorte.com',
+  'https://actividadesnorte.com',
+  'https://www.actividadesnorte.com',
+  process.env.PUBLIC_BASE_URL,
+].filter(Boolean);
+
+function setCors(req, res) {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin) || /^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 }
+
+// Helper: primer valor si es array (campos lookup/link)
+function firstScalar(v) { return Array.isArray(v) ? v[0] : v; }
 
 // Helper: devuelve array de strings para casa (maneja: array, string con comas, string simple)
 function toCasasArray(v) {
@@ -41,8 +57,9 @@ function toCasasArray(v) {
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  setCors(req, res);
   res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+  if (req.method === 'OPTIONS') return res.status(204).end();
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -79,20 +96,20 @@ module.exports = async function handler(req, res) {
     // Filtra activos y mapea
     const activas = all
       .filter(rec => {
-        const estatus = String(firstVal(rec.fields[FIELDS.estatus]) || '').toLowerCase().trim();
-        const seccion = String(firstVal(rec.fields[FIELDS.seccion]) || '').toUpperCase().trim();
+        const estatus = String(firstScalar(rec.fields[FIELDS.estatus]) || '').toLowerCase().trim();
+        const seccion = String(firstScalar(rec.fields[FIELDS.seccion]) || '').toUpperCase().trim();
         return estatus === 'activo' && (seccion === 'VARONIL' || seccion === 'FEMENIL');
       })
       .map(rec => {
         const f = rec.fields;
-        const seccion = String(firstVal(f[FIELDS.seccion]) || '').toUpperCase().trim();
+        const seccion = String(firstScalar(f[FIELDS.seccion]) || '').toUpperCase().trim();
         const lugares = seccion === 'FEMENIL'
-          ? firstVal(f[FIELDS.lugaresF])
-          : firstVal(f[FIELDS.lugaresV]);
+          ? firstScalar(f[FIELDS.lugaresF])
+          : firstScalar(f[FIELDS.lugaresV]);
         const casas = toCasasArray(f[FIELDS.casa]);
-        const nombreRaw = String(firstVal(f[FIELDS.nombreCompleto]) || '').trim();
+        const nombreRaw = String(firstScalar(f[FIELDS.nombreCompleto]) || '').trim();
         // Intenta idActividad, si falla extrae del prefijo del nombre: "AF027 - Título"
-        let id = String(firstVal(f[FIELDS.idActividad]) || '').trim().toUpperCase();
+        let id = String(firstScalar(f[FIELDS.idActividad]) || '').trim().toUpperCase();
         if (!id && nombreRaw) {
           const m = nombreRaw.match(/^([A-Z]{2}\d+(?:-\d+)?)/);
           if (m) id = m[1];
@@ -102,12 +119,12 @@ module.exports = async function handler(req, res) {
           nombre:         nombreRaw,
           casa:           casas,                // ahora siempre array
           casaPrincipal:  casas[0] || '',       // para retrocompatibilidad
-          fechaCompleta:  String(firstVal(f[FIELDS.fechaCompleta]) || '').trim(),
-          fechaInicio:    String(firstVal(f[FIELDS.fechaInicio]) || '').trim(),
-          fechaFin:       String(firstVal(f[FIELDS.fechaFin]) || '').trim(),
+          fechaCompleta:  String(firstScalar(f[FIELDS.fechaCompleta]) || '').trim(),
+          fechaInicio:    String(firstScalar(f[FIELDS.fechaInicio]) || '').trim(),
+          fechaFin:       String(firstScalar(f[FIELDS.fechaFin]) || '').trim(),
           seccion,
           lugares:        lugares != null ? Number(lugares) : null,
-          cuota:          String(firstVal(f[FIELDS.cuota]) || '').trim(),
+          cuota:          String(firstScalar(f[FIELDS.cuota]) || '').trim(),
         };
       })
       .filter(a => a.id) // descarta sin ID

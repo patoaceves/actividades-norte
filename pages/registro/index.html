@@ -1176,6 +1176,8 @@
         </div>
       </div>
 
+      <span class="err-msg" id="err-metodo"></span>
+
       <div class="btn-row">
         <button class="btn btn-back" onclick="goStep(1)">
           <svg width="14" height="10" viewBox="0 0 16 10" fill="none"><path d="M15 5H1m0 0l4-4M1 5l4 4" stroke="currentColor" stroke-width="1.3"/></svg>
@@ -1426,14 +1428,67 @@
       } catch(e) { return iso; }
     }
 
+    /* MOSTRAR BLOQUEO — oculta form y muestra mensaje cuando la actividad
+       no está disponible (sin cuota, sin lugares, o llena durante el flujo). */
+    function mostrarBloqueo(htmlMsg) {
+      document.getElementById('loading-state').classList.add('hidden');
+      const pw = document.getElementById('progress-wrap');
+      if (pw) pw.style.display = 'none';
+      document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+      const sw = document.getElementById('success-wrap');
+      if (sw) sw.classList.remove('show');
+      const errWrap = document.getElementById('err-id-wrap');
+      const errDesc = document.getElementById('err-id-desc');
+      if (errWrap) errWrap.classList.add('show');
+      if (errDesc) errDesc.innerHTML = htmlMsg;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     /* CARGAR ACTIVIDAD */
     async function loadActividad() {
       if (!actividadId) return;
       try {
-        const res  = await fetch('/api/actividad?id=' + encodeURIComponent(actividadId));
-        const data = await res.json();
+        // Timeout: Airtable puede tardar; 10s antes de mostrar error
+        const fetchProm = fetch('/api/actividad?id=' + encodeURIComponent(actividadId))
+          .then(r => r.json().then(data => ({ ok: r.ok, data })));
+        const timeoutProm = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Tiempo agotado cargando la actividad. Intenta recargar.')), 10000)
+        );
+        const { ok, data } = await Promise.race([fetchProm, timeoutProm]);
         console.log('[registro] actividad cargada:', data);
-        if (!res.ok) throw new Error(data.error || 'Error al cargar');
+        if (!ok) throw new Error(data.error || 'Error al cargar');
+
+        // ── BLOQUEOS DE DISPONIBILIDAD ────────────────────────────────
+        // Estos chequeos también se ejecutan en el backend (submit y
+        // payment-intent), pero los reproducimos aquí para que un URL viejo
+        // compartido por WhatsApp/Mail no permita ni siquiera llenar el form.
+
+        // 1) Cuota: si no es válida (vacía, "No disponible", no numérica)
+        const cuotaStr  = String(data.cuota || '').replace(/MX\$|,|\s/g, '');
+        const cuotaNum  = parseInt(cuotaStr, 10);
+        const cuotaOk   = !isNaN(cuotaNum) && cuotaNum > 0;
+        if (!cuotaOk) {
+          mostrarBloqueo(
+            `La actividad <strong>${actividadId}</strong> aún no tiene cuota definida. `
+            + `El registro se habilitará pronto. `
+            + `<a href="/v?id=${encodeURIComponent(actividadId)}" style="text-decoration:underline;">Ver detalles</a>`
+          );
+          return;
+        }
+
+        // 2) Lugares: si ya no hay cupo
+        //    `lugares` viene de Airtable como cupo RESTANTE (fórmula:
+        //    capacidad - COUNT(asistentes)). null/undefined también cuenta
+        //    como no disponible.
+        const lugares = data.lugares;
+        if (lugares === null || lugares === undefined || lugares <= 0) {
+          mostrarBloqueo(
+            `La actividad <strong>${actividadId}</strong> ya no tiene lugares disponibles. `
+            + `Si te interesa, contacta al coordinador o revisa otras fechas en `
+            + `<a href="/${genero}" style="text-decoration:underline;">${genero === 'femenil' ? 'Femenil' : 'Varonil'}</a>.`
+          );
+          return;
+        }
 
         // Título: nombre sin prefijo
         const nombreEl = document.getElementById('act-title-name');
@@ -1532,6 +1587,13 @@
       if (metodo === 'Transferencia o Depósito Bancario') {
         return 'Contado - Depósito Bancario';
       }
+      if (metodo === 'OXXO en Efectivo') {
+        return `${tipo} - OXXO en Efectivo`;
+      }
+      if (metodo === 'Tarjeta de Crédito o Débito') {
+        return `${tipo} - Tarjeta de Crédito o Débito`;
+      }
+      // Fallback retrocompat
       return `${tipo} - Pago con Tarjeta/OXXO`;
     }
 
@@ -1549,6 +1611,24 @@
           ok = vf('encargado','err-encargado', v => v.trim() !== '') && ok;
         }
         ok = vf('ciudad',   'err-ciudad',   v => v.trim() !== '') && ok;
+      }
+      if (step === 2) {
+        // Aunque hay defaults, validamos defensivamente que haya método elegido
+        const metodo = getMetodo();
+        const tipo   = getTipoPago();
+        const errEl  = document.getElementById('err-metodo');
+        if (!metodo) {
+          if (errEl) { errEl.textContent = 'Selecciona una forma de pago'; errEl.classList.add('show'); }
+          else alert('Selecciona una forma de pago antes de continuar.');
+          ok = false;
+        } else if (errEl) {
+          errEl.classList.remove('show');
+        }
+        // Apartado solo permite Tarjeta u OXXO (no transferencia)
+        if (tipo === 'Apartado' && metodo === 'Transferencia o Depósito Bancario') {
+          if (errEl) { errEl.textContent = 'Apartado no se puede pagar por transferencia.'; errEl.classList.add('show'); }
+          ok = false;
+        }
       }
       if (step === 3) {
         const all = document.getElementById('chk-aviso').checked
@@ -1637,6 +1717,18 @@
           body:    JSON.stringify({ fields, genero }),
         });
         const submitData = await submitRes.json();
+
+        // 409 = capacidad llena. Mostramos bloqueo definitivo en vez de alert.
+        if (submitRes.status === 409) {
+          btn.classList.remove('loading'); btn.disabled = false;
+          mostrarBloqueo(
+            `La actividad <strong>${actividadId}</strong> se llenó. `
+            + `Tu registro <strong>no fue guardado</strong> y no se cobró nada. `
+            + `Revisa otras fechas en `
+            + `<a href="/${genero}" style="text-decoration:underline;">${genero === 'femenil' ? 'Femenil' : 'Varonil'}</a>.`
+          );
+          return;
+        }
         if (!submitRes.ok) throw new Error(submitData.error || 'Error al guardar registro');
 
         const { recordId, idAsistente, actividad } = submitData;
@@ -1701,6 +1793,17 @@
           body:    JSON.stringify(data),
         });
         const piData = await piRes.json();
+
+        // 409 = la actividad se llenó entre /submit y /payment-intent.
+        // El registro ya quedó en Airtable pero NO se cobró nada. Bloqueamos.
+        if (piRes.status === 409) {
+          mostrarBloqueo(
+            `La actividad <strong>${actividadId}</strong> se llenó mientras procesábamos tu pago. `
+            + `<strong>No se cobró nada.</strong> Por favor contacta al coordinador para liberar tu registro o revisa otras fechas en `
+            + `<a href="/${data.genero}" style="text-decoration:underline;">${data.genero === 'femenil' ? 'Femenil' : 'Varonil'}</a>.`
+          );
+          return;
+        }
         if (!piRes.ok) throw new Error(piData.error);
 
         const mxn = (piData.amount / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -1733,7 +1836,7 @@
             <img src="/assets/png/icons/oxxo.png" alt="OXXO">
             <div>
               <strong>Pago en efectivo en OXXO</strong>
-              <span>Al continuar generaremos una <strong>guía de pago OXXO</strong> que llegará a tu correo. Preséntala en cualquier tienda OXXO antes de <strong>3 días</strong>.</span>
+              <span>Al continuar generaremos una <strong>guía de pago OXXO</strong> que llegará a tu correo. Preséntala en cualquier tienda OXXO antes de <strong>2 días</strong>.</span>
             </div>`;
         } else {
           ctxEl.className = 'pay-context';
@@ -1808,9 +1911,26 @@
         return;
       }
 
-      if (paymentIntent?.status === 'succeeded') {
-        window.location.href = `${BASE_URL}/success?id=${encodeURIComponent(data.idAsistente || '')}&genero=${encodeURIComponent(data.genero || '')}`;
+      // Estados que requieren redirigir a /success:
+      //   - succeeded       → tarjeta cobrada
+      //   - requires_action → OXXO (se generó la ficha; /success la muestra)
+      //   - processing      → método async confirmado pero aún en proceso
+      const okStatus = ['succeeded', 'requires_action', 'processing'];
+      if (paymentIntent?.status && okStatus.includes(paymentIntent.status)) {
+        window.location.href = `${BASE_URL}/success`
+          + `?id=${encodeURIComponent(data.idAsistente || '')}`
+          + `&genero=${encodeURIComponent(data.genero || '')}`
+          + `&payment_intent=${encodeURIComponent(paymentIntent.id || '')}`
+          + `&payment_intent_client_secret=${encodeURIComponent(paymentIntent.client_secret || '')}`
+          + `&redirect_status=${encodeURIComponent(paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending')}`;
+        return;
       }
+
+      // Cualquier otro estado: avisar
+      const msg = document.getElementById('payment-message');
+      msg.textContent  = 'El pago no se completó. Intenta de nuevo o usa otro método.';
+      msg.style.display = 'block';
+      btn.classList.remove('loading'); btn.disabled = false;
     }
   </script>
 

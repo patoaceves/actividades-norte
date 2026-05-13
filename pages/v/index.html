@@ -1097,6 +1097,13 @@
       return num.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 });
     }
 
+    // Cuota válida = numérica y > 0. "No disponible", vacío o 0 → no se puede pagar.
+    function isCuotaValida(c) {
+      if (c === null || c === undefined || c === '') return false;
+      const n = parseInt(String(c).replace(/MX\$|,|\s/g, ''), 10);
+      return !isNaN(n) && n > 0;
+    }
+
     function cleanNombre(nombre, id) {
       if (!nombre) return id || '';
       // Acepta IDs con sufijo numérico: "AF035-1 - Título" → "Título"
@@ -1157,34 +1164,41 @@
 
       /* Cuota en la caja */
       const cuotaStr = formatCuota(data.cuota);
-      document.getElementById('info-cuota').textContent = cuotaStr || '—';
+      document.getElementById('info-cuota').textContent = cuotaStr || 'No disponible';
 
       /* Lugares disponibles en la caja de cuota */
       const lugares = data.lugares;
       const cuposEl = document.getElementById('info-cupos');
       const cuposTextEl = document.getElementById('info-cupos-text');
-      // Determinar estado: no disponible si null/undefined o <= 0
-      const isUnavailable = (lugares === null || lugares === undefined || lugares <= 0);
+      // Determinar estado: no disponible si lugares null/undefined/<=0 O cuota inválida
+      const sinLugares  = (lugares === null || lugares === undefined || lugares <= 0);
+      const sinCuota    = !isCuotaValida(data.cuota);
+      const isUnavailable = sinLugares || sinCuota;
 
-      cuposEl.style.display = '';
-      cuposEl.className = 'action-cupos';
-      if (isUnavailable) {
-        cuposEl.classList.add('full');
-        cuposTextEl.textContent = 'No disponible';
-      } else if (lugares <= 3) {
-        cuposEl.classList.add('low');
-        cuposTextEl.textContent = lugares === 1 ? '1 último lugar' : `${lugares} últimos lugares`;
+      if (sinCuota) {
+        // Sin cuota: ocultamos cupos por completo (la cuota ya dice "No disponible")
+        cuposEl.style.display = 'none';
       } else {
-        cuposTextEl.textContent = lugares === 1 ? '1 lugar disponible' : `${lugares} lugares disponibles`;
+        cuposEl.style.display = '';
+        cuposEl.className = 'action-cupos';
+        if (sinLugares) {
+          cuposEl.classList.add('full');
+          cuposTextEl.textContent = 'No disponible';
+        } else if (lugares <= 3) {
+          cuposEl.classList.add('low');
+          cuposTextEl.textContent = lugares === 1 ? '1 último lugar' : `${lugares} últimos lugares`;
+        } else {
+          cuposTextEl.textContent = lugares === 1 ? '1 lugar disponible' : `${lugares} lugares disponibles`;
+        }
       }
 
-      /* Registro CTA: deshabilitar si no hay lugares */
+      /* Registro CTA: deshabilitar si no hay lugares o no hay cuota */
       const registerBtn = document.getElementById('hero-register-btn');
       if (isUnavailable) {
         registerBtn.classList.add('disabled');
         registerBtn.removeAttribute('href');
         registerBtn.setAttribute('aria-disabled', 'true');
-        registerBtn.innerHTML = 'No disponible';
+        registerBtn.innerHTML = sinLugares ? 'No disponible' : 'Próximamente';
         registerBtn.addEventListener('click', (e) => e.preventDefault());
       } else {
         registerBtn.href = '/registro?id=' + encodeURIComponent(actividadId);

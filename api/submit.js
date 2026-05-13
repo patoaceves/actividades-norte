@@ -1,9 +1,9 @@
 // api/submit.js
 // Crea un registro de asistente en Airtable.
 // — Verifica capacidad antes de escribir (no permite overbooking)
-// — Verifica que email+idActividad no esté ya registrado (idempotencia)
-// — idAsistente de 6 dígitos con retry si colisiona
-// — Headers CORS
+// — idAsistente de 4 dígitos con retry contra colisiones
+// — CORS restringido por origen
+// — Filtrado en JS (NO usa nombres de campo en filterByFormula)
 
 const ACTIVIDADES = {
   base:  'appxtlc0kwOVOI0lm',
@@ -42,6 +42,25 @@ const DESTINO = {
     },
   },
 };
+
+// ── CORS por allow-list ──────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://registro.actividadesnorte.com',
+  'https://www.registro.actividadesnorte.com',
+  'https://actividadesnorte.com',
+  'https://www.actividadesnorte.com',
+  process.env.PUBLIC_BASE_URL,
+].filter(Boolean);
+
+function setCors(req, res) {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin) || /^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
 
 function firstVal(v) { return Array.isArray(v) ? v[0] : v; }
 
@@ -101,33 +120,36 @@ async function fetchActividad(idActividad) {
 }
 
 // ── Lista idAsistentes existentes en la tabla destino para esa actividad ──
-// Solo se usa para evitar colisiones del random — no para validar duplicados.
-async function listarRegistrosActividad(pat, cfg, idActividad, fieldMap) {
+// Solo se usa para evitar colisiones del random.
+// IMPORTANTE: filtramos en JS, NO usamos filterByFormula con nombres de campo.
+async function listarIdsAsistenteParaActividad(pat, cfg, idActividad, fieldMap) {
   const idActividadFieldId = fieldMap['ID Actividad'];
   if (!idActividadFieldId) throw new Error('Campo "ID Actividad" no encontrado en tabla destino');
 
-  const formula = encodeURIComponent(`{ID Actividad}='${idActividad}'`);
-  const fl      = [idActividadFieldId, cfg.ids.idAsistente]
+  // Pedimos solo los 2 campos que necesitamos para abaratar la transferencia
+  const fl = [idActividadFieldId, cfg.ids.idAsistente]
     .filter(Boolean).map(f => `fields[]=${f}`).join('&');
 
   let offset = '', pages = 0;
   const ids = [];
   do {
     const url = `https://api.airtable.com/v0/${cfg.base}/${cfg.table}`
-      + `?returnFieldsByFieldId=true&filterByFormula=${formula}&${fl}&pageSize=100`
+      + `?returnFieldsByFieldId=true&${fl}&pageSize=100`
       + (offset ? `&offset=${offset}` : '');
     const r    = await fetch(url, { headers: { Authorization: `Bearer ${pat}` } });
     const data = await r.json();
     if (!r.ok) throw new Error(`Airtable list: ${JSON.stringify(data)}`);
     (data.records || []).forEach(rec => {
-      const i = String(firstVal(rec.fields[cfg.ids.idAsistente]) || '').trim();
-      if (i) ids.push(i);
+      const recIdAct = String(firstVal(rec.fields[idActividadFieldId]) || '').trim();
+      if (recIdAct !== idActividad) return; // filtro en JS
+      const idA = String(firstVal(rec.fields[cfg.ids.idAsistente]) || '').trim();
+      if (idA) ids.push(idA);
     });
     offset = data.offset || '';
     pages++;
-  } while (offset && pages < 20);
+  } while (offset && pages < 30);
 
-  return { idsAsistente: ids };
+  return ids;
 }
 
 // ── Construir payload con field IDs ─────────────────────────────────
@@ -172,14 +194,14 @@ const REQUIRED = [
 ];
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  setCors(req, res);
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')    return res.status(405).json({ error: 'Method not allowed' });
 
-  const { fields, genero = 'varonil' } = req.body || {};
-  if (!DESTINO[genero]) return res.status(400).json({ error: `Género inválido: ${genero}` });
+  const { fields, genero } = req.body || {};
+  if (!genero || !DESTINO[genero]) {
+    return res.status(400).json({ error: `Género inválido o faltante: ${genero}` });
+  }
   for (const f of REQUIRED) {
     if (!fields?.[f]) return res.status(400).json({ error: `Campo requerido: ${f}` });
   }
@@ -201,19 +223,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 3. Field map (Metadata API)
-    const fieldMap = await getFieldMap(pat, cfg.base, cfg.table);
-
-    // 4. Listar idAsistentes existentes (solo para evitar colisiones del random)
-    //    Nota: el campo `Lugares Disponibles V/F` en Airtable ya es el cupo
-    //    RESTANTE (típicamente fórmula: cupoTotal - COUNT(asistentes)).
-    //    NO validamos email duplicado: una persona puede registrar a otros
-    //    asistentes con el mismo correo (ej: pareja, hijos, etc.).
-    const { idsAsistente } = await listarRegistrosActividad(
-      pat, cfg, idActividad, fieldMap
-    );
-
-    // 5. Verificar capacidad — `lugares` es lugares DISPONIBLES, no cupo total
+    // 3. Verificar capacidad — `lugares` es lugares DISPONIBLES, no cupo total
     if (actividad.lugares != null && actividad.lugares <= 0) {
       return res.status(409).json({
         error: 'Esta actividad ya está llena',
@@ -221,9 +231,20 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    // 4. Field map (Metadata API)
+    const fieldMap = await getFieldMap(pat, cfg.base, cfg.table);
+
+    // 5. Listar idAsistentes existentes (solo para evitar colisiones del random)
+    //    Filtrado en JS — NO usamos filterByFormula con nombres de campo.
+    //    Nota: NO validamos email duplicado: una persona puede registrar a otros
+    //    asistentes con el mismo correo (ej: pareja, hijos, etc.).
+    const idsExistentes = await listarIdsAsistenteParaActividad(
+      pat, cfg, idActividad, fieldMap
+    );
+
     // 6. Generar idAsistente único (con retry contra colisiones)
     let idAsistente;
-    const idsSet = new Set(idsAsistente);
+    const idsSet = new Set(idsExistentes);
     for (let i = 0; i < 20; i++) {
       const candidato = generateIdAsistente(idActividad);
       if (!idsSet.has(candidato)) { idAsistente = candidato; break; }
@@ -233,7 +254,7 @@ module.exports = async function handler(req, res) {
     // 7. Construir payload
     const payload = buildPayload(fields, fieldMap, cfg, idAsistente, genero);
 
-    // 9. Escribir
+    // 8. Escribir registro
     const r    = await fetch(
       `https://api.airtable.com/v0/${cfg.base}/${cfg.table}?returnFieldsByFieldId=true`,
       {

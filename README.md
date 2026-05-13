@@ -103,15 +103,20 @@ Session. Los webhooks `payment_intent.*` y el dashboard de Payments leen del
 ### Otros fixes
 - **Cuota desde Airtable** (no del cliente) — cierra agujero de monto manipulable
 - **Capacity check** en submit.js (409 si actividad llena)
-- **Email duplicado** en submit.js (409 si ya hay registro con ese email + actividad)
-- **idAsistente de 6 dígitos** con retry contra colisiones
-- **MSI** activado en tarjeta
+- **Email duplicado NO se valida**: una persona puede registrar a varios asistentes con el mismo correo (ej: cónyuge, hijos)
+- **idAsistente de 4 dígitos** con retry contra colisiones (filtrado en JS, sin filterByFormula por nombre)
+- **Género obligatorio** en payment-intent: si no viene, 400 (evita cobrar a la cuenta Stripe equivocada)
+- **MSI** activado en tarjeta (solo Contado)
 - **OXXO** con vencimiento de 2 días + ficha visible en `/success`
 - **Idempotency-Key** contra dobles clicks
-- **Headers de seguridad** y cache en `vercel.json`
-- **CORS** en submit.js (faltaba)
+- **Headers de seguridad + CSP** en `vercel.json`
+- **CORS por allow-list** en las 4 APIs (no `*`, restringido a dominio de producción + previews)
 - **BASE_URL dinámico** en registro (usa `location.origin`)
-- **&genero** en return_url para que `/success` use la PK correcta
+- **`&genero`** en return_url; success/lee la PK correcta directo (sin doble fetch a Stripe)
+- **Manejo de OXXO post-confirmPayment**: redirect a /success en `requires_action` y `processing`
+- **Timeout 10s** en loadActividad (no se cuelga indefinido si Airtable demora)
+- **Validación step 2**: método de pago obligatorio antes de confirmar
+- **Método de Pago distintivo** en Airtable: "OXXO en Efectivo" vs "Tarjeta" (antes se guardaba colapsado)
 
 ## Flujo
 

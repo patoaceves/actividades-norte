@@ -8,6 +8,7 @@
 //     null / undefined   → automatic_payment_methods (Stripe muestra todos)
 // — Metadata DIRECTA en el PaymentIntent
 // — Idempotency-Key contra dobles clicks
+// — CORS restringido por allow-list
 //
 // Env vars:
 //   STRIPE_SECRET_KEY_VARONIL
@@ -24,8 +25,31 @@ const ACTIVIDADES = {
     casa:          'fldBg4qtC8fWw9I4n',
     fechaCompleta: 'fldSwY4v4Rhlf2iK3',
     seccion:       'fldXXEE93HzWeMoH1',
+    lugaresV:      'fldSZapFVdBE7vooa',
+    lugaresF:      'fld8OQ8NitjT2sHEA',
   },
 };
+
+const GENEROS_VALIDOS = ['varonil', 'femenil'];
+
+// ── CORS por allow-list ──────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://registro.actividadesnorte.com',
+  'https://www.registro.actividadesnorte.com',
+  'https://actividadesnorte.com',
+  'https://www.actividadesnorte.com',
+  process.env.PUBLIC_BASE_URL,
+].filter(Boolean);
+
+function setCors(req, res) {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin) || /^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
 
 function firstVal(v) { return Array.isArray(v) ? v[0] : v; }
 
@@ -62,19 +86,22 @@ async function fetchActividadServer(idActividad) {
 
   if (!found) throw new Error(`Actividad no encontrada: ${idActividad}`);
   const f = found.fields;
+  const seccion = String(firstVal(f[ACTIVIDADES.fields.seccion]) || '').toUpperCase().trim();
+  const lugaresRaw = seccion === 'FEMENIL'
+    ? firstVal(f[ACTIVIDADES.fields.lugaresF])
+    : firstVal(f[ACTIVIDADES.fields.lugaresV]);
   return {
     nombre:        String(firstVal(f[ACTIVIDADES.fields.nombre])        || idActividad).trim(),
     cuota:         String(firstVal(f[ACTIVIDADES.fields.cuota])         || '0').trim(),
     casa:          String(firstVal(f[ACTIVIDADES.fields.casa])          || '').trim(),
     fechaCompleta: String(firstVal(f[ACTIVIDADES.fields.fechaCompleta]) || '').trim(),
-    seccion:       String(firstVal(f[ACTIVIDADES.fields.seccion])       || '').toUpperCase().trim(),
+    seccion,
+    lugares:       lugaresRaw != null ? Number(lugaresRaw) : null,
   };
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  setCors(req, res);
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')    return res.status(405).json({ error: 'Method not allowed' });
 
@@ -84,6 +111,14 @@ module.exports = async function handler(req, res) {
     email, recordId,
   } = req.body || {};
 
+  // Validación obligatoria de género ANTES de elegir cuenta Stripe.
+  // Si falta o es inválido, NO hacemos fallback silencioso a varonil:
+  // eso podría cobrar a la cuenta equivocada.
+  if (!genero || !GENEROS_VALIDOS.includes(genero)) {
+    return res.status(400).json({
+      error: `Género inválido o faltante: ${genero || '(vacío)'}. Esperado: varonil | femenil`,
+    });
+  }
   if (!idActividad || !tipoPago) {
     return res.status(400).json({ error: 'Faltan datos para crear el pago' });
   }
@@ -94,14 +129,26 @@ module.exports = async function handler(req, res) {
 
   if (!secretKey) {
     return res.status(500).json({
-      error: `STRIPE_SECRET_KEY_${(genero || 'varonil').toUpperCase()} no configurado`,
+      error: `STRIPE_SECRET_KEY_${genero.toUpperCase()} no configurado`,
     });
   }
 
   try {
     // 1. Releer actividad de Airtable (fuente de verdad)
     const actividad = await fetchActividadServer(idActividad);
-    const amount    = calcularMonto(actividad.cuota, tipoPago);
+
+    // 2. Última barrera: cupo. Si la actividad se llenó entre el submit y
+    //    este punto, devolvemos 409 para que el front bloquee. El registro
+    //    queda en Airtable sin pago (Pato lo limpia manualmente o vía
+    //    automation).
+    if (actividad.lugares === null || actividad.lugares === undefined || actividad.lugares <= 0) {
+      return res.status(409).json({
+        error: 'Esta actividad ya no tiene lugares disponibles',
+        lugares: actividad.lugares,
+      });
+    }
+
+    const amount = calcularMonto(actividad.cuota, tipoPago);
 
     const body = new URLSearchParams();
     body.append('amount',   String(amount));
@@ -140,7 +187,7 @@ module.exports = async function handler(req, res) {
     const meta = {
       id_asistente:   idAsistente || 'N/A',
       id_actividad:   idActividad,
-      genero:         genero || 'N/A',
+      genero:         genero,
       tipo_pago:      tipoPago,
       metodo_pago:    metodoPago || 'auto',
       // Aliases retrocompat con automation antigua
@@ -169,9 +216,13 @@ module.exports = async function handler(req, res) {
     });
     const pi = await r.json();
     if (pi.error) {
-      // Logging completo en server (visible en Vercel Functions logs)
-      console.error('Stripe PI error:', JSON.stringify(pi.error));
-      console.error('Stripe PI request body was:', body.toString());
+      // Loggeamos solo lo necesario para debug (sin body crudo con PII)
+      console.error('Stripe PI error:', JSON.stringify({
+        type:    pi.error.type,
+        code:    pi.error.code,
+        param:   pi.error.param,
+        message: pi.error.message,
+      }));
       const detail = [pi.error.message, pi.error.param && `(param: ${pi.error.param})`]
         .filter(Boolean).join(' ');
       throw new Error(detail || 'Stripe rechazó el request');

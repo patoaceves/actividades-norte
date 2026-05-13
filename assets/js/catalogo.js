@@ -97,6 +97,13 @@
     return [];
   }
 
+  // Cuota válida = numérica y > 0. Si está vacía o no se puede parsear, no se puede registrar.
+  function isCuotaValida(c) {
+    if (c === null || c === undefined || c === '') return false;
+    const n = parseInt(String(c).replace(/MX\$|,|\s/g, ''), 10);
+    return !isNaN(n) && n > 0;
+  }
+
   // ────────────── populate filters ──────────────
   function populateFilters() {
     // Todas las casas únicas (aplanando arrays)
@@ -178,7 +185,12 @@
 
       let lugState = 'ok', lugText = 'Lugares disponibles';
       let notAvailable = false;
-      if (lugares === null || lugares === undefined) {
+      const cuotaOk = isCuotaValida(a.cuota);
+      let showLugares = true; // si la cuota no es válida, ocultamos por completo el badge de cupos
+      if (!cuotaOk) {
+        notAvailable = true;
+        showLugares  = false;
+      } else if (lugares === null || lugares === undefined) {
         lugState = 'full'; lugText = 'No disponible'; notAvailable = true;
       } else if (lugares <= 0) {
         lugState = 'full'; lugText = 'No disponible'; notAvailable = true;
@@ -202,6 +214,14 @@
           }</div>`
         : '';
 
+      // Badge de cupos: se omite si no hay cuota
+      const lugaresHtml = showLugares
+        ? `<div class="card-lugares ${lugState}">
+             <span class="card-lugares-dot"></span>
+             <span>${escapeHtml(lugText)}</span>
+           </div>`
+        : '<div></div>'; // div vacío para que el card-footer mantenga su layout (CTA a la derecha)
+
       // La card SIEMPRE es clickeable — aunque no haya cupo se puede ver el detalle
       return `
         <a class="card" href="${escapeHtml(href)}">
@@ -216,10 +236,7 @@
             <div class="card-id">${escapeHtml(a.id)}</div>
             <h2 class="card-nombre">${escapeHtml(nombreLimpio || a.id)}</h2>
             <div class="card-footer">
-              <div class="card-lugares ${lugState}">
-                <span class="card-lugares-dot"></span>
-                <span>${escapeHtml(lugText)}</span>
-              </div>
+              ${lugaresHtml}
               <span class="card-cta">
                 ${escapeHtml(ctaLabel)}
                 <svg class="card-cta-arrow" width="14" height="10" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
