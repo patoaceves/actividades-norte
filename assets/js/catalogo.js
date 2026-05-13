@@ -1,3 +1,8 @@
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  BUILD: 2026-05-13-tarde                                     ║
+// ║  Si ves esto en https://actividades-norte.vercel.app/        ║
+// ║  assets/js/catalogo.js → el deploy nuevo está vivo           ║
+// ╚══════════════════════════════════════════════════════════════╝
 // catalogo.js — shared by /varonil y /femenil
 // La sección viene del atributo data-seccion en el <script>
 
