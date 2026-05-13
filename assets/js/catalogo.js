@@ -1,8 +1,3 @@
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  BUILD: 2026-05-13-tarde                                     ║
-// ║  Si ves esto en https://actividades-norte.vercel.app/        ║
-// ║  assets/js/catalogo.js → el deploy nuevo está vivo           ║
-// ╚══════════════════════════════════════════════════════════════╝
 // catalogo.js — shared by /varonil y /femenil
 // La sección viene del atributo data-seccion en el <script>
 
@@ -61,7 +56,6 @@
     const mesParam  = url.get('mes');
     const cupoParam = url.get('cupo');
     if (casaParam) {
-      // Match case-insensitive contra las opciones del select
       const want = normalize(casaParam);
       const match = Array.from($casa.options).find(o => normalize(o.value) === want);
       if (match) $casa.value = match.value;
@@ -98,7 +92,6 @@
     return null;
   }
 
-  // Helper: siempre devuelve casas como array de strings
   function getCasas(a) {
     if (Array.isArray(a.casa)) return a.casa.filter(Boolean);
     if (typeof a.casa === 'string' && a.casa.trim()) {
@@ -107,7 +100,6 @@
     return [];
   }
 
-  // Cuota válida = numérica y > 0. Si está vacía o no se puede parsear, no se puede registrar.
   function isCuotaValida(c) {
     if (c === null || c === undefined || c === '') return false;
     const n = parseInt(String(c).replace(/MX\$|,|\s/g, ''), 10);
@@ -116,7 +108,6 @@
 
   // ────────────── populate filters ──────────────
   function populateFilters() {
-    // Todas las casas únicas (aplanando arrays)
     const casasSet = new Set();
     ACTIVIDADES.forEach(a => {
       getCasas(a).forEach(c => casasSet.add(c));
@@ -156,7 +147,6 @@
         const hay = normalize(a.id) + ' ' + normalize(a.nombre) + ' ' + normalize(casasArr.join(' '));
         if (!hay.includes(q)) return false;
       }
-      // Match si la actividad tiene esa casa en su array
       if (casa && !casasArr.includes(casa)) return false;
       if (mesIdx !== '') {
         const m = getMes(a.fechaInicio);
@@ -185,28 +175,26 @@
     $empty.hidden = true;
 
     $cards.innerHTML = FILTRADAS.map(a => {
-      // Casas: puede venir como string "Casa 1, Casa 2" o array
       let casas = [];
       if (Array.isArray(a.casa)) {
         casas = a.casa.filter(Boolean);
       } else if (typeof a.casa === 'string' && a.casa.trim()) {
-        // Separa por coma o punto y coma si viene múltiple
         casas = a.casa.split(/[,;]\s*/).map(s => s.trim()).filter(Boolean);
       }
 
-      // El hero usa la primera casa
       const primeraCasa = casas[0] || '';
       const hero    = getHero(primeraCasa);
       const lugares = a.lugares;
       const seccion = a.seccion;
       const href    = '/v?id=' + encodeURIComponent(a.id);
 
+      // CALCULAR ESTADO Y TEXTO DEL BADGE
+      // SIEMPRE se renderiza el badge — nunca se oculta.
       let lugState = 'ok', lugText = 'Lugares disponibles';
-      let notAvailable = false;
       const cuotaOk = isCuotaValida(a.cuota);
       const sinCupo = (lugares === null || lugares === undefined || lugares <= 0);
       if (!cuotaOk || sinCupo) {
-        lugState = 'full'; lugText = 'No disponible'; notAvailable = true;
+        lugState = 'full'; lugText = 'No disponible';
       } else if (lugares <= 3) {
         lugState = 'low'; lugText = lugares === 1 ? '1 último lugar' : `${lugares} últimos lugares`;
       } else {
