@@ -26,6 +26,7 @@
   const $search = document.getElementById('f-search');
   const $casa   = document.getElementById('f-casa');
   const $mes    = document.getElementById('f-mes');
+  const $cupo   = document.getElementById('f-cupo');
   const $reset  = document.getElementById('f-reset');
   const $cards  = document.getElementById('cards');
   const $empty  = document.getElementById('cards-empty');
@@ -48,11 +49,12 @@
       $loading.innerHTML = '<span style="color: var(--error);">Error al cargar actividades. Intenta recargar la página.</span>';
     });
 
-  // Lee ?casa=X&mes=N de la URL y preselecciona los filtros
+  // Lee ?casa=X&mes=N&cupo=disponible de la URL y preselecciona los filtros
   function applyUrlFilters() {
     const url = new URLSearchParams(window.location.search);
     const casaParam = url.get('casa');
     const mesParam  = url.get('mes');
+    const cupoParam = url.get('cupo');
     if (casaParam) {
       // Match case-insensitive contra las opciones del select
       const want = normalize(casaParam);
@@ -61,6 +63,9 @@
     }
     if (mesParam !== null && mesParam !== '') {
       $mes.value = String(mesParam);
+    }
+    if ($cupo && cupoParam && (cupoParam === 'disponible' || cupoParam === 'no-disponible')) {
+      $cupo.value = cupoParam;
     }
   }
 
@@ -138,6 +143,7 @@
     const q      = normalize($search.value.trim());
     const casa   = $casa.value;
     const mesIdx = $mes.value;
+    const cupo   = $cupo ? $cupo.value : '';
 
     FILTRADAS = ACTIVIDADES.filter(a => {
       const casasArr = getCasas(a);
@@ -150,6 +156,13 @@
       if (mesIdx !== '') {
         const m = getMes(a.fechaInicio);
         if (!m || String(m.idx) !== mesIdx) return false;
+      }
+      if (cupo) {
+        const lugares = a.lugares;
+        const cuotaOk = isCuotaValida(a.cuota);
+        const disponible = cuotaOk && lugares !== null && lugares !== undefined && lugares > 0;
+        if (cupo === 'disponible'    && !disponible) return false;
+        if (cupo === 'no-disponible' &&  disponible) return false;
       }
       return true;
     });
@@ -186,11 +199,9 @@
       let lugState = 'ok', lugText = 'Lugares disponibles';
       let notAvailable = false;
       const cuotaOk = isCuotaValida(a.cuota);
-      let showLugares = true; // ocultamos badge en cualquier caso de "no disponible"
       const sinCupo = (lugares === null || lugares === undefined || lugares <= 0);
       if (!cuotaOk || sinCupo) {
-        notAvailable = true;
-        showLugares  = false;
+        lugState = 'full'; lugText = 'No disponible'; notAvailable = true;
       } else if (lugares <= 3) {
         lugState = 'low'; lugText = lugares === 1 ? '1 último lugar' : `${lugares} últimos lugares`;
       } else {
@@ -211,14 +222,6 @@
           }</div>`
         : '';
 
-      // Badge de cupos: se omite si no hay cuota
-      const lugaresHtml = showLugares
-        ? `<div class="card-lugares ${lugState}">
-             <span class="card-lugares-dot"></span>
-             <span>${escapeHtml(lugText)}</span>
-           </div>`
-        : '<div></div>'; // div vacío para que el card-footer mantenga su layout (CTA a la derecha)
-
       // La card SIEMPRE es clickeable — aunque no haya cupo se puede ver el detalle
       return `
         <a class="card" href="${escapeHtml(href)}">
@@ -233,7 +236,10 @@
             <div class="card-id">${escapeHtml(a.id)}</div>
             <h2 class="card-nombre">${escapeHtml(nombreLimpio || a.id)}</h2>
             <div class="card-footer">
-              ${lugaresHtml}
+              <div class="card-lugares ${lugState}">
+                <span class="card-lugares-dot"></span>
+                <span>${escapeHtml(lugText)}</span>
+              </div>
               <span class="card-cta">
                 ${escapeHtml(ctaLabel)}
                 <svg class="card-cta-arrow" width="14" height="10" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -315,10 +321,12 @@
   });
   $casa.addEventListener('change', applyFilters);
   $mes.addEventListener('change', applyFilters);
+  if ($cupo) $cupo.addEventListener('change', applyFilters);
   $reset.addEventListener('click', () => {
     $search.value = '';
     $casa.value = '';
     $mes.value = '';
+    if ($cupo) $cupo.value = '';
     if ($sugg) { $sugg.hidden = true; $sugg.innerHTML = ''; }
     applyFilters();
   });

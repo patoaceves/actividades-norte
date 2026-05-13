@@ -343,10 +343,29 @@
   width: 7px; height: 7px; border-radius: 50%;
   background: #5C8C6A;
   box-shadow: 0 0 8px rgba(92, 140, 106, 0.4);
+  flex-shrink: 0;
 }
 .card-lugares.low .card-lugares-dot { background: #C49738; box-shadow: 0 0 8px rgba(196, 151, 56, 0.4); }
-.card-lugares.full .card-lugares-dot { background: #9CA098; box-shadow: 0 0 8px rgba(156, 160, 152, 0.3); }
 .card-lugares.full { color: #9CA098; }
+/* Estado "no disponible": en vez de bolita, una pequeña cruz gris */
+.card-lugares.full .card-lugares-dot {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  width: 9px; height: 9px;
+  position: relative;
+}
+.card-lugares.full .card-lugares-dot::before,
+.card-lugares.full .card-lugares-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 9px; height: 1.5px;
+  background: #9CA098;
+  transform-origin: center;
+}
+.card-lugares.full .card-lugares-dot::before { transform: translate(-50%, -50%) rotate(45deg); }
+.card-lugares.full .card-lugares-dot::after  { transform: translate(-50%, -50%) rotate(-45deg); }
 
 .card-cta {
   display: inline-flex; align-items: center; gap: 8px;
