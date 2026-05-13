@@ -333,6 +333,8 @@
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px;
 }
+/* === VERSION: 2026-05-13T11:30 === (badge "No disponible" debug rojo) */
+
 .card-lugares {
   font-family: var(--font-mono); font-size: 12px;
   letter-spacing: 0.12em; text-transform: uppercase;
@@ -346,8 +348,14 @@
   flex-shrink: 0;
 }
 .card-lugares.low .card-lugares-dot { background: #C49738; box-shadow: 0 0 8px rgba(196, 151, 56, 0.4); }
-.card-lugares.full { color: #9CA098; }
-/* Estado "no disponible": en vez de bolita, una pequeña cruz gris */
+/* DEBUG: badge "No disponible" en rojo bright para confirmar que se está renderizando */
+.card-lugares.full {
+  color: #B91C1C !important;
+  background: #FEE2E2 !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  border: 1px solid #B91C1C !important;
+}
 .card-lugares.full .card-lugares-dot {
   background: transparent;
   box-shadow: none;
@@ -361,7 +369,7 @@
   position: absolute;
   top: 50%; left: 50%;
   width: 9px; height: 1.5px;
-  background: #9CA098;
+  background: #B91C1C;
   transform-origin: center;
 }
 .card-lugares.full .card-lugares-dot::before { transform: translate(-50%, -50%) rotate(45deg); }
