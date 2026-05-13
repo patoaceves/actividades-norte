@@ -297,7 +297,24 @@
       border-color: rgba(120, 120, 120, 0.22);
       color: #8A8E85;
     }
-    .action-cupos.full .action-cupos-dot { background: #9CA098; }
+    /* Estado "no disponible": en vez de bolita, una pequeña cruz gris */
+    .action-cupos.full .action-cupos-dot {
+      background: transparent;
+      border-radius: 0;
+      width: 9px; height: 9px;
+      position: relative;
+    }
+    .action-cupos.full .action-cupos-dot::before,
+    .action-cupos.full .action-cupos-dot::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 9px; height: 1.5px;
+      background: #8A8E85;
+      transform-origin: center;
+    }
+    .action-cupos.full .action-cupos-dot::before { transform: translate(-50%, -50%) rotate(45deg); }
+    .action-cupos.full .action-cupos-dot::after  { transform: translate(-50%, -50%) rotate(-45deg); }
 
     /* ─── INFO SPLIT: Ubicación + Coordinador ─── */
     .info-split {
@@ -1175,21 +1192,18 @@
       const sinCuota    = !isCuotaValida(data.cuota);
       const isUnavailable = sinLugares || sinCuota;
 
-      if (sinCuota) {
-        // Sin cuota: ocultamos cupos por completo (la cuota ya dice "No disponible")
-        cuposEl.style.display = 'none';
+      cuposEl.style.display = '';
+      cuposEl.className = 'action-cupos';
+      if (isUnavailable) {
+        // SIEMPRE mostrar el tag "No disponible" cuando algo no esté disponible,
+        // sin importar si la causa es la cuota o el cupo.
+        cuposEl.classList.add('full');
+        cuposTextEl.textContent = 'No disponible';
+      } else if (lugares <= 3) {
+        cuposEl.classList.add('low');
+        cuposTextEl.textContent = lugares === 1 ? '1 último lugar' : `${lugares} últimos lugares`;
       } else {
-        cuposEl.style.display = '';
-        cuposEl.className = 'action-cupos';
-        if (sinLugares) {
-          cuposEl.classList.add('full');
-          cuposTextEl.textContent = 'No disponible';
-        } else if (lugares <= 3) {
-          cuposEl.classList.add('low');
-          cuposTextEl.textContent = lugares === 1 ? '1 último lugar' : `${lugares} últimos lugares`;
-        } else {
-          cuposTextEl.textContent = lugares === 1 ? '1 lugar disponible' : `${lugares} lugares disponibles`;
-        }
+        cuposTextEl.textContent = lugares === 1 ? '1 lugar disponible' : `${lugares} lugares disponibles`;
       }
 
       /* Registro CTA: deshabilitar si no hay lugares o no hay cuota */
@@ -1198,7 +1212,7 @@
         registerBtn.classList.add('disabled');
         registerBtn.removeAttribute('href');
         registerBtn.setAttribute('aria-disabled', 'true');
-        registerBtn.innerHTML = sinLugares ? 'No disponible' : 'Próximamente';
+        registerBtn.innerHTML = 'No disponible';
         registerBtn.addEventListener('click', (e) => e.preventDefault());
       } else {
         registerBtn.href = '/registro?id=' + encodeURIComponent(actividadId);

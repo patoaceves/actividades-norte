@@ -186,14 +186,11 @@
       let lugState = 'ok', lugText = 'Lugares disponibles';
       let notAvailable = false;
       const cuotaOk = isCuotaValida(a.cuota);
-      let showLugares = true; // si la cuota no es válida, ocultamos por completo el badge de cupos
-      if (!cuotaOk) {
+      let showLugares = true; // ocultamos badge en cualquier caso de "no disponible"
+      const sinCupo = (lugares === null || lugares === undefined || lugares <= 0);
+      if (!cuotaOk || sinCupo) {
         notAvailable = true;
         showLugares  = false;
-      } else if (lugares === null || lugares === undefined) {
-        lugState = 'full'; lugText = 'No disponible'; notAvailable = true;
-      } else if (lugares <= 0) {
-        lugState = 'full'; lugText = 'No disponible'; notAvailable = true;
       } else if (lugares <= 3) {
         lugState = 'low'; lugText = lugares === 1 ? '1 último lugar' : `${lugares} últimos lugares`;
       } else {

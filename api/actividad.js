@@ -69,11 +69,15 @@ module.exports = async function handler(req, res) {
   try {
     const fieldList = Object.values(FIELDS).map(f => `fields[]=${f}`).join('&');
 
-    // Lista registros paginados y busca el ID
-    let found  = null;
-    let offset = '';
-    let pages  = 0;
-    const MAX_PAGES = 20;
+    // Estrategia: priorizar match EXACTO por idActividad. Solo si no hay match
+    // exacto en toda la paginación, usar fallback por prefijo del nombre.
+    // CRÍTICO: NO matchear `nombre.startsWith(id + '-')` porque eso causa que
+    // buscar "AV036" matchee accidentalmente "AV036-1 - ..." (Medex en vez de Kairós).
+    let exactMatch    = null;
+    let fallbackMatch = null;
+    let offset        = '';
+    let pages         = 0;
+    const MAX_PAGES   = 20;
 
     do {
       const url = `https://api.airtable.com/v0/${BASE}/${TABLE}`
@@ -84,20 +88,23 @@ module.exports = async function handler(req, res) {
       const data = await r.json();
       if (!r.ok) throw new Error(JSON.stringify(data));
 
-      found = (data.records || []).find(rec => {
-        const fields = rec.fields;
-        // Match directo por idActividad
-        const recId = String(firstVal(fields[FIELDS.idActividad]) || '').trim().toUpperCase();
-        if (recId === id) return true;
-        // Fallback: match por prefijo del nombre "AF027 - ..." o "AF027-1 - ..."
-        const nombre = String(firstVal(fields[FIELDS.nombre]) || '').trim().toUpperCase();
-        if (nombre.startsWith(id + ' ') || nombre.startsWith(id + '-') || nombre === id) return true;
-        return false;
-      });
-
-      offset = found ? '' : (data.offset || '');
+      for (const rec of (data.records || [])) {
+        const recId = String(firstVal(rec.fields[FIELDS.idActividad]) || '').trim().toUpperCase();
+        if (recId === id) { exactMatch = rec; break; }
+        if (!fallbackMatch) {
+          const nombre = String(firstVal(rec.fields[FIELDS.nombre]) || '').trim().toUpperCase();
+          // Solo prefijo seguido de espacio o coincidencia exacta del nombre
+          if (nombre.startsWith(id + ' ') || nombre === id) {
+            fallbackMatch = rec;
+          }
+        }
+      }
+      if (exactMatch) break;
+      offset = data.offset || '';
       pages++;
-    } while (!found && offset && pages < MAX_PAGES);
+    } while (offset && pages < MAX_PAGES);
+
+    const found = exactMatch || fallbackMatch;
 
     if (!found) {
       return res.status(404).json({ error: `Actividad no encontrada: ${id}` });
