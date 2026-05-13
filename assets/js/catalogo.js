@@ -270,14 +270,40 @@
 
     $sugg.innerHTML = matches.map(a => {
       const titulo = cleanNombre(a.nombre, a.id);
-      const casaDisplay = Array.isArray(a.casa) ? a.casa.join(', ') : (a.casa || '—');
+      const casaDisplay = Array.isArray(a.casa) ? a.casa.join(', ') : (a.casa || '');
+
+      // Lugares: misma lógica que las cards
+      const lugares = a.lugares;
+      const cuotaOk = isCuotaValida(a.cuota);
+      const sinCupo = (lugares === null || lugares === undefined || lugares <= 0);
+      let lugClass, lugText;
+      if (!cuotaOk || sinCupo) {
+        lugClass = 'full'; lugText = 'No disponible';
+      } else if (lugares <= 3) {
+        lugClass = 'low';
+        lugText = lugares === 1 ? '1 último lugar' : `${lugares} últimos lugares`;
+      } else {
+        lugClass = 'ok';
+        lugText = lugares === 1 ? '1 lugar' : `${lugares} lugares`;
+      }
+
+      // Meta: casa - fecha - lugares (separados con " - ")
+      const metaParts = [];
+      if (casaDisplay)       metaParts.push(escapeHtml(casaDisplay));
+      if (a.fechaCompleta)   metaParts.push(escapeHtml(a.fechaCompleta));
+      const metaLine = metaParts.join(' - ');
+
       return `
         <a class="suggestion" href="/v?id=${encodeURIComponent(a.id)}">
           <span class="suggestion-id">${escapeHtml(a.id)}</span>
           <div class="suggestion-body">
             <div class="suggestion-title">${escapeHtml(titulo)}</div>
-            <div class="suggestion-meta">${escapeHtml(casaDisplay)}</div>
+            <div class="suggestion-meta">${metaLine}</div>
           </div>
+          <span class="suggestion-lugares ${lugClass}">
+            <span class="suggestion-lugares-dot"></span>
+            ${escapeHtml(lugText)}
+          </span>
         </a>
       `;
     }).join('');

@@ -188,6 +188,32 @@
   letter-spacing: 0.08em; color: rgba(200, 217, 204, 0.6);
   text-transform: uppercase;
 }
+.suggestion-lugares {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 3px;
+  background: rgba(92, 140, 106, 0.15);
+  color: #B5D9C0;
+  white-space: nowrap;
+}
+.suggestion-lugares-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #5C8C6A;
+  flex-shrink: 0;
+}
+.suggestion-lugares.low {
+  background: rgba(196, 151, 56, 0.15);
+  color: #E0C580;
+}
+.suggestion-lugares.low .suggestion-lugares-dot { background: #C49738; }
+.suggestion-lugares.full {
+  background: rgba(180, 180, 180, 0.12);
+  color: rgba(200, 217, 204, 0.55);
+}
+.suggestion-lugares.full .suggestion-lugares-dot { background: #9CA098; }
 .suggestion-empty {
   padding: 18px; text-align: center;
   font-size: 13px; color: rgba(245, 239, 227, 0.5);
