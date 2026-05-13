@@ -333,8 +333,6 @@
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px;
 }
-/* === VERSION: 2026-05-13T11:50-d === (badge debug amarillo gigante) */
-
 .card-lugares {
   font-family: var(--font-mono); font-size: 12px;
   letter-spacing: 0.12em; text-transform: uppercase;
@@ -348,18 +346,8 @@
   flex-shrink: 0;
 }
 .card-lugares.low .card-lugares-dot { background: #C49738; box-shadow: 0 0 8px rgba(196, 151, 56, 0.4); }
-/* DEBUG: badge "No disponible" amarillo gigante, imposible no verlo */
-.card-lugares.full {
-  background: #FCD34D !important;
-  color: #000 !important;
-  padding: 6px 12px !important;
-  border: 2px solid #B91C1C !important;
-  border-radius: 6px !important;
-  font-size: 14px !important;
-  font-weight: 700 !important;
-}
-.card-lugares.full .card-lugares-dot { display: none !important; }
-.card-lugares.full > span:last-child::before { content: '⛔ '; }
+.card-lugares.full .card-lugares-dot { background: #9CA098; box-shadow: 0 0 8px rgba(156, 160, 152, 0.3); }
+.card-lugares.full { color: #9CA098; }
 
 .card-cta {
   display: inline-flex; align-items: center; gap: 8px;
