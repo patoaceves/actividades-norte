@@ -1,9 +1,9 @@
 // catalogo.js — shared by /varonil y /femenil
 // La sección viene del atributo data-seccion en el <script>
-// === VERSION: 2026-05-13T11:30 === (badge "No disponible" visible)
+// === VERSION: 2026-05-13T11:50-d === (debug badge gigante)
 
 (() => {
-  console.log('%c[catalogo.js] v2026-05-13T11:30 cargado', 'color:#5C8C6A;font-weight:bold');
+  console.log('%c🟢 [catalogo.js] v=2026-05-13T11:50-d CARGADO', 'background:#FFEB3B;color:#000;font-weight:bold;font-size:14px;padding:4px 8px');
   const currentScript = document.currentScript || document.querySelector('script[src*="catalogo.js"]');
   const SECCION = (currentScript?.dataset?.seccion || 'VARONIL').toUpperCase();
 
@@ -41,6 +41,8 @@
     .then(data => {
       const arr = (data && Array.isArray(data.actividades)) ? data.actividades : [];
       ACTIVIDADES = arr.filter(a => a.seccion === SECCION);
+      console.log(`🟢 [catalogo.js] ${SECCION}: ${ACTIVIDADES.length} actividades cargadas`);
+      console.table(ACTIVIDADES.map(a => ({ id: a.id, lugares: a.lugares, cuota: a.cuota })));
       populateFilters();
       applyUrlFilters();
       applyFilters();
