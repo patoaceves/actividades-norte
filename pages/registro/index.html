@@ -426,28 +426,35 @@
     }
     .pay-opt input:checked + label small { color: rgba(255, 255, 255, 0.72); }
 
+    .pay-opt-amount-row {
+      display: flex; align-items: baseline; justify-content: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
     .pay-opt-amount {
       font-family: var(--font-display);
-      font-size: 22px;
+      font-size: 30px;
       font-weight: 600;
       color: var(--green);
       letter-spacing: -0.01em;
-      margin-top: 4px;
+      line-height: 1;
       transition: color 0.25s;
-      line-height: 1.1;
     }
-    .pay-opt input:checked + label .pay-opt-amount { color: var(--gold-soft); }
+    .pay-opt input:checked + label .pay-opt-amount { color: #fff; }
     .pay-opt-amount-note {
       font-family: var(--font-mono);
-      font-size: 9.5px;
+      font-size: 10px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-top: 2px;
       transition: color 0.25s;
     }
     .pay-opt input:checked + label .pay-opt-amount-note { color: rgba(255, 255, 255, 0.65); }
-    .pay-opt-amount-loading { opacity: 0.5; font-size: 14px; }
+    .pay-opt-amount-loading { opacity: 0.5; font-size: 18px; }
+    @media (max-width: 480px) {
+      .pay-opt-amount { font-size: 24px; }
+      .pay-opt-amount-row { gap: 6px; }
+    }
 
     /* Apartado deshabilitado (AV040 / AV041) */
     .pay-opt.disabled label {
@@ -1121,8 +1128,10 @@
             </svg>
             <strong>Contado</strong>
             <small>Pago total</small>
-            <div class="pay-opt-amount pay-opt-amount-loading" id="amount-contado">$ —</div>
-            <div class="pay-opt-amount-note">MXN</div>
+            <div class="pay-opt-amount-row">
+              <span class="pay-opt-amount pay-opt-amount-loading" id="amount-contado">$ —</span>
+              <span class="pay-opt-amount-note">MXN</span>
+            </div>
           </label>
         </div>
         <div class="pay-opt" id="opt-apartado-wrap">
@@ -1133,8 +1142,10 @@
             </svg>
             <strong>Apartado</strong>
             <small>Pago parcial</small>
-            <div class="pay-opt-amount pay-opt-amount-loading" id="amount-apartado">$ —</div>
-            <div class="pay-opt-amount-note">MXN · 1<sup>er</sup> pago</div>
+            <div class="pay-opt-amount-row">
+              <span class="pay-opt-amount pay-opt-amount-loading" id="amount-apartado">$ —</span>
+              <span class="pay-opt-amount-note">MXN · 1<sup>er</sup> pago</span>
+            </div>
           </label>
         </div>
       </div>
