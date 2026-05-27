@@ -190,33 +190,37 @@
     .activity-casa:empty { display: none; }
     .activity-fechas {
       display: flex; flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       align-items: center;
     }
     .activity-fecha-row {
       display: inline-flex; align-items: baseline;
-      gap: 14px;
-      font-family: var(--font-mono); font-size: 13px;
-      letter-spacing: 0.05em;
+      gap: 18px;
+      font-family: var(--font-mono); font-size: 17px;
+      letter-spacing: 0.04em;
       color: rgba(200, 217, 204, 0.9);
     }
     .activity-fecha-label {
-      font-size: 10px;
+      font-size: 12px;
       letter-spacing: 0.22em;
       text-transform: uppercase;
       color: rgba(200, 217, 204, 0.55);
-      min-width: 42px;
+      min-width: 50px;
       text-align: right;
     }
     .activity-fecha-value {
       color: var(--cream);
+      font-weight: 500;
     }
     @media (max-width: 640px) {
       .activity-fecha-row {
-        font-size: 12px;
-        gap: 12px;
+        font-size: 15px;
+        gap: 14px;
       }
-      .activity-fecha-label { min-width: 36px; }
+      .activity-fecha-label {
+        min-width: 44px;
+        font-size: 11px;
+      }
     }
 
     /* ──────────── PROGRESS (sobre cremita) ──────────── */
@@ -387,7 +391,7 @@
     .pay-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
     .pay-opt label {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 8px; padding: 22px 12px;
+      gap: 6px; padding: 20px 12px 18px;
       background: #fff;
       border: 2px solid var(--green-3);
       border-radius: var(--radius);
@@ -421,6 +425,41 @@
       color: var(--muted);
     }
     .pay-opt input:checked + label small { color: rgba(255, 255, 255, 0.72); }
+
+    .pay-opt-amount {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--green);
+      letter-spacing: -0.01em;
+      margin-top: 4px;
+      transition: color 0.25s;
+      line-height: 1.1;
+    }
+    .pay-opt input:checked + label .pay-opt-amount { color: var(--gold-soft); }
+    .pay-opt-amount-note {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 2px;
+      transition: color 0.25s;
+    }
+    .pay-opt input:checked + label .pay-opt-amount-note { color: rgba(255, 255, 255, 0.65); }
+    .pay-opt-amount-loading { opacity: 0.5; font-size: 14px; }
+
+    /* Apartado deshabilitado (AV040 / AV041) */
+    .pay-opt.disabled label {
+      cursor: not-allowed;
+      opacity: 0.45;
+      background: #F5F0E2;
+    }
+    .pay-opt.disabled label:hover {
+      border-color: var(--green-3);
+      background: #F5F0E2;
+    }
+    .pay-toggle.single { grid-template-columns: 1fr; max-width: 360px; margin-left: auto; margin-right: auto; }
 
     /* ──────────── METHOD CARDS ──────────── */
     .method-group { display: none; animation: fadeIn 0.3s ease both; }
@@ -1073,8 +1112,8 @@
         <p class="sec-desc">Selecciona cómo realizarás tu pago.</p>
       </div>
 
-      <div class="pay-toggle">
-        <div class="pay-opt">
+      <div class="pay-toggle" id="pay-toggle">
+        <div class="pay-opt" id="opt-contado-wrap">
           <input type="radio" name="pago-tipo" id="pago-contado" value="Contado" checked onchange="updatePayment()">
           <label for="pago-contado">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
@@ -1082,9 +1121,11 @@
             </svg>
             <strong>Contado</strong>
             <small>Pago total</small>
+            <div class="pay-opt-amount pay-opt-amount-loading" id="amount-contado">$ —</div>
+            <div class="pay-opt-amount-note">MXN</div>
           </label>
         </div>
-        <div class="pay-opt">
+        <div class="pay-opt" id="opt-apartado-wrap">
           <input type="radio" name="pago-tipo" id="pago-apartado" value="Apartado" onchange="updatePayment()">
           <label for="pago-apartado">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
@@ -1092,6 +1133,8 @@
             </svg>
             <strong>Apartado</strong>
             <small>Pago parcial</small>
+            <div class="pay-opt-amount pay-opt-amount-loading" id="amount-apartado">$ —</div>
+            <div class="pay-opt-amount-note">MXN · 1<sup>er</sup> pago</div>
           </label>
         </div>
       </div>
@@ -1427,6 +1470,40 @@
       } catch(e) { return iso; }
     }
 
+    /* PRECIOS — replica la lógica de /api/payment-intent.js (calcularMonto)
+       para que los montos que se muestran en pantalla coincidan EXACTAMENTE
+       con lo que Stripe va a cobrar. Si cambias la fórmula del backend,
+       actualiza también ésta. */
+    function parseCuota(cuotaRaw) {
+      const n = parseInt(String(cuotaRaw || '0').replace(/MX\$|,|\s/g, ''), 10);
+      return (!n || isNaN(n)) ? 0 : n;
+    }
+    function calcMontoContado(cuotaRaw) {
+      const n = parseCuota(cuotaRaw);
+      if (!n) return 0;
+      return Math.round(n / 50) * 50;
+    }
+    function calcMontoApartado(cuotaRaw) {
+      const n = parseCuota(cuotaRaw);
+      if (!n) return 0;
+      const base      = n / 3;
+      const feeStripe = (base * 0.036 + 3) * 1.22;
+      return Math.ceil((base + feeStripe) / 50) * 50;
+    }
+    function fmtMXN(n) {
+      return n.toLocaleString('es-MX', {
+        style: 'currency', currency: 'MXN',
+        minimumFractionDigits: 0, maximumFractionDigits: 0,
+      });
+    }
+
+    /* APARTADO DESHABILITADO — actividades específicas donde solo se permite
+       Contado (sin opción de apartado). Lista exacta de IDs. */
+    const APARTADO_BLOCKED = ['AV040', 'AV041'];
+    function apartadoEstaBloqueado(id) {
+      return APARTADO_BLOCKED.includes(String(id || '').trim().toUpperCase());
+    }
+
     /* MOSTRAR BLOQUEO — oculta form y muestra mensaje cuando la actividad
        no está disponible (sin cuota, sin lugares, o llena durante el flujo). */
     function mostrarBloqueo(htmlMsg) {
@@ -1515,6 +1592,41 @@
         if (data.fechaFin) {
           document.getElementById('act-fecha-fin').style.display = '';
           document.getElementById('act-fecha-fin-value').textContent = formatFecha(data.fechaFin);
+        }
+
+        // Montos en los botones de Contado / Apartado (Paso 2). Mostrar el
+        // precio claro evita que el asistente se sorprenda en el checkout.
+        const montoContado  = calcMontoContado(data.cuota);
+        const montoApartado = calcMontoApartado(data.cuota);
+        const amtContEl = document.getElementById('amount-contado');
+        const amtApaEl  = document.getElementById('amount-apartado');
+        if (amtContEl) {
+          amtContEl.textContent = fmtMXN(montoContado);
+          amtContEl.classList.remove('pay-opt-amount-loading');
+        }
+        if (amtApaEl) {
+          amtApaEl.textContent = fmtMXN(montoApartado);
+          amtApaEl.classList.remove('pay-opt-amount-loading');
+        }
+
+        // Bloqueo de Apartado para actividades específicas (AV040 / AV041):
+        // ocultar el botón y forzar Contado como único método. El backend
+        // /api/payment-intent también debería validarlo si quieres seguridad
+        // estricta, pero el toggle desaparece para el usuario.
+        if (apartadoEstaBloqueado(actividadId)) {
+          const apaWrap = document.getElementById('opt-apartado-wrap');
+          const apaInp  = document.getElementById('pago-apartado');
+          const contInp = document.getElementById('pago-contado');
+          const toggle  = document.getElementById('pay-toggle');
+          if (apaWrap) apaWrap.style.display = 'none';
+          if (apaInp)  apaInp.checked  = false;
+          if (contInp) contInp.checked = true;
+          if (toggle)  toggle.classList.add('single');
+          // Asegura que el grupo de métodos Apartado quede oculto
+          const grpApa = document.getElementById('methods-apartado');
+          const grpCon = document.getElementById('methods-contado');
+          if (grpApa) grpApa.classList.remove('show');
+          if (grpCon) grpCon.classList.add('show');
         }
 
         // Al éxito: oculta loading, muestra progress + section-1
