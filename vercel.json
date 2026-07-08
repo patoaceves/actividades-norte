@@ -5,6 +5,7 @@
     { "source": "/varonil",  "destination": "/pages/varonil" },
     { "source": "/femenil",  "destination": "/pages/femenil" },
     { "source": "/registro", "destination": "/pages/registro" },
+    { "source": "/contacto", "destination": "/pages/contacto" },
     { "source": "/success",  "destination": "/pages/success" },
     { "source": "/v",        "destination": "/pages/v" }
   ],

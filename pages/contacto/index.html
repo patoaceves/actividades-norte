@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacto · Actividades Norte</title>
+  <meta name="description" content="Contáctanos por WhatsApp, teléfono o correo. Oficinas en San Pedro Garza García, N.L.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/isotipo.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/png/isotipo.png">
+  <link rel="shortcut icon" href="/assets/png/isotipo.png">
+  <link rel="apple-touch-icon" href="/assets/png/isotipo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/assets/css/catalogo.css">
+  <script defer src="/assets/js/reveal.js"></script>
+  <script defer src="/assets/js/mobile-nav.js"></script>
+  <script>
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('nav');
+      if (nav) nav.classList.toggle('scrolled', window.scrollY > 60);
+    }, { passive: true });
+  </script>
+
+  <style>
+    main { flex: 1; }
+
+    /* ─── GRID DE CANALES ─── */
+    .contact-wrap {
+      max-width: var(--max-narrow);
+      margin: 0 auto;
+      padding: clamp(48px, 8vh, 88px) var(--gutter) clamp(72px, 10vh, 120px);
+    }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(16px, 2.5vw, 28px);
+    }
+    .contact-card {
+      display: flex; flex-direction: column;
+      background: #FDFAF4;
+      border: 1px solid var(--cream-3);
+      border-radius: var(--radius);
+      padding: clamp(24px, 3.5vw, 36px) clamp(20px, 3vw, 30px);
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+    }
+    .contact-card:hover {
+      border-color: var(--green-3);
+      transform: translateY(-3px);
+      box-shadow: 0 14px 32px rgba(30, 47, 35, 0.08);
+    }
+    .contact-card-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+    .contact-card-value {
+      font-family: var(--font-display);
+      font-size: clamp(19px, 2.2vw, 23px);
+      font-weight: 500;
+      color: var(--green-deep);
+      line-height: 1.3;
+      margin-bottom: 8px;
+      overflow-wrap: anywhere;
+    }
+    .contact-card-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      flex: 1;
+    }
+    .contact-card-cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--green);
+      border-bottom: 1px solid var(--green-3);
+      padding-bottom: 3px;
+      align-self: flex-start;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .contact-card:hover .contact-card-cta {
+      color: var(--gold);
+      border-color: var(--gold-soft);
+    }
+
+    /* ─── OFICINA + HORARIO ─── */
+    .office {
+      margin-top: clamp(56px, 8vh, 88px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(28px, 5vw, 64px);
+      padding-top: clamp(40px, 6vh, 64px);
+      border-top: 1px solid var(--cream-3);
+    }
+    .office-block-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 18px;
+    }
+    .office-address {
+      font-family: var(--font-display);
+      font-size: clamp(18px, 2vw, 21px);
+      font-style: italic;
+      color: var(--green-deep);
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+    .office-note {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .hours-table { width: 100%; border-collapse: collapse; }
+    .hours-table td {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--cream-3);
+      font-size: 15px;
+      vertical-align: top;
+    }
+    .hours-table tr:last-child td { border-bottom: none; }
+    .hours-day  { color: var(--charcoal); font-weight: 500; }
+    .hours-time {
+      text-align: right;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    /* ─── CTA A CATÁLOGOS ─── */
+    .contact-cats {
+      margin-top: clamp(56px, 8vh, 88px);
+      background: var(--green-deep);
+      border-radius: var(--radius);
+      padding: clamp(32px, 5vw, 52px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .contact-cats-title {
+      font-family: var(--font-display);
+      font-size: clamp(21px, 2.6vw, 27px);
+      color: var(--cream);
+      line-height: 1.3;
+    }
+    .contact-cats-title em { color: var(--gold-soft); font-style: italic; }
+    .contact-cats-links { display: flex; gap: 14px; flex-wrap: wrap; }
+    .contact-cats-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 13px 26px;
+      border: 1px solid rgba(245, 239, 227, 0.3);
+      border-radius: var(--radius);
+      color: var(--cream);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: background 0.25s, border-color 0.25s;
+    }
+    .contact-cats-btn:hover {
+      background: rgba(245, 239, 227, 0.08);
+      border-color: var(--gold-soft);
+    }
+
+    @media (max-width: 860px) {
+      .contact-grid { grid-template-columns: 1fr; }
+      .office { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-logo">
+      <span class="nav-logo-img-wrap">
+        <img class="nav-logo-img-light" src="/assets/png/isotipo.png" alt="">
+        <img class="nav-logo-img-dark" src="/assets/png/isotipo-dark.png" alt="">
+      </span>
+      <span>Actividades Norte</span>
+    </a>
+    <div class="nav-links">
+      <a href="/varonil">Varonil</a>
+      <a href="/femenil">Femenil</a>
+      <a href="/#casas">Casas</a>
+      <a href="/contacto" class="active">Contacto</a>
+    </div>
+    <a href="/" class="nav-cta">
+      <svg width="14" height="10" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Inicio</span>
+    </a>
+    <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
+  </nav>
+
+  <header class="cat-header">
+    <div class="cat-header-bg">
+      <img src="/assets/png/catalogo-background.jpg" alt="">
+    </div>
+    <div class="cat-header-inner reveal">
+      <div class="cat-eyebrow">
+        <span class="cat-eyebrow-line"></span>
+        <span>Estamos para ayudarte</span>
+      </div>
+      <h1 class="cat-title">Ponte en <em>contacto</em></h1>
+    </div>
+  </header>
+
+  <main>
+    <div class="contact-wrap">
+
+      <div class="contact-grid">
+        <a class="contact-card reveal" href="https://wa.me/528183357430" target="_blank" rel="noopener">
+          <div class="contact-card-label">WhatsApp</div>
+          <div class="contact-card-value">81 8335 7430</div>
+          <p class="contact-card-desc">La forma más rápida de resolver dudas sobre registros, pagos y disponibilidad.</p>
+          <span class="contact-card-cta">
+            Enviar mensaje
+            <svg width="12" height="9" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </span>
+        </a>
+
+        <a class="contact-card reveal" href="tel:+528183357430">
+          <div class="contact-card-label">Teléfono</div>
+          <div class="contact-card-value">81 8335 7430</div>
+          <p class="contact-card-desc">Atención en horario de oficina para cualquier tema de reservaciones.</p>
+          <span class="contact-card-cta">
+            Llamar ahora
+            <svg width="12" height="9" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </span>
+        </a>
+
+        <a class="contact-card reveal" href="mailto:portalnortemx@gmail.com">
+          <div class="contact-card-label">Correo</div>
+          <div class="contact-card-value">portalnortemx@gmail.com</div>
+          <p class="contact-card-desc">Para comprobantes de pago, facturación y temas que requieran seguimiento por escrito.</p>
+          <span class="contact-card-cta">
+            Escribir correo
+            <svg width="12" height="9" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </span>
+        </a>
+      </div>
+
+      <div class="office">
+        <div class="reveal">
+          <div class="office-block-title">Oficinas</div>
+          <p class="office-address">Níspero 211-A · Valle del Campestre<br>San Pedro Garza García, N.L. 66265</p>
+          <p class="office-note">Cada actividad tiene un coordinador asignado. Encuentra sus datos directos en la página de la actividad correspondiente.</p>
+        </div>
+        <div class="reveal">
+          <div class="office-block-title">Horario de atención</div>
+          <table class="hours-table">
+            <tr>
+              <td class="hours-day">Lunes a Viernes</td>
+              <td class="hours-time">10:00 – 13:00<br>16:00 – 19:00</td>
+            </tr>
+            <tr>
+              <td class="hours-day">Sábado</td>
+              <td class="hours-time">10:00 – 13:00</td>
+            </tr>
+            <tr>
+              <td class="hours-day">Domingo</td>
+              <td class="hours-time">Cerrado</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="contact-cats reveal">
+        <div class="contact-cats-title">¿Buscas una actividad?<br><em>Explora el catálogo completo.</em></div>
+        <div class="contact-cats-links">
+          <a class="contact-cats-btn" href="/varonil">Varonil</a>
+          <a class="contact-cats-btn" href="/femenil">Femenil</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/png/isotipo.png" alt="">
+        <div class="footer-brand-name">Actividades Norte</div>
+        <p class="footer-brand-desc">Plataforma de reservaciones.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Secciones</div>
+        <ul>
+          <li><a href="/varonil">Varonil</a></li>
+          <li><a href="/femenil">Femenil</a></li>
+          <li><a href="/#casas">Casas</a></li>
+          <li><a href="/apartado">Completar pago</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Oficinas</div>
+        <ul>
+          <li class="contact-line">Níspero 211-A · Valle del Campestre<br>San Pedro Garza García, NL 66265</li>
+          <li><a href="tel:+528183357430">81 8335 7430</a></li>
+          <li><a href="mailto:portalnortemx@gmail.com">portalnortemx@gmail.com</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Horario</div>
+        <ul>
+          <li class="contact-line">Lun – Vie<br>10:00 a 13:00 · 16:00 a 19:00</li>
+          <li class="contact-line">Sábado<br>10:00 a 13:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-payments">
+      <div class="footer-payments-left">
+        <span class="footer-payments-label">Aceptamos</span>
+        <div class="footer-payments-icons">
+          <img src="/assets/png/icons/visa.png" alt="Visa">
+          <img src="/assets/png/icons/master-card.png" alt="Mastercard">
+          <img src="/assets/png/icons/amex.png" alt="American Express">
+          <img src="/assets/png/icons/oxxo.png" alt="OXXO">
+        </div>
+      </div>
+      <span class="footer-payments-label">Pagos seguros vía Stripe</span>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Actividades Norte</span>
+      <div class="footer-bottom-links">
+        <a href="/terminos">Términos</a>
+        <a href="/privacidad">Privacidad</a>
+        <a href="/politicas">Políticas de reservación</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
