@@ -53,16 +53,8 @@ function setCors(req, res) {
 
 function firstVal(v) { return Array.isArray(v) ? v[0] : v; }
 
-function calcularMonto(cuotaRaw, tipoPago) {
-  const n = parseInt(String(cuotaRaw || '0').replace(/MX\$|,|\s/g, ''), 10);
-  if (!n || isNaN(n)) throw new Error('Cuota inválida en Airtable');
-  if (tipoPago === 'Apartado') {
-    const base       = n / 3;
-    const feeStripe  = (base * 0.036 + 3) * 1.22;
-    return Math.ceil((base + feeStripe) / 50) * 50 * 100;
-  }
-  return Math.round(n / 50) * 50 * 100;
-}
+// Cálculo de montos centralizado en api/_lib/precios.js (única fuente de verdad)
+const { montoCentavos } = require('./_lib/precios');
 
 async function fetchActividadServer(idActividad) {
   const pat = process.env.AIRTABLE_PAT_ACTIVIDADES;
@@ -148,7 +140,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const amount = calcularMonto(actividad.cuota, tipoPago);
+    const amount = montoCentavos(actividad.cuota, tipoPago);
 
     const body = new URLSearchParams();
     body.append('amount',   String(amount));

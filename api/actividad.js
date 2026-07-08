@@ -48,6 +48,9 @@ function firstVal(v) {
   return Array.isArray(v) ? v[0] : v;
 }
 
+// Cálculo de montos centralizado en api/_lib/precios.js (única fuente de verdad)
+const { montoContadoMXN, montoApartadoMXN } = require('./_lib/precios');
+
 module.exports = async function handler(req, res) {
   setCors(req, res);
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -139,6 +142,10 @@ module.exports = async function handler(req, res) {
       fechaFin:       String(firstVal(f[FIELDS.fechaFin])      || '').trim(),
       seccion,
       lugares,
+      // Montos en pesos MXN, calculados server-side (misma fórmula que Stripe).
+      // El frontend de /registro los muestra tal cual, sin recalcular.
+      montoContado:   montoContadoMXN(String(firstVal(f[FIELDS.cuota]) || '').trim()),
+      montoApartado:  montoApartadoMXN(String(firstVal(f[FIELDS.cuota]) || '').trim()),
       direccion:      String(firstVal(f[FIELDS.direccion])     || '').trim(),
       googleMapsUrl:  String(firstVal(f[FIELDS.googleMapsUrl]) || '').trim(),
       menuInicio:     String(firstVal(f[FIELDS.menuInicio])    || '').trim(),
