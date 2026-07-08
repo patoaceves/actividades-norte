@@ -193,12 +193,47 @@ const REQUIRED = [
   'Encargado, Centro, Institución', 'Ciudad', 'ID Actividad',
 ];
 
+// ── ANTI-BOT ─────────────────────────────────────────────────────────
+// Tres capas, sin fricción para humanos:
+//   1. Honeypot (_hp): campo invisible que solo los bots llenan.
+//   2. Timing trap (_elapsed): un humano tarda minutos en 3 pasos;
+//      rechazamos submits a menos de 3 segundos de cargar la página.
+//   3. Filtro de URLs: nombres/ciudades con links = spam.
+const MIN_ELAPSED_MS = 3000;
+const URL_PATTERN    = /https?:\/\/|www\.|<a\s/i;
+const TEXT_FIELDS_TO_SCAN = [
+  'Nombre', 'Apellidos', 'Ciudad', 'Encargado, Centro, Institución',
+];
+
+function esBot(body) {
+  const { _hp, _elapsed, fields } = body || {};
+  if (_hp && String(_hp).trim() !== '') return 'honeypot';
+  // _elapsed puede faltar en clientes con la página cacheada vieja:
+  // solo rechazamos si viene Y es sospechosamente corto.
+  if (_elapsed !== undefined && Number(_elapsed) >= 0 && Number(_elapsed) < MIN_ELAPSED_MS) {
+    return 'timing';
+  }
+  for (const f of TEXT_FIELDS_TO_SCAN) {
+    if (fields?.[f] && URL_PATTERN.test(String(fields[f]))) return 'url-en-campo';
+  }
+  return null;
+}
+
 module.exports = async function handler(req, res) {
   setCors(req, res);
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')    return res.status(405).json({ error: 'Method not allowed' });
 
   const { fields, genero } = req.body || {};
+
+  // ANTI-BOT: rechazar antes de tocar Airtable. Respuesta genérica a
+  // propósito, sin revelar qué trampa disparó.
+  const botReason = esBot(req.body);
+  if (botReason) {
+    console.warn('submit bloqueado por anti-bot:', botReason);
+    return res.status(400).json({ error: 'Solicitud inválida' });
+  }
+
   if (!genero || !DESTINO[genero]) {
     return res.status(400).json({ error: `Género inválido o faltante: ${genero}` });
   }
