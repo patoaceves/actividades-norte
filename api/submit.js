@@ -107,31 +107,57 @@ async function resolverRecordEnTablaVinculada(pat, baseId, linkedTableId, idActi
   const metaData = await meta.json();
   if (!meta.ok) throw new Error(`Metadata (tabla vinculada): ${JSON.stringify(metaData)}`);
   const tabla = metaData.tables?.find(t => t.id === linkedTableId);
-  if (!tabla) return null;
+  if (!tabla) { console.warn(`Tabla vinculada ${linkedTableId} no existe en base ${baseId}`); return null; }
 
   const fields = tabla.fields || [];
-  let idField =
-    fields.find(f => f.name.trim().toLowerCase() === 'id actividad') ||
-    fields.find(f => f.id === tabla.primaryFieldId) ||
-    fields.find(f => /\bid\b/i.test(f.name));
-  if (!idField) return null;
 
+  // Campos candidatos donde puede vivir el ID de actividad, en orden de
+  // preferencia. Incluimos campos de texto/fórmula y el primario, porque en
+  // algunas tablas el "ID" es el campo primario (que a veces trae el nombre
+  // completo "AF050 - ...") o una columna aparte.
+  const TEXTO_OK = new Set(['singleLineText', 'multilineText', 'formula', 'richText', 'autoNumber', 'barcode']);
+  const preferidos = [];
+  const exacto = fields.find(f => f.name.trim().toLowerCase() === 'id actividad');
+  if (exacto) preferidos.push(exacto);
+  const primario = fields.find(f => f.id === tabla.primaryFieldId);
+  if (primario && !preferidos.includes(primario)) preferidos.push(primario);
+  fields.forEach(f => {
+    if (!preferidos.includes(f) && (TEXTO_OK.has(f.type) || /\bid\b/i.test(f.name))) preferidos.push(f);
+  });
+
+  const idFieldIds = preferidos.map(f => f.id);
   const target = String(idActividad).trim().toUpperCase();
-  let offset = '', pages = 0;
+
+  // Un valor "matchea" si es exactamente el ID, o si empieza con "AF050 -" /
+  // "AF050:" / "AF050 " (para primarios con nombre completo).
+  const matchVal = (raw) => {
+    const s = String(firstVal(raw) || '').trim().toUpperCase();
+    if (!s) return false;
+    if (s === target) return true;
+    return s.startsWith(target + ' ') || s.startsWith(target + '-') || s.startsWith(target + ':');
+  };
+
+  let offset = '', pages = 0, scanned = 0;
   do {
+    const fl = idFieldIds.map(id => `fields[]=${id}`).join('&');
     const url = `https://api.airtable.com/v0/${baseId}/${linkedTableId}`
-      + `?returnFieldsByFieldId=true&fields[]=${idField.id}&pageSize=100`
+      + `?returnFieldsByFieldId=true&${fl}&pageSize=100`
       + (offset ? `&offset=${offset}` : '');
     const r = await fetch(url, { headers: { Authorization: `Bearer ${pat}` } });
     const data = await r.json();
     if (!r.ok) throw new Error(`List (tabla vinculada): ${JSON.stringify(data)}`);
-    const hit = (data.records || []).find(rec =>
-      String(firstVal(rec.fields[idField.id]) || '').trim().toUpperCase() === target);
-    if (hit) return hit.id;
+    for (const rec of (data.records || [])) {
+      scanned++;
+      for (const fid of idFieldIds) {
+        if (matchVal(rec.fields[fid])) return rec.id;
+      }
+    }
     offset = data.offset || '';
     pages++;
   } while (offset && pages < 30);
 
+  console.warn(`No se encontró "${target}" en tabla vinculada ${linkedTableId} (base ${baseId}). `
+    + `Campos escaneados: ${preferidos.map(f => f.name).join(', ')}. Records revisados: ${scanned}.`);
   return null;
 }
 
