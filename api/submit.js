@@ -29,6 +29,8 @@ const DESTINO = {
       idAsistente: 'fldOihfiaa06buyO5',
       codigoPais:  'fldkQVoEWdXG7JDZt',
       metodoPago:  'fld4qR4oAexk6hdXE',
+      // linkActividad: 'fld...', // opcional: field ID del link "Actividades V"
+      //   (si se define, se usa directo; si no, se detecta por tipo+nombre)
     },
   },
   femenil: {
@@ -39,6 +41,7 @@ const DESTINO = {
       idAsistente: 'flddMIj6reMzSHRtP',
       codigoPais:  'fldnv2cwLLZgKxm79',
       centro:      'fldWpi9Cy0PRVFQvC',
+      // linkActividad: 'fld...', // opcional: field ID del link "Actividades F"
     },
   },
 };
@@ -71,7 +74,7 @@ function generateIdAsistente(idActividad) {
   return `${idActividad}${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
-// ── Metadata API → { fieldName: fieldId } ───────────────────────────
+// ── Metadata API → { fieldName: fieldId } y también { fieldName: {id, type} } ──
 async function getFieldMap(pat, baseId, tableId) {
   const r    = await fetch(`https://api.airtable.com/v0/meta/bases/${baseId}/tables`, {
     headers: { Authorization: `Bearer ${pat}` },
@@ -80,9 +83,32 @@ async function getFieldMap(pat, baseId, tableId) {
   if (!r.ok) throw new Error(`Metadata API: ${JSON.stringify(data)}`);
   const table = data.tables?.find(t => t.id === tableId);
   if (!table) throw new Error(`Tabla ${tableId} no encontrada`);
-  const map = {};
-  table.fields?.forEach(f => { map[f.name] = f.id; });
+  const map   = {};   // name -> id  (retrocompat)
+  const meta  = {};   // name -> { id, type }
+  table.fields?.forEach(f => { map[f.name] = f.id; meta[f.name] = { id: f.id, type: f.type }; });
+  map.__meta = meta;
   return map;
+}
+
+// Encuentra el field ID del campo LINK a la actividad ("Actividades V" /
+// "Actividades F", el que en la vista aparece con el ícono de rayo). Es un
+// multipleRecordLinks que apunta a la tabla de actividades. El nombre puede
+// traer sufijos (emoji, espacios), por eso lo buscamos por tipo + prefijo.
+function findLinkActividadFieldId(fieldMap, genero) {
+  const meta = fieldMap.__meta || {};
+  const letra = genero === 'femenil' ? 'F' : 'V';
+  const candidatos = Object.entries(meta)
+    .filter(([, m]) => m.type === 'multipleRecordLinks');
+
+  // 1) nombre que empieza con "Actividades <letra>"
+  let hit = candidatos.find(([name]) =>
+    name.trim().toLowerCase().startsWith(`actividades ${letra.toLowerCase()}`));
+  // 2) cualquier link cuyo nombre incluya "actividad"
+  if (!hit) hit = candidatos.find(([name]) => /actividad/i.test(name));
+  // 3) si solo hay un link en la tabla, usarlo
+  if (!hit && candidatos.length === 1) hit = candidatos[0];
+
+  return hit ? hit[1].id : null;
 }
 
 // ── Buscar actividad ─────────────────────────────────────────────────
@@ -111,6 +137,7 @@ async function fetchActividad(idActividad) {
     ? firstVal(f[ACTIVIDADES.fields.lugaresF])
     : firstVal(f[ACTIVIDADES.fields.lugaresV]);
   return {
+    recordId:      found.id,   // rec... de la actividad en la base central (para el link)
     nombre:        firstVal(f[ACTIVIDADES.fields.nombre])        || idActividad,
     cuota:         firstVal(f[ACTIVIDADES.fields.cuota])         || '0',
     casa:          firstVal(f[ACTIVIDADES.fields.casa])          || '',
@@ -154,7 +181,7 @@ async function listarIdsAsistenteParaActividad(pat, cfg, idActividad, fieldMap) 
 }
 
 // ── Construir payload con field IDs ─────────────────────────────────
-function buildPayload(formFields, fieldMap, cfg, idAsistente, genero) {
+function buildPayload(formFields, fieldMap, cfg, idAsistente, genero, actividad) {
   const get    = name => fieldMap[name];
   const result = {};
 
@@ -184,6 +211,13 @@ function buildPayload(formFields, fieldMap, cfg, idAsistente, genero) {
   }
 
   result[cfg.ids.idAsistente] = idAsistente;
+
+  // Link a la actividad (campo "Actividades V/F", el del rayo). Se resuelve
+  // por tipo+nombre en runtime; puede sobreescribirse con cfg.ids.linkActividad.
+  const linkFieldId = cfg.ids.linkActividad || findLinkActividadFieldId(fieldMap, genero);
+  if (linkFieldId && actividad?.recordId) {
+    result[linkFieldId] = [actividad.recordId];
+  }
 
   return result;
 }
@@ -288,37 +322,51 @@ module.exports = async function handler(req, res) {
     if (!idAsistente) throw new Error('No se pudo generar un ID de asistente único');
 
     // 7. Construir payload
-    const payload = buildPayload(fields, fieldMap, cfg, idAsistente, genero);
+    const payload = buildPayload(fields, fieldMap, cfg, idAsistente, genero, actividad);
+    const linkFieldId = cfg.ids.linkActividad || findLinkActividadFieldId(fieldMap, genero);
+    const metodoPagoId = cfg.ids.metodoPago || fieldMap['Método de Pago'];
 
-    // 8. Escribir registro
-    //    Si Airtable rechaza una opción del Single Select "Método de Pago"
-    //    (porque la opción no existe y el PAT no puede crearla), retry sin
-    //    ese campo. El método real queda en metadata del PI de Stripe.
-    let r    = await fetch(
-      `https://api.airtable.com/v0/${cfg.base}/${cfg.table}?returnFieldsByFieldId=true`,
-      {
-        method:  'POST',
-        headers: { Authorization: `Bearer ${pat}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ fields: payload }),
-      }
-    );
-    let data = await r.json();
-
-    if (!r.ok && data?.error?.type === 'INVALID_MULTIPLE_CHOICE_OPTIONS') {
-      // Retry sin "Método de Pago"
-      const metodoPagoId = cfg.ids.metodoPago || fieldMap['Método de Pago'];
-      const retryPayload = { ...payload };
-      if (metodoPagoId) delete retryPayload[metodoPagoId];
-      console.warn('Airtable rechazó Método de Pago, reintentando sin ese campo. Valor original:', fields['Método de Pago']);
-      r = await fetch(
+    // 8. Escribir registro con reintentos defensivos.
+    //    El registro del asistente NUNCA se pierde por un campo secundario:
+    //    si Airtable rechaza el "Método de Pago" (opción inexistente) o el
+    //    link a la actividad (p.ej. el record ID del sync no coincide),
+    //    reintentamos quitando ese campo. Los datos clave quedan igual y el
+    //    método real siempre está en la metadata del PaymentIntent de Stripe.
+    async function escribir(body) {
+      const resp = await fetch(
         `https://api.airtable.com/v0/${cfg.base}/${cfg.table}?returnFieldsByFieldId=true`,
         {
           method:  'POST',
           headers: { Authorization: `Bearer ${pat}`, 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ fields: retryPayload }),
+          body:    JSON.stringify({ fields: body }),
         }
       );
-      data = await r.json();
+      return { resp, json: await resp.json() };
+    }
+
+    let { resp: r, json: data } = await escribir(payload);
+
+    // Retry 1: opción de Single Select "Método de Pago" no válida
+    if (!r.ok && data?.error?.type === 'INVALID_MULTIPLE_CHOICE_OPTIONS') {
+      const retryPayload = { ...payload };
+      if (metodoPagoId) delete retryPayload[metodoPagoId];
+      console.warn('Airtable rechazó Método de Pago, reintentando sin ese campo. Valor original:', fields['Método de Pago']);
+      ({ resp: r, json: data } = await escribir(retryPayload));
+    }
+
+    // Retry 2: el link a la actividad falló (record inexistente en la tabla
+    // vinculada, sync que no preservó el ID, o nombre de campo distinto).
+    // Guardamos el registro sin el link; el "ID Actividad" en texto queda igual.
+    if (!r.ok && linkFieldId && payload[linkFieldId]) {
+      const retryPayload = { ...payload };
+      delete retryPayload[linkFieldId];
+      console.warn('Airtable rechazó el link a la actividad, reintentando sin ese campo. Error:', JSON.stringify(data?.error || {}));
+      ({ resp: r, json: data } = await escribir(retryPayload));
+      // Si aún falla, quitar también método de pago por si acaso
+      if (!r.ok && metodoPagoId) {
+        delete retryPayload[metodoPagoId];
+        ({ resp: r, json: data } = await escribir(retryPayload));
+      }
     }
 
     if (!r.ok) throw new Error(`Airtable write: ${JSON.stringify(data)}`);
