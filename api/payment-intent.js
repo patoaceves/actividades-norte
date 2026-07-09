@@ -55,6 +55,7 @@ function firstVal(v) { return Array.isArray(v) ? v[0] : v; }
 
 // Cálculo de montos centralizado en api/_lib/precios.js (única fuente de verdad)
 const { montoCentavos } = require('./_lib/precios');
+const { parseLugares } = require('./_lib/lugares');
 
 async function fetchActividadServer(idActividad) {
   const pat = process.env.AIRTABLE_PAT_ACTIVIDADES;
@@ -88,7 +89,7 @@ async function fetchActividadServer(idActividad) {
     casa:          String(firstVal(f[ACTIVIDADES.fields.casa])          || '').trim(),
     fechaCompleta: String(firstVal(f[ACTIVIDADES.fields.fechaCompleta]) || '').trim(),
     seccion,
-    lugares:       lugaresRaw != null ? Number(lugaresRaw) : null,
+    lugares:       parseLugares(lugaresRaw),
   };
 }
 

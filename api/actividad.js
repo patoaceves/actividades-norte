@@ -50,6 +50,7 @@ function firstVal(v) {
 
 // Cálculo de montos centralizado en api/_lib/precios.js (única fuente de verdad)
 const { montoContadoMXN, montoApartadoMXN } = require('./_lib/precios');
+const { parseLugares } = require('./_lib/lugares');
 
 module.exports = async function handler(req, res) {
   setCors(req, res);
@@ -129,7 +130,7 @@ module.exports = async function handler(req, res) {
     const lugaresRaw = seccion === 'FEMENIL'
       ? firstVal(f[FIELDS.lugaresF])
       : firstVal(f[FIELDS.lugaresV]);
-    const lugares = lugaresRaw != null ? Number(lugaresRaw) : null;
+    const lugares = parseLugares(lugaresRaw);
 
     return res.status(200).json({
       id,

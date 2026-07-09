@@ -63,6 +63,7 @@ function setCors(req, res) {
 }
 
 function firstVal(v) { return Array.isArray(v) ? v[0] : v; }
+const { parseLugares } = require('./_lib/lugares');
 
 // 4 dígitos: 1000-9999 → 9000 opciones por actividad
 // Formato: ${idActividad}${4 dígitos} → ej. AV031 + 7098 = AV0317098
@@ -115,7 +116,7 @@ async function fetchActividad(idActividad) {
     casa:          firstVal(f[ACTIVIDADES.fields.casa])          || '',
     fechaCompleta: firstVal(f[ACTIVIDADES.fields.fechaCompleta]) || '',
     seccion,
-    lugares:       lugares != null ? Number(lugares) : null,
+    lugares:       parseLugares(lugares),
   };
 }
 

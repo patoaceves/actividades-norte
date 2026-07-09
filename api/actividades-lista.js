@@ -40,6 +40,7 @@ function setCors(req, res) {
 
 // Helper: primer valor si es array (campos lookup/link)
 function firstScalar(v) { return Array.isArray(v) ? v[0] : v; }
+const { parseLugares } = require('./_lib/lugares');
 
 // Helper: devuelve array de strings para casa (maneja: array, string con comas, string simple)
 function toCasasArray(v) {
@@ -123,7 +124,7 @@ module.exports = async function handler(req, res) {
           fechaInicio:    String(firstScalar(f[FIELDS.fechaInicio]) || '').trim(),
           fechaFin:       String(firstScalar(f[FIELDS.fechaFin]) || '').trim(),
           seccion,
-          lugares:        lugares != null ? Number(lugares) : null,
+          lugares:        parseLugares(lugares),
           cuota:          String(firstScalar(f[FIELDS.cuota]) || '').trim(),
         };
       })

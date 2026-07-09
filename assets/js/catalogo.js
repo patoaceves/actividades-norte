@@ -155,7 +155,7 @@
       if (cupo) {
         const lugares = a.lugares;
         const cuotaOk = isCuotaValida(a.cuota);
-        const disponible = cuotaOk && lugares !== null && lugares !== undefined && lugares > 0;
+        const disponible = cuotaOk && lugares !== null && lugares !== undefined && !Number.isNaN(lugares) && lugares > 0;
         if (cupo === 'disponible'    && !disponible) return false;
         if (cupo === 'no-disponible' &&  disponible) return false;
       }
@@ -192,7 +192,7 @@
       // SIEMPRE se renderiza el badge — nunca se oculta.
       let lugState = 'ok', lugText = 'Lugares disponibles';
       const cuotaOk = isCuotaValida(a.cuota);
-      const sinCupo = (lugares === null || lugares === undefined || lugares <= 0);
+      const sinCupo = (lugares === null || lugares === undefined || Number.isNaN(lugares) || lugares <= 0);
       if (!cuotaOk || sinCupo) {
         lugState = 'full'; lugText = 'No disponible';
       } else if (lugares <= 3) {
@@ -275,7 +275,7 @@
       // Lugares: misma lógica que las cards
       const lugares = a.lugares;
       const cuotaOk = isCuotaValida(a.cuota);
-      const sinCupo = (lugares === null || lugares === undefined || lugares <= 0);
+      const sinCupo = (lugares === null || lugares === undefined || Number.isNaN(lugares) || lugares <= 0);
       let lugClass, lugText;
       if (!cuotaOk || sinCupo) {
         lugClass = 'full'; lugText = 'No disponible';
