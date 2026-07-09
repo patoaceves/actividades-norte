@@ -180,6 +180,23 @@ function findLinkActividadField(fieldMap, genero) {
   return { fieldId: hit[1].id, linkedTableId: hit[1].linkedTableId || null };
 }
 
+// Encuentra el campo de TEXTO "Actividades V/F" (sin rayo), donde se pega el
+// nombre de la actividad ("AF050 - Curso de Retiro San Rafael"). Hay dos
+// campos con el mismo nombre base: uno es el link (multipleRecordLinks) y otro
+// es este texto; por eso filtramos por tipo texto.
+function findTextoActividadFieldId(fieldMap, genero) {
+  const meta = fieldMap.__meta || {};
+  const letra = genero === 'femenil' ? 'F' : 'V';
+  const TEXTO_OK = new Set(['singleLineText', 'multilineText', 'richText']);
+  const candidatos = Object.entries(meta)
+    .filter(([, m]) => TEXTO_OK.has(m.type));
+
+  let hit = candidatos.find(([name]) =>
+    name.trim().toLowerCase().startsWith(`actividades ${letra.toLowerCase()}`));
+  if (!hit) hit = candidatos.find(([name]) => /^actividades\b/i.test(name.trim()));
+  return hit ? hit[1].id : null;
+}
+
 // ── Buscar actividad ─────────────────────────────────────────────────
 async function fetchActividad(idActividad) {
   const pat = process.env.AIRTABLE_PAT_ACTIVIDADES;
@@ -286,6 +303,12 @@ function buildPayload(formFields, fieldMap, cfg, idAsistente, genero, linkInfo) 
   // NO el de la central). Si no se pudo resolver, se omite y hay retry defensivo.
   if (linkInfo?.fieldId && linkInfo?.recordId) {
     result[linkInfo.fieldId] = [linkInfo.recordId];
+  }
+
+  // Campo de TEXTO "Actividades V/F" (sin rayo): el nombre completo de la
+  // actividad, ej "AF050 - Curso de Retiro San Rafael".
+  if (linkInfo?.textoFieldId && linkInfo?.nombreActividad) {
+    result[linkInfo.textoFieldId] = linkInfo.nombreActividad;
   }
 
   return result;
@@ -413,9 +436,14 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // Campo de TEXTO "Actividades V/F" (sin rayo): se llena con el nombre
+    // completo de la actividad. Es independiente del link.
+    const textoFieldId = cfg.ids.textoActividad || findTextoActividadFieldId(fieldMap, genero);
+    const nombreActividad = actividad?.nombre || idActividad;
+
     // 8. Construir payload
     const payload = buildPayload(fields, fieldMap, cfg, idAsistente, genero,
-      { fieldId: linkFieldId, recordId: linkRecordId });
+      { fieldId: linkFieldId, recordId: linkRecordId, textoFieldId, nombreActividad });
     const metodoPagoId = cfg.ids.metodoPago || fieldMap['Método de Pago'];
 
     // 9. Escribir registro con reintentos defensivos.
@@ -453,7 +481,11 @@ module.exports = async function handler(req, res) {
       delete retryPayload[linkFieldId];
       console.warn('Airtable rechazó el link a la actividad, reintentando sin ese campo. Error:', JSON.stringify(data?.error || {}));
       ({ resp: r, json: data } = await escribir(retryPayload));
-      // Si aún falla, quitar también método de pago por si acaso
+      // Si aún falla, quitar también el texto de actividad y método de pago
+      if (!r.ok && textoFieldId) {
+        delete retryPayload[textoFieldId];
+        ({ resp: r, json: data } = await escribir(retryPayload));
+      }
       if (!r.ok && metodoPagoId) {
         delete retryPayload[metodoPagoId];
         ({ resp: r, json: data } = await escribir(retryPayload));
