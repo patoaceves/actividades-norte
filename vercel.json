@@ -2,46 +2,95 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/varonil",  "destination": "/pages/varonil" },
-    { "source": "/femenil",  "destination": "/pages/femenil" },
-    { "source": "/registro", "destination": "/pages/registro" },
-    { "source": "/contacto", "destination": "/pages/contacto" },
-    { "source": "/success",  "destination": "/pages/success" },
-    { "source": "/v",        "destination": "/pages/v" }
+    {
+      "source": "/varonil",
+      "destination": "/pages/varonil"
+    },
+    {
+      "source": "/femenil",
+      "destination": "/pages/femenil"
+    },
+    {
+      "source": "/registro",
+      "destination": "/pages/registro"
+    },
+    {
+      "source": "/contacto",
+      "destination": "/pages/contacto"
+    },
+    {
+      "source": "/success",
+      "destination": "/pages/success"
+    },
+    {
+      "source": "/v",
+      "destination": "/pages/v"
+    },
+    {
+      "source": "/calculadora",
+      "destination": "/pages/calculadora"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options",    "value": "nosniff" },
-        { "key": "Referrer-Policy",           "value": "strict-origin-when-cross-origin" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
-        { "key": "X-Frame-Options",           "value": "SAMEORIGIN" },
-        { "key": "Permissions-Policy",        "value": "geolocation=(), microphone=(), camera=()" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(), camera=()"
+        }
       ]
     },
     {
       "source": "/assets/png/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/assets/js/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     },
     {
       "source": "/assets/css/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     },
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
       ]
     }
   ],

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Cuotas — Actividades Norte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F6F1E7; --green:#2A4030; --gold:#A07840;
+    --charcoal:#1A1C18; --muted:#7A7E74; --radius:8px;
+    --line:rgba(42,64,48,.14); --line2:rgba(42,64,48,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--cream);color:var(--green);font-family:'Figtree',sans-serif;line-height:1.5;padding:clamp(18px,4vw,48px);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto}
+  .eyebrow{font-size:.85rem;color:var(--gold);margin-bottom:8px;font-weight:500}
+  h1{font-weight:600;font-size:clamp(1.7rem,4vw,2.3rem);margin-bottom:28px;letter-spacing:-.02em}
+
+  .layout{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:start}
+  @media(max-width:820px){.layout{grid-template-columns:1fr}}
+
+  .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:clamp(18px,2.6vw,26px)}
+  .panel + .panel{margin-top:18px}
+  .section-title{font-size:.95rem;font-weight:600;color:var(--green);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line2)}
+  .sub-note{font-size:.82rem;color:var(--muted);margin:-8px 0 14px}
+
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;align-items:end}
+  .row.three{grid-template-columns:1fr 1fr 1fr}
+  @media(max-width:480px){.row,.row.three{grid-template-columns:1fr}}
+  .field{display:flex;flex-direction:column;gap:5px}
+  label{font-size:.85rem;color:var(--muted);font-weight:400}
+  input,select{
+    font-family:'Figtree',sans-serif;font-size:1rem;color:var(--green);font-weight:500;
+    background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);
+    padding:10px 12px;width:100%;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--gold);background:#fff}
+
+  /* Inputs de dinero: $ prefijo + mxn sufijo */
+  .money{position:relative}
+  .money input{padding-left:23px;padding-right:46px}
+  .money::before{content:"$";position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+  .money::after{content:"mxn";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85em;pointer-events:none}
+
+  .toggle{display:flex;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+  .toggle button{flex:1;font-family:'Figtree',sans-serif;font-size:.92rem;font-weight:500;padding:11px 8px;background:var(--cream);color:var(--muted);border:none;cursor:pointer;transition:background .15s}
+  .toggle button.on{background:var(--green);color:var(--cream)}
+  .pro-only{transition:opacity .2s}
+  .pro-only.off{opacity:.32;pointer-events:none}
+
+  .extra-cat{font-size:.8rem;font-weight:600;color:var(--gold);margin:16px 0 6px}
+  .extra-cat:first-child{margin-top:4px}
+  .extra{display:grid;grid-template-columns:20px 1fr 72px 96px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line2)}
+  .extra input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);cursor:pointer}
+  .extra .en{font-size:.94rem}
+  .extra .qty{padding:7px 9px;font-size:.92rem}
+  .cost-wrap{position:relative}
+  .cost-wrap .cost{padding:7px 9px 7px 20px;font-size:.92rem;width:100%}
+  .cost-wrap::before{content:"$";position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9em;pointer-events:none}
+  .extras-head{display:grid;grid-template-columns:20px 1fr 72px 96px;gap:10px;font-size:.8rem;color:var(--muted);margin-bottom:2px}
+
+  .results{position:sticky;top:24px}
+  .meta{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line2)}
+  .meta div{font-size:.88rem;color:var(--muted)}
+  .meta b{display:block;font-size:1.5rem;color:var(--green);font-weight:600;margin-top:2px;letter-spacing:-.01em}
+  .pick-hint{font-size:.86rem;color:var(--muted);margin-bottom:12px}
+  .cuotas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:480px){.cuotas{grid-template-columns:1fr}}
+  .cuota{
+    position:relative;text-align:left;font-family:'Figtree',sans-serif;cursor:pointer;
+    border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;background:var(--cream);
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .cuota.stripe{background:#fff;border-color:rgba(160,120,64,.4)}
+  .cuota:hover{border-color:var(--gold)}
+  .cuota.sel{border-color:var(--green);box-shadow:inset 0 0 0 1.5px var(--green)}
+  .cuota .cl{font-size:.85rem;color:var(--muted);margin-bottom:8px;padding-right:22px}
+  .cuota.stripe .cl{color:var(--gold)}
+  .cuota .cv{font-size:clamp(1.5rem,3.4vw,1.85rem);font-weight:600;letter-spacing:-.02em}
+  .cuota .dot{position:absolute;top:15px;right:15px;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line)}
+  .cuota.sel .dot{border-color:var(--green);background:var(--green);box-shadow:inset 0 0 0 3px #fff}
+  .selbar{margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .selbar span{font-size:.9rem;color:var(--muted)}
+  .selbar b{font-size:1.5rem;font-weight:600;color:var(--green);letter-spacing:-.01em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Actividades Norte</div>
+  <h1>Calculadora de cuotas</h1>
+
+  <div class="layout">
+    <div>
+      <div class="panel">
+        <div class="section-title">Prorrateo</div>
+        <div class="toggle" id="tgl">
+          <button data-pro="1" class="on">Con prorrateo</button>
+          <button data-pro="0">Sin prorrateo</button>
+        </div>
+        <p class="pick-hint" id="proHint">El costo de sacerdotes y adicionales se reparte entre los asistentes.</p>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Fechas de actividad</div>
+        <div class="row">
+          <div class="field"><label>Fecha inicio</label><input type="date" id="fIni" value="2026-01-16"></div>
+          <div class="field"><label>Fecha fin</label><input type="date" id="fFin" value="2026-01-18"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Menú inicio</label>
+            <select id="mIni"><option>Desayuno</option><option selected>Comida</option><option>Cena</option></select>
+          </div>
+          <div class="field"><label>Menú fin</label>
+            <select id="mFin"><option>Desayuno</option><option selected>Comida</option><option>Cena</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Cálculo de asistentes</div>
+        <div class="row three">
+          <div class="field"><label>Asistentes</label><input type="number" id="asis" value="14" min="1"></div>
+          <div class="field pro-only"><label>Sacerdotes</label><input type="number" id="sac" value="1" min="0"></div>
+          <div class="field pro-only"><label>Adicionales</label><input type="number" id="adic" value="3" min="0"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Costo asistente (día)</label>
+            <div class="money"><input type="text" inputmode="numeric" class="cash" id="rAsis" value="1,685"></div>
+          </div>
+          <div class="field pro-only"><label>Costo huésped (día)</label>
+            <div class="money"><input type="text" inputmode="numeric" class="cash" id="rHues" value="1,315"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Extras</div>
+        <p class="sub-note">por persona, por día</p>
+        <div class="extras-head"><span></span><span></span><span>Cantidad</span><span>Costo</span></div>
+        <div id="extras"></div>
+      </div>
+    </div>
+
+    <div class="results">
+      <div class="panel">
+        <div class="section-title">Resultado</div>
+        <div class="meta">
+          <div>Duración<b id="oDur">—</b></div>
+          <div>Extras por asistente<b id="oExtras">—</b></div>
+        </div>
+        <p class="pick-hint">Selecciona la cuota que vas a usar:</p>
+        <div class="cuotas">
+          <button class="cuota" data-k="c1"><span class="dot"></span><div class="cl">Cuota sin extras</div><div class="cv" id="c1">—</div></button>
+          <button class="cuota stripe" data-k="c2"><span class="dot"></span><div class="cl">Sin extras + Stripe</div><div class="cv" id="c2">—</div></button>
+          <button class="cuota" data-k="c3"><span class="dot"></span><div class="cl">Cuota + extras</div><div class="cv" id="c3">—</div></button>
+          <button class="cuota stripe" data-k="c4"><span class="dot"></span><div class="cl">+ Extras + Stripe</div><div class="cv" id="c4">—</div></button>
+        </div>
+        <div class="selbar"><span>Cuota seleccionada</span><b id="oSel">—</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // [nombre, costo, cantidad, marcado]
+  const EXTRA_GROUPS = [
+    ['Duración', [
+      ['Media Mañana', 30, 1, false],
+      ['Media Tarde', 30, 1, false],
+    ]],
+    ['Comida', [
+      ['Barras de Chocolate, Galletas y Bombón (fogata)', 15, 1, false],
+      ['Pegote (fogata)', 10, 1, false],
+      ['Aperitivo A', 50, 1, false],
+      ['Aperitivo B', 40, 1, true],
+      ['Carne Asada', 80, 1, false],
+      ['Hamburguesa', 60, 1, false],
+    ]],
+    ['Bebida', [
+      ['Cerveza', 18, 1, false],
+      ['Botella de Vino', 250, 1, false],
+    ]],
+  ];
+
+  const $ = id => document.getElementById(id);
+  let PRORRATEO = true;
+  let selKey = 'c1';
+
+  const withCommas = raw => raw ? Number(raw).toLocaleString('es-MX') : '';
+  const readMoney  = el => Number(String(el.value).replace(/[^\d]/g, '')) || 0;
+
+  // Formatea inputs de dinero con coma al escribir
+  function attachCash(el){
+    el.addEventListener('input', () => {
+      const raw = el.value.replace(/[^\d]/g, '');
+      el.value = withCommas(raw);
+      calc();
+    });
+  }
+
+  // Render extras agrupados
+  const box = $('extras');
+  let idx = 0;
+  EXTRA_GROUPS.forEach(([cat, items]) => {
+    const h = document.createElement('div');
+    h.className = 'extra-cat';
+    h.textContent = cat;
+    box.appendChild(h);
+    items.forEach(e => {
+      const i = idx++;
+      const row = document.createElement('div');
+      row.className = 'extra';
+      row.innerHTML = `
+        <input type="checkbox" data-i="${i}" ${e[3] ? 'checked' : ''}>
+        <span class="en">${e[0]}</span>
+        <input type="number" class="qty" data-i="${i}" value="${e[2]}" min="0" step="1">
+        <span class="cost-wrap"><input type="text" inputmode="numeric" class="cost cash" data-i="${i}" value="${withCommas(e[1])}"></span>`;
+      box.appendChild(row);
+    });
+  });
+  document.querySelectorAll('.cash').forEach(attachCash);
+
+  // Toggle prorrateo
+  $('tgl').addEventListener('click', ev => {
+    const b = ev.target.closest('button'); if (!b) return;
+    PRORRATEO = b.dataset.pro === '1';
+    [...$('tgl').children].forEach(x => x.classList.toggle('on', x === b));
+    document.querySelectorAll('.pro-only').forEach(el => el.classList.toggle('off', !PRORRATEO));
+    $('proHint').textContent = PRORRATEO
+      ? 'El costo de sacerdotes y adicionales se reparte entre los asistentes.'
+      : 'Cada asistente paga solo su parte.';
+    calc();
+  });
+
+  // Selección de cuota
+  document.querySelectorAll('.cuota').forEach(card => {
+    card.addEventListener('click', () => { selKey = card.dataset.k; syncSel(); });
+  });
+  function syncSel() {
+    document.querySelectorAll('.cuota').forEach(c => c.classList.toggle('sel', c.dataset.k === selKey));
+    const el = $(selKey);
+    $('oSel').textContent = el ? el.textContent : '—';
+  }
+
+  const MENU_INI = { Desayuno: 0, Comida: 0.25, Cena: 0.75 };
+  const MENU_FIN = { Desayuno: 0.75, Comida: 0.25, Cena: 0 };
+
+  const fmt = n => (n === null || isNaN(n)) ? '—'
+    : '$' + Math.round(n).toLocaleString('es-MX') + ' mxn';
+
+  const ceilTo = (x, s) => Math.ceil(x / s) * s;
+  const stripe = x => ceilTo(x + (x * 0.036 + 3) * 1.22, 50);
+
+  function calc() {
+    const ini = new Date($('fIni').value), fin = new Date($('fFin').value);
+    let dias = null;
+    if (!isNaN(ini) && !isNaN(fin)) dias = Math.round((fin - ini) / 86400000) + 1;
+
+    const dur = (dias === null) ? null
+      : dias - MENU_INI[$('mIni').value] - MENU_FIN[$('mFin').value];
+
+    const asis = +$('asis').value || 0;
+    const sac  = +$('sac').value  || 0;
+    const adic = +$('adic').value || 0;
+    const rA   = readMoney($('rAsis'));
+    const rH   = readMoney($('rHues'));
+
+    let extraUnit = 0;
+    document.querySelectorAll('.extra input[type=checkbox]').forEach(cb => {
+      if (cb.checked) {
+        const i = cb.dataset.i;
+        const q = +document.querySelector(`.qty[data-i="${i}"]`).value || 0;
+        const c = readMoney(document.querySelector(`.cost[data-i="${i}"]`));
+        extraUnit += q * c;
+      }
+    });
+
+    $('oDur').textContent = (dur === null) ? '—' : dur.toLocaleString('es-MX') + ' días';
+
+    if (dur === null || dur <= 0) {
+      ['oExtras','c1','c2','c3','c4'].forEach(id => $(id).textContent = '—');
+      syncSel(); return;
+    }
+
+    let base;
+    if (PRORRATEO) {
+      if (asis < 1) { ['oExtras','c1','c2','c3','c4'].forEach(id => $(id).textContent = '—'); syncSel(); return; }
+      base = Math.round(dur * rA + ((dur * sac * rH) + (dur * adic * rA)) / asis);
+    } else {
+      base = Math.round(dur * rA);
+    }
+
+    const extras = dur * extraUnit;
+    const conExtras = base + extras;
+
+    $('oExtras').textContent = fmt(extras);
+    $('c1').textContent = fmt(base);
+    $('c2').textContent = fmt(stripe(base));
+    $('c3').textContent = fmt(conExtras);
+    $('c4').textContent = fmt(stripe(conExtras));
+    syncSel();
+  }
+
+  document.addEventListener('input', calc);
+  calc();
+</script>
+</body>
+</html>
