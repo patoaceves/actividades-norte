@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro · Actividades Norte</title>
+  <title>Registro - Actividades Norte</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/isotipo.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/png/isotipo.png">
   <link rel="shortcut icon" href="/assets/png/isotipo.png">
@@ -856,6 +856,62 @@
     }
     .hidden { display: none !important; }
 
+    /* ──────────── PROCESSING OVERLAY ────────────
+       Feedback claro mientras se guarda el registro y se prepara el pago.
+       Reemplaza el spinner de 14px que se sentía trabado. */
+    .proc-overlay {
+      position: fixed; inset: 0; z-index: 2000;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 26px;
+      padding: 40px;
+      background: rgba(30, 47, 35, 0.94);
+      backdrop-filter: blur(6px);
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+    .proc-overlay.show { opacity: 1; visibility: visible; }
+    .proc-ring {
+      width: 52px; height: 52px;
+      border: 2px solid rgba(245, 239, 227, 0.22);
+      border-top-color: var(--gold-soft);
+      border-radius: 50%;
+      animation: spin 0.85s linear infinite;
+    }
+    .proc-text {
+      font-family: var(--font-display);
+      font-size: clamp(19px, 3vw, 24px);
+      font-weight: 500;
+      color: var(--cream);
+      text-align: center;
+      max-width: 420px;
+      line-height: 1.35;
+      min-height: 1.4em;
+      transition: opacity 0.25s ease;
+    }
+    .proc-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(245, 239, 227, 0.55);
+      text-align: center;
+    }
+    .proc-steps {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 4px;
+    }
+    .proc-step-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(245, 239, 227, 0.25);
+      transition: background 0.3s ease, transform 0.3s ease;
+    }
+    .proc-step-dot.active { background: var(--gold-soft); transform: scale(1.25); }
+    .proc-step-dot.done   { background: var(--green-3); }
+    @media (prefers-reduced-motion: reduce) {
+      .proc-ring { animation: none; }
+    }
+
     /* ──────────── ERR ID ──────────── */
     .err-id-wrap {
       display: none;
@@ -902,6 +958,18 @@
 </head>
 <body>
 
+  <!-- OVERLAY DE PROCESAMIENTO: guardando registro / preparando pago -->
+  <div class="proc-overlay" id="proc-overlay" role="status" aria-live="polite">
+    <div class="proc-ring"></div>
+    <div class="proc-text" id="proc-text">Guardando tu registro</div>
+    <div class="proc-steps" aria-hidden="true">
+      <span class="proc-step-dot" id="proc-dot-1"></span>
+      <span class="proc-step-dot" id="proc-dot-2"></span>
+      <span class="proc-step-dot" id="proc-dot-3"></span>
+    </div>
+    <div class="proc-sub" id="proc-sub">Un momento, no cierres esta ventana</div>
+  </div>
+
   <!-- NAV -->
   <nav class="nav" id="nav">
     <a href="/" class="nav-logo">
@@ -936,7 +1004,7 @@
           <span>Regresar a Actividad</span>
         </a>
       </div>
-      <div class="activity-badge" id="act-badge">Registro · Varonil</div>
+      <div class="activity-badge" id="act-badge">Registro - Varonil</div>
       <h1 class="activity-title">
         <span class="activity-title-id" id="act-title-id">AV000</span>
         <span id="act-title-name">Cargando actividad…</span>
@@ -1056,7 +1124,7 @@
       <!-- Varonil: texto libre -->
       <div class="field-row single" id="field-encargado-varonil">
         <div class="field">
-          <label for="encargado">Encargado · Centro · Institución<span class="req">*</span></label>
+          <label for="encargado">Encargado - Centro - Institución<span class="req">*</span></label>
           <input class="input" type="text" id="encargado" placeholder="Ej. Sillares, Monte Real, Sierra Alta">
           <span class="field-hint">Encargado de la actividad, centro al que asistes o institución.</span>
           <span class="field-error" id="err-encargado">Campo requerido</span>
@@ -1196,7 +1264,7 @@
               <div class="method-radio"></div>
               <div class="method-info">
                 <strong>Transferencia o Depósito</strong>
-                <small>SPEI · Sube tu comprobante al finalizar</small>
+                <small>SPEI - Sube tu comprobante al finalizar</small>
               </div>
               <div class="method-icons">
                 <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
@@ -1265,7 +1333,7 @@
         <p>Recibirás un <strong>correo electrónico</strong> con tu <strong>ID de Asistente</strong>. Esta clave es importante para completar tu proceso de pago. Revisa tu bandeja de entrada y spam.</p>
       </div>
 
-      <div class="ornament">· · ·</div>
+      <div class="ornament">- - -</div>
 
       <div class="agreements">
         <label class="agreement" for="chk-aviso">
@@ -1308,7 +1376,7 @@
     <!-- PASO 4: Stripe Payment Element -->
     <div class="section" id="section-4">
       <div class="sec-head">
-        <div class="sec-eyebrow">Pago seguro · Stripe</div>
+        <div class="sec-eyebrow">Pago seguro - Stripe</div>
         <h2 class="sec-title" id="pay-title">Completa tu <em>pago</em></h2>
         <p class="sec-desc" id="pay-desc">Ingresa los datos de pago para confirmar tu lugar.</p>
       </div>
@@ -1397,7 +1465,7 @@
       <div class="footer-col">
         <div class="footer-col-title">Horario</div>
         <ul>
-          <li class="contact-line">Lun – Vie<br>10:00 a 13:00 · 16:00 a 19:00</li>
+          <li class="contact-line">Lun – Vie<br>10:00 a 13:00 - 16:00 a 19:00</li>
           <li class="contact-line">Sábado<br>10:00 a 13:00</li>
         </ul>
       </div>
@@ -1453,7 +1521,7 @@
         document.getElementById('err-id-desc').textContent = 'No se especificó un ID de actividad.';
       }
     } else {
-      document.getElementById('act-badge').textContent = `Registro · ${genero === 'femenil' ? 'Femenil' : 'Varonil'}`;
+      document.getElementById('act-badge').textContent = `Registro - ${genero === 'femenil' ? 'Femenil' : 'Varonil'}`;
       document.getElementById('act-title-id').textContent = actividadId;
       // Back to detail button
       const backBtn = document.getElementById('back-to-detail');
@@ -1488,7 +1556,7 @@
         const soloFecha = (hora === '00' && min === '00');
         return soloFecha
           ? `${mesC} ${get('day')}, ${get('year')}`
-          : `${mesC} ${get('day')}, ${get('year')} · ${hora}:${min}hrs`;
+          : `${mesC} ${get('day')}, ${get('year')} - ${hora}:${min}hrs`;
       } catch(e) { return iso; }
     }
 
@@ -1795,11 +1863,45 @@
       document.getElementById('progress-wrap').style.display = 'none';
     }
 
+    /* PROCESSING OVERLAY — control por etapas.
+       Etapas: 1 guardar registro, 2 preparar pago, 3 abrir formulario. */
+    const PROC_STAGES = [
+      { text: 'Guardando tu registro',        sub: 'Un momento, no cierres esta ventana' },
+      { text: 'Preparando tu pago seguro',    sub: 'Conectando con Stripe' },
+      { text: 'Casi listo',                   sub: 'Abriendo el formulario de pago' },
+    ];
+    function showProc(stage) {
+      const ov = document.getElementById('proc-overlay');
+      ov.classList.add('show');
+      setProcStage(stage || 1);
+    }
+    function setProcStage(stage) {
+      const s = PROC_STAGES[stage - 1];
+      if (s) {
+        const t = document.getElementById('proc-text');
+        const sub = document.getElementById('proc-sub');
+        t.style.opacity = '0';
+        setTimeout(() => { t.textContent = s.text; t.style.opacity = '1'; }, 180);
+        sub.textContent = s.sub;
+      }
+      for (let i = 1; i <= 3; i++) {
+        const d = document.getElementById('proc-dot-' + i);
+        if (!d) continue;
+        d.classList.remove('active', 'done');
+        if (i < stage) d.classList.add('done');
+        else if (i === stage) d.classList.add('active');
+      }
+    }
+    function hideProc() {
+      document.getElementById('proc-overlay').classList.remove('show');
+    }
+
     async function submitForm() {
       if (!validateStep(3)) return;
 
       const btn = document.getElementById('btn-submit');
       btn.classList.add('loading'); btn.disabled = true;
+      showProc(1);
 
       const tipo   = getTipoPago();
       const metodo = getMetodo();
@@ -1841,6 +1943,7 @@
 
         // 409 = capacidad llena. Mostramos bloqueo definitivo en vez de alert.
         if (submitRes.status === 409) {
+          hideProc();
           btn.classList.remove('loading'); btn.disabled = false;
           mostrarBloqueo(
             `La actividad <strong>${actividadId}</strong> se llenó. `
@@ -1855,12 +1958,16 @@
         const { recordId, idAsistente, actividad } = submitData;
 
         if (esTransferencia()) {
+          hideProc();
           hideForm();
           document.getElementById('success-id-asistente').textContent = idAsistente;
           document.getElementById('success-wrap').classList.add('show');
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
+
+        // Registro guardado. Avanzamos a "preparando el pago".
+        setProcStage(2);
 
         await initStripePayment({
           email:       v('email'),
@@ -1877,6 +1984,7 @@
 
       } catch (err) {
         console.error(err);
+        hideProc();
         document.querySelectorAll('.section').forEach(s => s.style.display = '');
         document.getElementById('section-3').classList.add('active');
         document.getElementById('progress-wrap').style.display = '';
@@ -1918,6 +2026,7 @@
         // 409 = la actividad se llenó entre /submit y /payment-intent.
         // El registro ya quedó en Airtable pero NO se cobró nada. Bloqueamos.
         if (piRes.status === 409) {
+          hideProc();
           mostrarBloqueo(
             `La actividad <strong>${actividadId}</strong> se llenó mientras procesábamos tu pago. `
             + `<strong>No se cobró nada.</strong> Por favor contacta al coordinador para liberar tu registro o revisa otras fechas en `
@@ -1977,8 +2086,13 @@
 
         window._stripePayData = data;
 
+        // Formulario de pago listo y montado: cerramos el overlay.
+        setProcStage(3);
+        setTimeout(hideProc, 400);
+
       } catch (err) {
         console.error('initStripePayment:', err.message);
+        hideProc();
         alert('Error al inicializar el pago: ' + err.message);
         document.getElementById('section-3').style.display = '';
         document.getElementById('section-3').classList.add('active');
@@ -2008,6 +2122,14 @@
       document.getElementById('payment-message').style.display = 'none';
 
       const data      = window._stripePayData || {};
+      const isOXXO    = (data.metodoPago === 'OXXO en Efectivo');
+      // Overlay de confirmación (mensaje propio, sin los 3 pasos del registro).
+      const ov = document.getElementById('proc-overlay');
+      document.getElementById('proc-text').textContent = isOXXO ? 'Generando tu guía de pago' : 'Confirmando tu pago';
+      document.getElementById('proc-sub').textContent  = 'No cierres ni recargues esta ventana';
+      document.querySelector('.proc-steps').style.display = 'none';
+      ov.classList.add('show');
+
       const returnUrl = `${BASE_URL}/success?id=${encodeURIComponent(data.idAsistente || '')}&genero=${encodeURIComponent(data.genero || '')}`;
 
       const { error, paymentIntent } = await stripeInstance.confirmPayment({
@@ -2025,6 +2147,7 @@
       });
 
       if (error) {
+        hideProc();
         const msg = document.getElementById('payment-message');
         msg.textContent  = error.message;
         msg.style.display = 'block';
@@ -2048,6 +2171,7 @@
       }
 
       // Cualquier otro estado: avisar
+      hideProc();
       const msg = document.getElementById('payment-message');
       msg.textContent  = 'El pago no se completó. Intenta de nuevo o usa otro método.';
       msg.style.display = 'block';
