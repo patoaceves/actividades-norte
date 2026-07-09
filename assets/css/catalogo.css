@@ -3,9 +3,9 @@
    Depende de site.css
 ═══════════════════════════════════════════════════════════ */
 
-/* ──────────── NAV: override para ser fixed transparente sobre header ──────────── */
+/* ──────────── NAV: override para ser absolute transparente sobre header ──────────── */
 .nav {
-  position: fixed; top: 0; left: 0; right: 0;
+  position: absolute; top: 0; left: 0; right: 0;
   background: linear-gradient(to bottom, rgba(30, 47, 35, 0.72) 0%, rgba(30, 47, 35, 0) 100%);
   border-bottom-color: transparent;
   transition: background 0.3s, border-color 0.3s, backdrop-filter 0.3s;
@@ -25,18 +25,6 @@
   transition: opacity 0.3s;
 }
 .nav-logo-img-dark { opacity: 0; }
-
-.nav.scrolled {
-  background: rgba(30, 47, 35, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(200, 217, 204, 0.1);
-}
-/* Scrolled mantiene tonos claros (sobre verde oscuro) */
-.nav.scrolled .nav-logo, .nav.scrolled .nav-logo span { color: var(--cream); }
-.nav.scrolled .nav-links a { color: rgba(245, 239, 227, 0.75); }
-.nav.scrolled .nav-links a:hover,
-.nav.scrolled .nav-links a.active { color: var(--cream); }
-.nav.scrolled .nav-cta { color: var(--cream); border-color: rgba(245, 239, 227, 0.3); }
 
 /* ──────────── HEADER con foto de fondo + overlay verde ──────────── */
 .cat-header {
@@ -83,7 +71,7 @@
   padding: 24px var(--gutter);
   background: var(--cream-2);
   border-bottom: 1px solid rgba(42, 64, 48, 0.1);
-  position: sticky; top: 66px; z-index: 50;
+  position: relative; z-index: 50;
   overflow: visible;
 }
 .filters-inner {
