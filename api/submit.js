@@ -68,6 +68,8 @@ function setCors(req, res) {
 
 function firstVal(v) { return Array.isArray(v) ? v[0] : v; }
 const { parseLugares } = require('./_lib/lugares');
+const { construirEmailBody, enviarEmail } = require('./_lib/email');
+const { montoContadoMXN, montoApartadoMXN } = require('./_lib/precios');
 
 // 4 dígitos: 1000-9999 → 9000 opciones por actividad
 // Formato: ${idActividad}${4 dígitos} → ej. AV031 + 7098 = AV0317098
@@ -493,6 +495,45 @@ module.exports = async function handler(req, res) {
     }
 
     if (!r.ok) throw new Error(`Airtable write: ${JSON.stringify(data)}`);
+
+    // ── Correo de confirmación (Resend) ──────────────────────────────
+    // Mismo contenido que la automation vieja de Airtable, ahora fuera de
+    // Airtable. Best-effort: si el correo falla, NO rompemos el registro
+    // (el asistente ya quedó guardado y, si aplica, el pago sigue su curso).
+    //
+    // NOTA de timing: en Tarjeta/OXXO el registro (y este correo) se crean
+    // ANTES de que el pago se confirme en Stripe. Igual que la automation
+    // original. Si en el futuro quieres que el correo de tarjeta salga solo
+    // tras el pago exitoso, se movería a un webhook de Stripe; el de depósito
+    // sí debe salir aquí (no pasa por Stripe).
+    try {
+      const emailDest    = fields['Email'];
+      const contadoMxn   = montoContadoMXN(actividad.cuota);
+      const apartadoMxn  = montoApartadoMXN(actividad.cuota);
+      // 3 MSI: el total se cobra a meses, mismo monto que contado.
+      const msiMxn       = contadoMxn;
+
+      const { subject, html } = construirEmailBody({
+        idAsistente,
+        actividad:          actividad.nombre,
+        fechaCompleta:      actividad.fechaCompleta,
+        casa:               actividad.casa,
+        metodoPago:         fields['Método de Pago'],
+        lugaresDisponibles: actividad.lugares,   // ya normalizado (0/NO bloquea antes)
+        contadoMxn,
+        apartadoMxn,
+        msiMxn,
+      });
+
+      const envio = await enviarEmail({ to: emailDest, subject, html });
+      if (!envio.ok) {
+        console.warn('No se pudo enviar el correo de confirmación:', envio.error);
+      } else {
+        console.log('Correo de confirmación enviado:', envio.id);
+      }
+    } catch (e) {
+      console.warn('Error enviando el correo de confirmación:', e.message);
+    }
 
     return res.status(200).json({
       success:    true,
