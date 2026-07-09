@@ -30,7 +30,7 @@ const DESTINO = {
       codigoPais:  'fldkQVoEWdXG7JDZt',
       metodoPago:  'fld4qR4oAexk6hdXE',
       // linkActividad: 'fld...', // opcional: field ID del link "Actividades V"
-      //   (si se define, se usa directo; si no, se detecta por tipo+nombre)
+      // linkTablaActividades: 'tbl...', // opcional: tabla vinculada (synced)
     },
   },
   femenil: {
@@ -42,6 +42,7 @@ const DESTINO = {
       codigoPais:  'fldnv2cwLLZgKxm79',
       centro:      'fldWpi9Cy0PRVFQvC',
       // linkActividad: 'fld...', // opcional: field ID del link "Actividades F"
+      // linkTablaActividades: 'tbl...', // opcional: tabla vinculada (synced)
     },
   },
 };
@@ -84,31 +85,73 @@ async function getFieldMap(pat, baseId, tableId) {
   const table = data.tables?.find(t => t.id === tableId);
   if (!table) throw new Error(`Tabla ${tableId} no encontrada`);
   const map   = {};   // name -> id  (retrocompat)
-  const meta  = {};   // name -> { id, type }
-  table.fields?.forEach(f => { map[f.name] = f.id; meta[f.name] = { id: f.id, type: f.type }; });
+  const meta  = {};   // name -> { id, type, linkedTableId }
+  table.fields?.forEach(f => {
+    map[f.name] = f.id;
+    meta[f.name] = { id: f.id, type: f.type, linkedTableId: f.options?.linkedTableId };
+  });
   map.__meta = meta;
   return map;
 }
 
-// Encuentra el field ID del campo LINK a la actividad ("Actividades V" /
-// "Actividades F", el que en la vista aparece con el ícono de rayo). Es un
-// multipleRecordLinks que apunta a la tabla de actividades. El nombre puede
-// traer sufijos (emoji, espacios), por eso lo buscamos por tipo + prefijo.
-function findLinkActividadFieldId(fieldMap, genero) {
+// Dado el ID textual de actividad (ej "AF052"), encuentra el record ID en la
+// tabla VINCULADA de la base de asistentes. Esa tabla suele ser una synced
+// table desde la central y NO preserva los record IDs originales, por eso hay
+// que resolver el rec... local buscando por el campo "ID Actividad".
+async function resolverRecordEnTablaVinculada(pat, baseId, linkedTableId, idActividad) {
+  if (!linkedTableId) return null;
+
+  const meta = await fetch(`https://api.airtable.com/v0/meta/bases/${baseId}/tables`, {
+    headers: { Authorization: `Bearer ${pat}` },
+  });
+  const metaData = await meta.json();
+  if (!meta.ok) throw new Error(`Metadata (tabla vinculada): ${JSON.stringify(metaData)}`);
+  const tabla = metaData.tables?.find(t => t.id === linkedTableId);
+  if (!tabla) return null;
+
+  const fields = tabla.fields || [];
+  let idField =
+    fields.find(f => f.name.trim().toLowerCase() === 'id actividad') ||
+    fields.find(f => f.id === tabla.primaryFieldId) ||
+    fields.find(f => /\bid\b/i.test(f.name));
+  if (!idField) return null;
+
+  const target = String(idActividad).trim().toUpperCase();
+  let offset = '', pages = 0;
+  do {
+    const url = `https://api.airtable.com/v0/${baseId}/${linkedTableId}`
+      + `?returnFieldsByFieldId=true&fields[]=${idField.id}&pageSize=100`
+      + (offset ? `&offset=${offset}` : '');
+    const r = await fetch(url, { headers: { Authorization: `Bearer ${pat}` } });
+    const data = await r.json();
+    if (!r.ok) throw new Error(`List (tabla vinculada): ${JSON.stringify(data)}`);
+    const hit = (data.records || []).find(rec =>
+      String(firstVal(rec.fields[idField.id]) || '').trim().toUpperCase() === target);
+    if (hit) return hit.id;
+    offset = data.offset || '';
+    pages++;
+  } while (offset && pages < 30);
+
+  return null;
+}
+
+// Encuentra el campo LINK a la actividad ("Actividades V" / "Actividades F",
+// el del ícono de rayo). Devuelve { fieldId, linkedTableId } o null.
+// El linkedTableId es la tabla (dentro de la MISMA base de asistentes, casi
+// siempre una tabla sincronizada desde la central) contra la que se linkea.
+function findLinkActividadField(fieldMap, genero) {
   const meta = fieldMap.__meta || {};
   const letra = genero === 'femenil' ? 'F' : 'V';
   const candidatos = Object.entries(meta)
     .filter(([, m]) => m.type === 'multipleRecordLinks');
 
-  // 1) nombre que empieza con "Actividades <letra>"
   let hit = candidatos.find(([name]) =>
     name.trim().toLowerCase().startsWith(`actividades ${letra.toLowerCase()}`));
-  // 2) cualquier link cuyo nombre incluya "actividad"
   if (!hit) hit = candidatos.find(([name]) => /actividad/i.test(name));
-  // 3) si solo hay un link en la tabla, usarlo
   if (!hit && candidatos.length === 1) hit = candidatos[0];
 
-  return hit ? hit[1].id : null;
+  if (!hit) return null;
+  return { fieldId: hit[1].id, linkedTableId: hit[1].linkedTableId || null };
 }
 
 // ── Buscar actividad ─────────────────────────────────────────────────
@@ -181,7 +224,7 @@ async function listarIdsAsistenteParaActividad(pat, cfg, idActividad, fieldMap) 
 }
 
 // ── Construir payload con field IDs ─────────────────────────────────
-function buildPayload(formFields, fieldMap, cfg, idAsistente, genero, actividad) {
+function buildPayload(formFields, fieldMap, cfg, idAsistente, genero, linkInfo) {
   const get    = name => fieldMap[name];
   const result = {};
 
@@ -212,11 +255,11 @@ function buildPayload(formFields, fieldMap, cfg, idAsistente, genero, actividad)
 
   result[cfg.ids.idAsistente] = idAsistente;
 
-  // Link a la actividad (campo "Actividades V/F", el del rayo). Se resuelve
-  // por tipo+nombre en runtime; puede sobreescribirse con cfg.ids.linkActividad.
-  const linkFieldId = cfg.ids.linkActividad || findLinkActividadFieldId(fieldMap, genero);
-  if (linkFieldId && actividad?.recordId) {
-    result[linkFieldId] = [actividad.recordId];
+  // Link a la actividad (campo "Actividades V/F"). El fieldId y el recordId ya
+  // vienen resueltos desde el handler (el recordId es el de la tabla vinculada,
+  // NO el de la central). Si no se pudo resolver, se omite y hay retry defensivo.
+  if (linkInfo?.fieldId && linkInfo?.recordId) {
+    result[linkInfo.fieldId] = [linkInfo.recordId];
   }
 
   return result;
@@ -321,17 +364,39 @@ module.exports = async function handler(req, res) {
     }
     if (!idAsistente) throw new Error('No se pudo generar un ID de asistente único');
 
-    // 7. Construir payload
-    const payload = buildPayload(fields, fieldMap, cfg, idAsistente, genero, actividad);
-    const linkFieldId = cfg.ids.linkActividad || findLinkActividadFieldId(fieldMap, genero);
+    // 7. Resolver el LINK a la actividad.
+    //    El campo "Actividades V/F" linkea a una tabla dentro de la MISMA base
+    //    de asistentes (synced desde la central). Esa tabla NO preserva los
+    //    record IDs de la central, así que buscamos el rec... local por su
+    //    "ID Actividad". Todo esto es best-effort: si algo falla, el registro
+    //    se guarda igual sin el link (retry defensivo abajo).
+    const linkField = findLinkActividadField(fieldMap, genero);
+    const linkFieldId = cfg.ids.linkActividad || linkField?.fieldId || null;
+    let linkRecordId = null;
+    if (linkFieldId) {
+      try {
+        const linkedTableId = cfg.ids.linkTablaActividades || linkField?.linkedTableId || null;
+        linkRecordId = await resolverRecordEnTablaVinculada(
+          pat, cfg.base, linkedTableId, idActividad
+        );
+        if (!linkRecordId) {
+          console.warn(`No se encontró la actividad ${idActividad} en la tabla vinculada ${linkedTableId}; se guardará sin link.`);
+        }
+      } catch (e) {
+        console.warn('Error resolviendo el link a la actividad:', e.message);
+      }
+    }
+
+    // 8. Construir payload
+    const payload = buildPayload(fields, fieldMap, cfg, idAsistente, genero,
+      { fieldId: linkFieldId, recordId: linkRecordId });
     const metodoPagoId = cfg.ids.metodoPago || fieldMap['Método de Pago'];
 
-    // 8. Escribir registro con reintentos defensivos.
+    // 9. Escribir registro con reintentos defensivos.
     //    El registro del asistente NUNCA se pierde por un campo secundario:
     //    si Airtable rechaza el "Método de Pago" (opción inexistente) o el
-    //    link a la actividad (p.ej. el record ID del sync no coincide),
-    //    reintentamos quitando ese campo. Los datos clave quedan igual y el
-    //    método real siempre está en la metadata del PaymentIntent de Stripe.
+    //    link a la actividad, reintentamos quitando ese campo. Los datos clave
+    //    quedan igual y el método real está en la metadata del PI de Stripe.
     async function escribir(body) {
       const resp = await fetch(
         `https://api.airtable.com/v0/${cfg.base}/${cfg.table}?returnFieldsByFieldId=true`,
@@ -355,8 +420,8 @@ module.exports = async function handler(req, res) {
     }
 
     // Retry 2: el link a la actividad falló (record inexistente en la tabla
-    // vinculada, sync que no preservó el ID, o nombre de campo distinto).
-    // Guardamos el registro sin el link; el "ID Actividad" en texto queda igual.
+    // vinculada, etc.). Guardamos el registro sin el link; el "ID Actividad"
+    // en texto queda igual.
     if (!r.ok && linkFieldId && payload[linkFieldId]) {
       const retryPayload = { ...payload };
       delete retryPayload[linkFieldId];
