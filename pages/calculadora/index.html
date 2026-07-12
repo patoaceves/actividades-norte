@@ -76,6 +76,8 @@
   #gate button{width:100%;font-family:'Figtree',sans-serif;font-size:.95rem;font-weight:500;padding:11px;background:var(--green);color:var(--cream);border:none;border-radius:var(--radius);cursor:pointer}
   #gate .err{color:#8B2020;font-size:.85rem;min-height:1.2em;margin-top:8px}
   body.locked .wrap{display:none}
+
+  .stripe-logo{height:.95em;width:auto;vertical-align:-.11em;fill:currentColor}
   .results{position:sticky;top:24px}
   .meta{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line2)}
   .meta div{font-size:.88rem;color:var(--muted)}
@@ -182,9 +184,9 @@
         <p class="pick-hint">Selecciona la cuota que vas a usar:</p>
         <div class="cuotas">
           <button class="cuota" data-k="c1"><span class="dot"></span><div class="cl">Cuota sin extras</div><div class="cv" id="c1">—</div></button>
-          <button class="cuota stripe" data-k="c2"><span class="dot"></span><div class="cl">Sin extras + Stripe</div><div class="cv" id="c2">—</div></button>
+          <button class="cuota stripe" data-k="c2"><span class="dot"></span><div class="cl">Sin extras + <svg class="stripe-logo" viewBox="0 0 24 24" role="img" aria-label="Stripe" xmlns="http://www.w3.org/2000/svg"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z"/></svg></div><div class="cv" id="c2">—</div></button>
           <button class="cuota" data-k="c3"><span class="dot"></span><div class="cl">Cuota + extras</div><div class="cv" id="c3">—</div></button>
-          <button class="cuota stripe" data-k="c4"><span class="dot"></span><div class="cl">+ Extras + Stripe</div><div class="cv" id="c4">—</div></button>
+          <button class="cuota stripe" data-k="c4"><span class="dot"></span><div class="cl">+ Extras + <svg class="stripe-logo" viewBox="0 0 24 24" role="img" aria-label="Stripe" xmlns="http://www.w3.org/2000/svg"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z"/></svg></div><div class="cv" id="c4">—</div></button>
         </div>
         <div class="selbar"><span>Cuota seleccionada</span><b id="oSel">—</b></div>
       </div>
