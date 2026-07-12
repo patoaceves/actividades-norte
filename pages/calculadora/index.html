@@ -66,6 +66,16 @@
   .cost-wrap::before{content:"$";position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9em;pointer-events:none}
   .extras-head{display:grid;grid-template-columns:20px 1fr 72px 96px;gap:10px;font-size:.8rem;color:var(--muted);margin-bottom:2px}
 
+
+  /* Candado */
+  #gate{position:fixed;inset:0;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:24px;z-index:99}
+  #gate .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:32px 30px;max-width:340px;width:100%;text-align:center}
+  #gate h2{font-size:1.25rem;font-weight:600;margin-bottom:6px;letter-spacing:-.01em}
+  #gate p{font-size:.88rem;color:var(--muted);margin-bottom:18px}
+  #gate input{text-align:center;margin-bottom:12px}
+  #gate button{width:100%;font-family:'Figtree',sans-serif;font-size:.95rem;font-weight:500;padding:11px;background:var(--green);color:var(--cream);border:none;border-radius:var(--radius);cursor:pointer}
+  #gate .err{color:#8B2020;font-size:.85rem;min-height:1.2em;margin-top:8px}
+  body.locked .wrap{display:none}
   .results{position:sticky;top:24px}
   .meta{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line2)}
   .meta div{font-size:.88rem;color:var(--muted)}
@@ -91,7 +101,17 @@
   .selbar b{font-size:1.5rem;font-weight:600;color:var(--green);letter-spacing:-.01em}
 </style>
 </head>
-<body>
+<body class="locked">
+<div id="gate">
+  <div class="card">
+    <h2>Calculadora de cuotas</h2>
+    <p>Esta página es de uso interno.</p>
+    <input type="password" id="pw" placeholder="Contraseña" autofocus>
+    <button id="pwBtn">Entrar</button>
+    <div class="err" id="pwErr"></div>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="eyebrow">Actividades Norte</div>
   <h1>Calculadora de cuotas</h1>
@@ -131,13 +151,13 @@
         <div class="section-title">Cálculo de asistentes</div>
         <div class="row three">
           <div class="field"><label>Asistentes</label><input type="number" id="asis" value="14" min="1"></div>
-          <div class="field pro-only"><label>Sacerdotes</label><input type="number" id="sac" value="1" min="0"></div>
           <div class="field pro-only"><label>Adicionales</label><input type="number" id="adic" value="3" min="0"></div>
-        </div>
-        <div class="row">
           <div class="field"><label>Costo asistente (día)</label>
             <div class="money"><input type="text" inputmode="numeric" class="cash" id="rAsis" value="1,685"></div>
           </div>
+        </div>
+        <div class="row">
+          <div class="field pro-only"><label>Sacerdotes</label><input type="number" id="sac" value="1" min="0"></div>
           <div class="field pro-only"><label>Costo huésped (día)</label>
             <div class="money"><input type="text" inputmode="numeric" class="cash" id="rHues" value="1,315"></div>
           </div>
@@ -327,6 +347,32 @@
 
   document.addEventListener('input', calc);
   calc();
+</script>
+<script>
+  (function(){
+    var CLAVE = 'cuotas2026';
+    var gate = document.getElementById('gate');
+    var pw   = document.getElementById('pw');
+    var err  = document.getElementById('pwErr');
+    function abrir(){
+      if (pw.value.trim() === CLAVE) {
+        try { sessionStorage.setItem('an_calc_ok','1'); } catch(e){}
+        gate.style.display = 'none';
+        document.body.classList.remove('locked');
+      } else {
+        err.textContent = 'Contraseña incorrecta';
+        pw.value = ''; pw.focus();
+      }
+    }
+    document.getElementById('pwBtn').addEventListener('click', abrir);
+    pw.addEventListener('keydown', function(e){ if(e.key === 'Enter') abrir(); });
+    try {
+      if (sessionStorage.getItem('an_calc_ok') === '1') {
+        gate.style.display = 'none';
+        document.body.classList.remove('locked');
+      }
+    } catch(e){}
+  })();
 </script>
 </body>
 </html>
