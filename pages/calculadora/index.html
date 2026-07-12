@@ -48,6 +48,10 @@
   .toggle{display:flex;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
   .toggle button{flex:1;font-family:'Figtree',sans-serif;font-size:.92rem;font-weight:500;padding:11px 8px;background:var(--cream);color:var(--muted);border:none;cursor:pointer;transition:background .15s}
   .toggle button.on{background:var(--green);color:var(--cream)}
+  .pro-opts{display:flex;flex-direction:column;gap:9px;margin:12px 0 4px;padding:12px 14px;background:var(--cream);border:1px solid var(--line);border-radius:var(--radius)}
+  .pro-opts.off{display:none}
+  .pro-opt{display:flex;align-items:center;gap:9px;font-size:.92rem;cursor:pointer}
+  .pro-opt input{width:17px;height:17px;accent-color:var(--green);cursor:pointer}
   .pro-only{transition:opacity .2s}
   .pro-only.off{opacity:.32;pointer-events:none}
 
@@ -100,6 +104,10 @@
           <button data-pro="1" class="on">Con prorrateo</button>
           <button data-pro="0">Sin prorrateo</button>
         </div>
+        <div class="pro-opts" id="proOpts">
+          <label class="pro-opt"><input type="checkbox" id="pSac" checked> Prorratear sacerdotes</label>
+          <label class="pro-opt"><input type="checkbox" id="pAdic" checked> Prorratear adicionales</label>
+        </div>
         <p class="pick-hint" id="proHint">El costo de sacerdotes y adicionales se reparte entre los asistentes.</p>
       </div>
 
@@ -138,7 +146,7 @@
 
       <div class="panel">
         <div class="section-title">Extras</div>
-        <p class="sub-note">por persona, por día</p>
+        <p class="sub-note">por persona</p>
         <div class="extras-head"><span></span><span></span><span>Cantidad</span><span>Costo</span></div>
         <div id="extras"></div>
       </div>
@@ -229,9 +237,8 @@
     PRORRATEO = b.dataset.pro === '1';
     [...$('tgl').children].forEach(x => x.classList.toggle('on', x === b));
     document.querySelectorAll('.pro-only').forEach(el => el.classList.toggle('off', !PRORRATEO));
-    $('proHint').textContent = PRORRATEO
-      ? 'El costo de sacerdotes y adicionales se reparte entre los asistentes.'
-      : 'Cada asistente paga solo su parte.';
+    $('proOpts').classList.toggle('off', !PRORRATEO);
+    syncProHint();
     calc();
   });
 
@@ -244,6 +251,18 @@
     const el = $(selKey);
     $('oSel').textContent = el ? el.textContent : '—';
   }
+
+  function syncProHint(){
+    if (!PRORRATEO) { $('proHint').textContent = 'Cada asistente paga solo su parte.'; return; }
+    const s = $('pSac').checked, a = $('pAdic').checked;
+    let q = 'Nada se reparte entre los asistentes.';
+    if (s && a) q = 'El costo de sacerdotes y adicionales se reparte entre los asistentes.';
+    else if (s) q = 'El costo de sacerdotes se reparte entre los asistentes.';
+    else if (a) q = 'El costo de adicionales se reparte entre los asistentes.';
+    $('proHint').textContent = q;
+  }
+  $('pSac').addEventListener('change', () => { syncProHint(); calc(); });
+  $('pAdic').addEventListener('change', () => { syncProHint(); calc(); });
 
   const MENU_INI = { Desayuno: 0, Comida: 0.25, Cena: 0.75 };
   const MENU_FIN = { Desayuno: 0.75, Comida: 0.25, Cena: 0 };
@@ -288,12 +307,14 @@
     let base;
     if (PRORRATEO) {
       if (asis < 1) { ['oExtras','c1','c2','c3','c4'].forEach(id => $(id).textContent = '—'); syncSel(); return; }
-      base = Math.round(dur * rA + ((dur * sac * rH) + (dur * adic * rA)) / asis);
+      const partSac  = $('pSac').checked  ? dur * sac  * rH : 0;
+      const partAdic = $('pAdic').checked ? dur * adic * rA : 0;
+      base = Math.round(dur * rA + (partSac + partAdic) / asis);
     } else {
       base = Math.round(dur * rA);
     }
 
-    const extras = dur * extraUnit;
+    const extras = extraUnit;   // fijos: cantidad x costo, sin multiplicar por duracion
     const conExtras = base + extras;
 
     $('oExtras').textContent = fmt(extras);
