@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar mi ID - Actividades Norte</title>
+  <meta name="description" content="Recupera tu número de ID de Asistente con tu nombre y correo.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/isotipo.png">
+  <link rel="shortcut icon" href="/assets/png/isotipo.png">
+  <link rel="apple-touch-icon" href="/assets/png/isotipo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <style>
+    .rec-wrap{max-width:600px;margin:0 auto;padding:clamp(28px,6vw,72px) var(--gutter,24px)}
+    .rec-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold,#A07840);margin-bottom:12px}
+    .rec-wrap h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.8rem,4vw,2.4rem);color:var(--green,#2A4030);margin-bottom:8px;letter-spacing:-.01em}
+    .rec-intro{color:var(--muted,#6B7066);font-family:'Lora',serif;line-height:1.6;margin-bottom:30px}
+    .rec-form{background:#fff;border:1px solid rgba(42,64,48,.14);border-radius:10px;padding:clamp(20px,4vw,28px)}
+    .rec-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+    .rec-field label{font-size:.85rem;color:var(--green,#2A4030);font-family:'Lora',serif}
+    .rec-field input{font-family:'Lora',serif;font-size:1rem;color:var(--green,#2A4030);background:var(--cream,#F6F1E7);border:1px solid rgba(42,64,48,.16);border-radius:8px;padding:11px 13px}
+    .rec-field input:focus{outline:none;border-color:var(--gold,#A07840);background:#fff}
+    .rec-btn{width:100%;font-family:'Lora',serif;font-size:1rem;padding:13px;background:var(--green,#2A4030);color:var(--cream,#F6F1E7);border:none;border-radius:8px;cursor:pointer;margin-top:4px}
+    .rec-btn:disabled{opacity:.6;cursor:default}
+    .rec-msg{margin-top:18px;font-family:'Lora',serif;font-size:.95rem}
+    .rec-msg.err{color:#8B2020}
+    .rec-results{margin-top:22px;display:flex;flex-direction:column;gap:12px}
+    .rec-card{background:#fff;border:1px solid rgba(42,64,48,.14);border-left:3px solid var(--gold,#A07840);border-radius:0 8px 8px 0;padding:16px 18px}
+    .rec-card-id{font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:500;color:var(--green,#2A4030);letter-spacing:.04em}
+    .rec-card-act{font-family:'Lora',serif;color:#2f342b;margin-top:4px}
+    .rec-card-sec{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#6B7066);margin-top:6px}
+    .rec-note{margin-top:22px;font-size:.85rem;color:var(--muted,#6B7066);font-family:'Lora',serif}
+    .rec-note a{color:var(--gold,#A07840)}
+  </style>
+  <script defer src="/assets/js/reveal.js"></script>
+  <script defer src="/assets/js/mobile-nav.js"></script>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-logo">
+      <span class="nav-logo-img-wrap">
+        <img class="nav-logo-img-light" src="/assets/png/isotipo.png" alt="">
+        <img class="nav-logo-img-dark" src="/assets/png/isotipo-dark.png" alt="">
+      </span>
+      <span>Actividades Norte</span>
+    </a>
+    <div class="nav-links">
+      <a href="/varonil">Varonil</a>
+      <a href="/femenil">Femenil</a>
+      <a href="/#casas">Casas</a>
+      <a href="/contacto">Contacto</a>
+    </div>
+    <a href="/" class="nav-cta">
+      <svg width="14" height="10" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Inicio</span>
+    </a>
+    <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
+  </nav>
+  <main class="rec-wrap">
+    <div class="rec-eyebrow">Asistentes</div>
+    <h1>Recuperar mi ID</h1>
+    <p class="rec-intro">¿No te llegó el correo o no guardaste tu número de ID de Asistente? Escribe el nombre y el correo con los que te registraste y te lo mostramos.</p>
+
+    <div class="rec-form">
+      <div class="rec-field">
+        <label for="rec-nombre">Nombre completo</label>
+        <input type="text" id="rec-nombre" autocomplete="name" placeholder="Como te registraste">
+      </div>
+      <div class="rec-field">
+        <label for="rec-email">Correo</label>
+        <input type="email" id="rec-email" autocomplete="email" placeholder="tucorreo@ejemplo.com">
+      </div>
+      <button class="rec-btn" id="rec-btn">Buscar mi ID</button>
+      <div class="rec-msg" id="rec-msg" hidden></div>
+      <div class="rec-results" id="rec-results"></div>
+    </div>
+
+    <p class="rec-note">Si no encuentras tu registro, escríbenos a <a href="mailto:portalnortemx@gmail.com">portalnortemx@gmail.com</a> o por <a href="https://wa.me/528134025784" target="_blank" rel="noopener">WhatsApp</a> y te ayudamos.</p>
+  </main>
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/png/isotipo.png" alt="">
+        <div class="footer-brand-name">Actividades Norte</div>
+        <p class="footer-brand-desc">Plataforma de reservaciones.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Secciones</div>
+        <ul>
+          <li><a href="/varonil">Varonil</a></li>
+          <li><a href="/femenil">Femenil</a></li>
+          <li><a href="/#casas">Casas</a></li>
+          <li><a href="/apartado">Completar pago</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Oficinas</div>
+        <ul>
+          <li class="contact-line">Níspero 211-A - Valle del Campestre<br>San Pedro Garza García, NL 66265</li>
+          <li><a href="tel:+528183357430">81 8335 7430</a></li>
+          <li><a href="mailto:portalnortemx@gmail.com">portalnortemx@gmail.com</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Horario</div>
+        <ul>
+          <li class="contact-line">Lun – Vie<br>10:00 a 18:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Actividades Norte</span>
+      <div class="footer-bottom-links">
+        <a href="/terminos">Términos</a>
+        <a href="/privacidad">Privacidad</a>
+        <a href="/politicas">Políticas de reservación</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+  (function(){
+    var btn=document.getElementById('rec-btn'),
+        nombre=document.getElementById('rec-nombre'),
+        email=document.getElementById('rec-email'),
+        msg=document.getElementById('rec-msg'),
+        results=document.getElementById('rec-results');
+    function showMsg(text,isErr){msg.textContent=text;msg.hidden=false;msg.classList.toggle('err',!!isErr);}
+    function clearOut(){msg.hidden=true;msg.textContent='';results.innerHTML='';}
+    function esc(s){return String(s).replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];});}
+    async function buscar(){
+      clearOut();
+      var n=nombre.value.trim(), e=email.value.trim();
+      if(!n||!e){showMsg('Escribe tu nombre completo y tu correo.',true);return;}
+      btn.disabled=true; btn.textContent='Buscando…';
+      try{
+        var r=await fetch('/api/recuperar-id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:n,email:e})});
+        var data=await r.json();
+        if(!r.ok){showMsg(data.error||'Ocurrió un error. Intenta de nuevo.',true);return;}
+        if(!data.resultados||data.resultados.length===0){
+          showMsg('No encontramos registros con esos datos. Revisa que el nombre y el correo sean los que usaste al registrarte.',true);
+          return;
+        }
+        showMsg(data.resultados.length===1?'Encontramos tu registro:':'Encontramos '+data.resultados.length+' registros:',false);
+        results.innerHTML=data.resultados.map(function(x){
+          return '<div class="rec-card"><div class="rec-card-id">'+esc(x.id)+'</div>'+
+                 (x.actividad?'<div class="rec-card-act">'+esc(x.actividad)+'</div>':'')+
+                 '<div class="rec-card-sec">'+esc(x.seccion)+'</div></div>';
+        }).join('');
+      }catch(err){
+        showMsg('No se pudo conectar. Revisa tu internet e intenta de nuevo.',true);
+      }finally{
+        btn.disabled=false; btn.textContent='Buscar mi ID';
+      }
+    }
+    btn.addEventListener('click',buscar);
+    email.addEventListener('keydown',function(e){if(e.key==='Enter')buscar();});
+    nombre.addEventListener('keydown',function(e){if(e.key==='Enter')email.focus();});
+  })();
+  </script>
+</body>
+</html>

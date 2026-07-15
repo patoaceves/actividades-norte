@@ -41,6 +41,10 @@
     {
       "source": "/politicas",
       "destination": "/pages/politicas"
+    },
+    {
+      "source": "/recuperar",
+      "destination": "/pages/recuperar"
     }
   ],
   "headers": [
