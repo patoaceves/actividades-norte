@@ -666,6 +666,21 @@
     .casa-choose-btn.v{background:var(--green,#2A4030);color:var(--cream,#F6F1E7)}
     .casa-choose-btn.f{background:#fff;color:var(--green,#2A4030);border:1px solid var(--green,#2A4030)}
     .casa-choose-btn:hover{opacity:.9;transform:translateY(-1px)}
+  
+    /* Ficha: amenidades y no disponible */
+    .casa-amen{padding-top:18px;margin-top:4px;border-top:1px solid rgba(42,64,48,.14)}
+    .casa-amen-title{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold,#A07840);margin-bottom:12px}
+    .casa-amen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+    @media(max-width:420px){.casa-amen-grid{grid-template-columns:repeat(2,1fr)}}
+    .casa-amen-cell{background:#fff;border:1px solid rgba(42,64,48,.12);border-radius:8px;padding:12px 10px;text-align:center}
+    .casa-amen-cell .n{display:block;font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:500;color:var(--green,#2A4030);line-height:1}
+    .casa-amen-cell .l{display:block;font-size:.72rem;color:var(--muted,#6B7066);margin-top:5px}
+    .casa-amen-lists{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:420px){.casa-amen-lists{grid-template-columns:1fr}}
+    .casa-amen-lists h4{font-size:.8rem;font-weight:600;color:var(--green,#2A4030);margin:0 0 6px}
+    .casa-amen-lists ul{margin:0;padding-left:1rem;font-family:'Lora',serif;font-size:.9rem;color:#2f342b;line-height:1.6}
+    .casa-nodisp-badge{position:absolute;top:12px;left:12px;z-index:2;background:rgba(139,32,32,.92);color:#fff;font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:100px}
+    .casa-modal-nodisp{padding:16px 18px;background:#fff;border:1px solid rgba(139,32,32,.25);border-left:3px solid #8B2020;border-radius:0 8px 8px 0;font-family:'Lora',serif;color:#2f342b;margin-top:4px}
   </style>
   <script defer src="/assets/js/mobile-nav.js"></script>
 </head>
@@ -860,9 +875,10 @@
       <div class="postcards-sublabel">Otras casas</div>
 
       <div class="postcards-grid">
-        <a href="#casas" class="postcard reveal casa-open" data-casa="El Dique" data-img="/assets/png/el-dique/el-dique-hero.jpeg" data-loc="Mocorito, Sinaloa" data-desc="En el km 37.5 de la carretera México 15, al norte de Culiacán, se encuentra El Dique, un centro de convivencias y retiros en Mocorito, Sinaloa. Ofrece actividades educativas, culturales y espirituales con orientación cristiana.">
+        <a href="#casas" class="postcard reveal casa-open casa-nodisp" data-casa="El Dique" data-img="/assets/png/el-dique/el-dique-hero.jpeg" data-loc="Mocorito, Sinaloa" data-desc="En el km 37.5 de la carretera México 15, al norte de Culiacán, se encuentra El Dique, un centro de convivencias y retiros en Mocorito, Sinaloa. Ofrece actividades educativas, culturales y espirituales con orientación cristiana.">
           <div class="postcard-img-wrap">
             <img class="postcard-img" src="/assets/png/el-dique/el-dique-hero.jpeg" alt="El Dique">
+            <span class="casa-nodisp-badge">No disponible</span>
           </div>
           <div class="postcard-overlay"></div>
           <div class="postcard-content">
@@ -886,9 +902,10 @@
           </div>
         </a>
 
-        <a href="#casas" class="postcard reveal casa-open" data-casa="El Estero" data-img="/assets/png/el-estero/el-estero-hero.png" data-loc="Hermosillo, Sonora" data-desc="A 107 km de Hermosillo, Sonora, es una región de gran importancia paisajística que conecta el desierto Sonorense con el Golfo de California. Alberga 154 especies de aves y es parte del corredor migratorio del Pacífico.">
+        <a href="#casas" class="postcard reveal casa-open casa-nodisp" data-casa="El Estero" data-img="/assets/png/el-estero/el-estero-hero.png" data-loc="Hermosillo, Sonora" data-desc="A 107 km de Hermosillo, Sonora, es una región de gran importancia paisajística que conecta el desierto Sonorense con el Golfo de California. Alberga 154 especies de aves y es parte del corredor migratorio del Pacífico.">
           <div class="postcard-img-wrap">
             <img class="postcard-img" src="/assets/png/el-estero/el-estero-hero.png" alt="El Estero">
+            <span class="casa-nodisp-badge">No disponible</span>
           </div>
           <div class="postcard-overlay"></div>
           <div class="postcard-content">
@@ -1135,40 +1152,58 @@
           <span id="casaModalLoc"></span>
         </div>
         <p class="casa-modal-desc" id="casaModalDesc"></p>
-        <div class="casa-modal-amen" id="casaModalAmen" hidden></div>
-        <div class="casa-modal-choose">
-          <span class="casa-modal-choose-label">Ver actividades</span>
-          <div class="casa-modal-choose-btns">
-            <a id="casaModalVaronil" class="casa-choose-btn v" href="#">Varonil</a>
-            <a id="casaModalFemenil" class="casa-choose-btn f" href="#">Femenil</a>
-          </div>
-        </div>
+        <div id="casaModalAmen"></div>
+        <div id="casaModalActions"></div>
       </div>
     </div>
   </div>
   <script>
   (function(){
+    var CASA = {
+      "Casa Grande": {img:"/assets/png/casa-grande/casa-grande-hero.png", loc:"Sierra de Arteaga, Coahuila", disp:true,
+        desc:"En 1960, Rosario Garza de Zambrano donó su casa de verano, Los Pinos, en Sierra de Arteaga, Coahuila, para transformarla en un centro de formación. Originalmente contaba con cabañas para 30 personas; luego se expandió con Casa Grande y, finalmente, Casa del Bosque en 2010. Desde el año 2000 también hospeda El Pinar, Escuela Técnica en Servicios de Hospitalidad, dedicada a la formación de mujeres de áreas rurales.",
+        amen:{Huéspedes:24,Habitaciones:22,Baños:21,Estacionamiento:"20 coches",Oratorio:1,Aulas:1},
+        zonas:["Biblioteca", "Sala de TV", "Comedor"], areas:["Campo de fútbol", "Cancha de tennis", "Cancha de padel", "Cancha de basquetbol", "Lago"]},
+      "Casa del Bosque I": {img:"/assets/png/casa-del-bosque-i/casa-del-bosque-i-hero.jpg", loc:"Sierra de Arteaga, Coahuila", disp:true,
+        desc:"En 1960, Rosario Garza de Zambrano donó su casa de verano, Los Pinos, en Sierra de Arteaga, Coahuila, para transformarla en un centro de formación. Originalmente contaba con cabañas para 30 personas; luego se expandió con Casa Grande y, finalmente, Casa del Bosque en 2010. Desde el año 2000 también hospeda El Pinar, Escuela Técnica en Servicios de Hospitalidad, dedicada a la formación de mujeres de áreas rurales.",
+        amen:{Huéspedes:20,Habitaciones:20,Baños:20,Estacionamiento:"20 coches",Oratorio:1,Aulas:2},
+        zonas:["Biblioteca", "Sala de TV", "Mediateca", "Salón de conferencias", "7 salas de entrevistas", "Comedor"], areas:["Campo de fútbol", "Cancha de tennis", "Cancha de padel", "Cancha de basquetbol", "Lago"]},
+      "Casa del Bosque II": {img:"/assets/png/casa-del-bosque-ii/casa-del-bosque-ii-hero.jpg", loc:"Sierra de Arteaga, Coahuila", disp:true,
+        desc:"En 1960, Rosario Garza de Zambrano donó su casa de verano, Los Pinos, en Sierra de Arteaga, Coahuila, para transformarla en un centro de formación. Originalmente contaba con cabañas para 30 personas; luego se expandió con Casa Grande y, finalmente, Casa del Bosque en 2010. Desde el año 2000 también hospeda El Pinar, Escuela Técnica en Servicios de Hospitalidad, dedicada a la formación de mujeres de áreas rurales.",
+        amen:{Huéspedes:20,Habitaciones:20,Baños:20,Estacionamiento:"20 coches",Oratorio:1,Aulas:2},
+        zonas:["Biblioteca", "Sala de TV", "Mediateca", "Salón de conferencias", "7 salas de entrevistas", "Comedor"], areas:["Campo de fútbol", "Cancha de tennis", "Cancha de padel", "Cancha de basquetbol", "Lago"]},
+      "El Dique": {img:"/assets/png/el-dique/el-dique-hero.jpeg", loc:"Mocorito, Sinaloa", disp:false, desc:"Centro de convivencias y retiros en el km 37.5 de la carretera México 15, al norte de Culiacán, Sinaloa."},
+      "El Estero": {img:"/assets/png/el-estero/el-estero-hero.png", loc:"Hermosillo, Sonora", disp:false, desc:"Región de gran biodiversidad en el corredor migratorio del Pacífico, a 107 km de Hermosillo, Sonora."}
+    };
     var modal=document.getElementById('casaModal'); if(!modal) return;
     var img=document.getElementById('casaModalImg'),title=document.getElementById('casaModalTitle'),
         loc=document.getElementById('casaModalLoc'),desc=document.getElementById('casaModalDesc'),
-        amen=document.getElementById('casaModalAmen'),
-        bV=document.getElementById('casaModalVaronil'),bF=document.getElementById('casaModalFemenil');
-    function openModal(el){
-      var casa=el.getAttribute('data-casa')||'';
-      img.src=el.getAttribute('data-img')||''; img.alt=casa;
-      title.textContent=casa;
-      loc.textContent=el.getAttribute('data-loc')||'';
-      desc.textContent=el.getAttribute('data-desc')||'';
-      var a=el.getAttribute('data-amen')||'';
-      if(a){amen.innerHTML=a;amen.hidden=false;}else{amen.hidden=true;}
-      var q=encodeURIComponent(casa);
-      bV.href='/varonil?casa='+q; bF.href='/femenil?casa='+q;
-      modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
-      document.body.style.overflow='hidden';
+        amenBox=document.getElementById('casaModalAmen'),actions=document.getElementById('casaModalActions');
+    function esc(s){return String(s).replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];});}
+    function amenHTML(d){
+      if(!d.amen) return '';
+      var cells='';
+      for(var k in d.amen){ cells+='<div class="casa-amen-cell"><span class="n">'+esc(d.amen[k])+'</span><span class="l">'+esc(k)+'</span></div>'; }
+      var lists='';
+      if(d.zonas){ lists+='<div><h4>Zonas comunes</h4><ul>'+d.zonas.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'; }
+      if(d.areas){ lists+='<div><h4>Áreas recreativas</h4><ul>'+d.areas.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'; }
+      return '<div class="casa-amen"><div class="casa-amen-title">Amenidades</div><div class="casa-amen-grid">'+cells+'</div><div class="casa-amen-lists">'+lists+'</div></div>';
+    }
+    function openModal(name){
+      var d=CASA[name]; if(!d) return;
+      img.src=d.img||''; img.alt=name; title.textContent=name; loc.textContent=d.loc||''; desc.textContent=d.desc||'';
+      amenBox.innerHTML=amenHTML(d);
+      var q=encodeURIComponent(name);
+      if(d.disp){
+        actions.innerHTML='<div class="casa-modal-choose"><span class="casa-modal-choose-label">Ver actividades</span><div class="casa-modal-choose-btns"><a class="casa-choose-btn v" href="/varonil?casa='+q+'">Varonil</a><a class="casa-choose-btn f" href="/femenil?casa='+q+'">Femenil</a></div></div>';
+      } else {
+        actions.innerHTML='<div class="casa-modal-nodisp"><strong>No disponible por ahora.</strong> Esta casa no tiene actividades abiertas en este momento.</div>';
+      }
+      modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden';
     }
     function closeModal(){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.style.overflow='';}
     document.querySelectorAll('.casa-open').forEach(function(el){
-      el.addEventListener('click',function(e){e.preventDefault();openModal(el);});
+      el.addEventListener('click',function(e){e.preventDefault();openModal(el.getAttribute('data-casa'));});
     });
     modal.querySelectorAll('[data-close]').forEach(function(x){x.addEventListener('click',closeModal);});
     document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
