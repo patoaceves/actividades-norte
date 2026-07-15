@@ -894,8 +894,7 @@
       <div class="footer-col">
         <div class="footer-col-title">Horario</div>
         <ul>
-          <li class="contact-line">Lun – Vie<br>10:00 a 13:00 - 16:00 a 19:00</li>
-          <li class="contact-line">Sábado<br>10:00 a 13:00</li>
+          <li class="contact-line">Lun – Vie<br>10:00 a 18:00</li>
         </ul>
       </div>
     </div>
@@ -1162,18 +1161,20 @@
         document.getElementById('hero-casa-name').textContent = casaDisplay;
       }
 
-      /* Cuota en la caja */
-      const cuotaStr = formatCuota(data.cuota);
-      document.getElementById('info-cuota').textContent = cuotaStr || 'No disponible';
-
-      /* Lugares disponibles en la caja de cuota */
+      /* Estado de disponibilidad: no disponible si lugares null/undefined/<=0 O cuota inválida */
       const lugares = data.lugares;
-      const cuposEl = document.getElementById('info-cupos');
-      const cuposTextEl = document.getElementById('info-cupos-text');
-      // Determinar estado: no disponible si lugares null/undefined/<=0 O cuota inválida
       const sinLugares  = (lugares === null || lugares === undefined || lugares <= 0);
       const sinCuota    = !isCuotaValida(data.cuota);
       const isUnavailable = sinLugares || sinCuota;
+
+      /* Cuota en la caja — NUNCA mostrar el precio si la actividad no está disponible
+         (institucionales, SM, cupo lleno o cuota en revisión). Solo "No disponible". */
+      const cuotaStr = isUnavailable ? '' : formatCuota(data.cuota);
+      document.getElementById('info-cuota').textContent = cuotaStr || 'No disponible';
+
+      /* Lugares disponibles en la caja de cuota */
+      const cuposEl = document.getElementById('info-cupos');
+      const cuposTextEl = document.getElementById('info-cupos-text');
 
       cuposEl.style.display = '';
       cuposEl.className = 'action-cupos';

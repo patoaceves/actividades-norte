@@ -29,6 +29,18 @@
     {
       "source": "/calculadora",
       "destination": "/pages/calculadora"
+    },
+    {
+      "source": "/privacidad",
+      "destination": "/pages/privacidad"
+    },
+    {
+      "source": "/terminos",
+      "destination": "/pages/terminos"
+    },
+    {
+      "source": "/politicas",
+      "destination": "/pages/politicas"
     }
   ],
   "headers": [

@@ -3,17 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Femenil - Actividades Norte</title>
+  <title>Términos y Condiciones - Actividades Norte</title>
+  <meta name="description" content="Términos y condiciones de uso de la plataforma de Actividades Norte.">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/isotipo.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/assets/png/isotipo.png">
   <link rel="shortcut icon" href="/assets/png/isotipo.png">
   <link rel="apple-touch-icon" href="/assets/png/isotipo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/site.css">
-  <link rel="stylesheet" href="/assets/css/catalogo.css">
-  <script defer src="/assets/js/catalogo.js" data-seccion="FEMENIL"></script>
+  <style>
+    .legal-wrap{max-width:820px;margin:0 auto;padding:clamp(28px,6vw,72px) var(--gutter, 24px)}
+    .legal-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold,#A07840);margin-bottom:12px}
+    .legal-wrap h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.8rem,4vw,2.6rem);color:var(--green,#2A4030);margin-bottom:6px;letter-spacing:-.01em}
+    .legal-updated{color:var(--muted,#6B7066);font-size:.9rem;margin-bottom:36px}
+    .legal-wrap h2{font-family:'Playfair Display',serif;font-weight:500;font-size:1.3rem;color:var(--green,#2A4030);margin:34px 0 10px}
+    .legal-wrap p,.legal-wrap li{font-family:'Lora',serif;color:#2f342b;line-height:1.7;font-size:1.02rem}
+    .legal-wrap p{margin-bottom:14px}
+    .legal-wrap ul{margin:0 0 14px 1.1rem}
+    .legal-wrap li{margin-bottom:7px}
+    .legal-wrap a{color:var(--gold,#A07840)}
+    .legal-note{background:#fff;border:1px solid rgba(42,64,48,.14);border-left:3px solid var(--gold,#A07840);border-radius:0 6px 6px 0;padding:16px 18px;margin:18px 0;font-family:'Lora',serif;color:#2f342b}
+  </style>
   <script defer src="/assets/js/reveal.js"></script>
   <script defer src="/assets/js/mobile-nav.js"></script>
 </head>
@@ -28,7 +39,7 @@
     </a>
     <div class="nav-links">
       <a href="/varonil">Varonil</a>
-      <a href="/femenil" class="active">Femenil</a>
+      <a href="/femenil">Femenil</a>
       <a href="/#casas">Casas</a>
       <a href="/contacto">Contacto</a>
     </div>
@@ -38,65 +49,29 @@
     </a>
     <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
   </nav>
+  <main class="legal-wrap">
+    <div class="legal-eyebrow">Legal</div>
+    <h1>Términos y Condiciones</h1>
+    <p class="legal-updated">Última actualización: julio de 2026</p>
+    <p>Al usar el sitio de Actividades Norte y registrarte en cualquiera de las actividades, aceptas los siguientes términos y condiciones.</p>
 
-  <header class="cat-header">
-    <div class="cat-header-bg">
-      <img src="/assets/png/catalogo-background.jpg" alt="">
-    </div>
-    <div class="cat-header-inner reveal">
-      <div class="cat-eyebrow">
-        <span class="cat-eyebrow-line"></span>
-        <span>Sección Femenil</span>
-      </div>
-      <h1 class="cat-title">Actividades <em>Femenil</em></h1>
-    </div>
-  </header>
+    <h2>Uso del sitio</h2>
+    <p>Esta plataforma tiene como fin gestionar el registro y el pago de las actividades organizadas. La información que proporciones al registrarte debe ser veraz y completa. Eres responsable de los datos que capturas al momento de inscribirte.</p>
 
-  <section class="filters">
-    <div class="filters-inner">
-      <div class="filter-group filter-search-group">
-        <label class="filter-label">Buscar</label>
-        <input type="text" id="f-search" class="filter-input" placeholder="ID, nombre o casa" autocomplete="off">
-        <div class="search-suggestions" id="f-suggestions" hidden></div>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Casa</label>
-        <select id="f-casa" class="filter-select">
-          <option value="">Todas</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Mes</label>
-        <select id="f-mes" class="filter-select">
-          <option value="">Todos</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Cupo</label>
-        <select id="f-cupo" class="filter-select">
-          <option value="">Todos</option>
-          <option value="disponible">Disponibles</option>
-          <option value="no-disponible">No disponibles</option>
-        </select>
-      </div>
-      <button class="filter-reset" id="f-reset">Limpiar</button>
-    </div>
-  </section>
+    <h2>Registro y reservación</h2>
+    <p>El registro a una actividad queda sujeto a disponibilidad de lugares y a la confirmación del pago según el método elegido. Consulta las <a href="/politicas">Políticas de reservación</a> para el detalle de cómo se asegura tu lugar.</p>
 
-  <main class="cards-wrap">
-    <div class="cards-grid" id="cards"></div>
-    <div class="cards-empty" id="cards-empty" hidden>
-      <div class="cards-empty-inner">
-        <div class="cards-empty-mono">No hay resultados</div>
-        <p>Intenta con otros filtros o limpia la búsqueda.</p>
-      </div>
-    </div>
-    <div class="cards-loading" id="cards-loading">
-      <div class="spinner"></div>
-      <span>Cargando actividades…</span>
-    </div>
+    <h2>Pagos</h2>
+    <p>Los pagos con tarjeta y OXXO se procesan de forma segura a través de Stripe. Los montos mostrados están en pesos mexicanos (MXN). En su caso, la comisión de la pasarela de pago se refleja en la cuota correspondiente.</p>
+
+    <h2>Cancelaciones y reembolsos</h2>
+    <p>Las condiciones de cancelación y reembolso se rigen por lo establecido por los organizadores de cada actividad. Para solicitudes de este tipo, contáctanos directamente.</p>
+
+    <h2>Responsabilidad</h2>
+    <p>Actividades Norte funge como plataforma de registro y cobro. La organización, contenido y desarrollo de cada actividad son responsabilidad de sus respectivos organizadores.</p>
+
+    <div class="legal-note">Dudas sobre estos términos: <a href="mailto:portalnortemx@gmail.com">portalnortemx@gmail.com</a>.</div>
   </main>
-
   <footer>
     <div class="footer-inner">
       <div class="footer-brand">
@@ -127,18 +102,6 @@
           <li class="contact-line">Lun – Vie<br>10:00 a 18:00</li>
         </ul>
       </div>
-    </div>
-    <div class="footer-payments">
-      <div class="footer-payments-left">
-        <span class="footer-payments-label">Aceptamos</span>
-        <div class="footer-payments-icons">
-          <img src="/assets/png/icons/visa.png" alt="Visa">
-          <img src="/assets/png/icons/master-card.png" alt="Mastercard">
-          <img src="/assets/png/icons/amex.png" alt="American Express">
-          <img src="/assets/png/icons/oxxo.png" alt="OXXO">
-        </div>
-      </div>
-      <span class="footer-payments-label">Pagos seguros vía Stripe</span>
     </div>
     <div class="footer-bottom">
       <span>© 2026 Actividades Norte</span>

@@ -18,7 +18,13 @@ const FIELDS = {
   lugaresV:      'fldSZapFVdBE7vooa',
   lugaresF:      'fld8OQ8NitjT2sHEA',
   cuota:         'fldVePGXnIEkMWciI',
+  // control (antes ignorados)
+  estatusCuota:  'fldIR9pYBqEv801Rt', // Aprobada / En revisión
+  privado:       'fldQ7jrATbHqtam6L', // checkbox
+  sitioWeb:      'fldxJHVBlDZvB99UF', // checkbox
 };
+
+function asBool(v) { return v === true || v === 1 || v === 'true'; }
 
 // ── CORS por allow-list ──────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
@@ -99,7 +105,9 @@ module.exports = async function handler(req, res) {
       .filter(rec => {
         const estatus = String(firstScalar(rec.fields[FIELDS.estatus]) || '').toLowerCase().trim();
         const seccion = String(firstScalar(rec.fields[FIELDS.seccion]) || '').toUpperCase().trim();
-        return estatus === 'activo' && (seccion === 'VARONIL' || seccion === 'FEMENIL');
+        const privado = asBool(firstScalar(rec.fields[FIELDS.privado]));
+        // Activa, de una sección pública, y NO marcada como privada
+        return estatus === 'activo' && (seccion === 'VARONIL' || seccion === 'FEMENIL') && !privado;
       })
       .map(rec => {
         const f = rec.fields;
@@ -115,6 +123,12 @@ module.exports = async function handler(req, res) {
           const m = nombreRaw.match(/^([A-Z]{2}\d+(?:-\d+)?)/);
           if (m) id = m[1];
         }
+        // La cuota SOLO se expone si Estatus Cuota = Aprobada.
+        // Institucionales / SM / cualquier "En revisión" salen sin precio
+        // (el front las marca "No disponible" y no permite registro).
+        const estatusCta = String(firstScalar(f[FIELDS.estatusCuota]) || '').toLowerCase().trim();
+        const cuotaAprobada = estatusCta === 'aprobada';
+        const cuotaRaw = String(firstScalar(f[FIELDS.cuota]) || '').trim();
         return {
           id,
           nombre:         nombreRaw,
@@ -125,7 +139,8 @@ module.exports = async function handler(req, res) {
           fechaFin:       String(firstScalar(f[FIELDS.fechaFin]) || '').trim(),
           seccion,
           lugares:        parseLugares(lugares),
-          cuota:          String(firstScalar(f[FIELDS.cuota]) || '').trim(),
+          cuota:          cuotaAprobada ? cuotaRaw : '',
+          cuotaAprobada,
         };
       })
       .filter(a => a.id) // descarta sin ID
