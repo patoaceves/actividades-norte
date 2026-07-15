@@ -645,6 +645,27 @@
       transition: gap 0.3s, color 0.3s;
     }
     .postcard:hover .postcard-cta { gap: 16px; color: var(--gold-soft); }
+  
+    /* Ficha de casa (modal) */
+    .casa-modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+    .casa-modal.open{display:flex}
+    .casa-modal-backdrop{position:absolute;inset:0;background:rgba(26,28,24,.62);backdrop-filter:blur(2px)}
+    .casa-modal-card{position:relative;background:var(--cream,#F6F1E7);border-radius:12px;max-width:560px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+    .casa-modal-x{position:absolute;top:12px;right:12px;z-index:2;width:36px;height:36px;border:none;border-radius:50%;background:rgba(255,255,255,.9);color:var(--green,#2A4030);font-size:1.5rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .casa-modal-img-wrap{aspect-ratio:16/10;overflow:hidden}
+    .casa-modal-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+    .casa-modal-body{padding:clamp(20px,4vw,30px)}
+    .casa-modal-title{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.5rem,4vw,2rem);color:var(--green,#2A4030);margin:0 0 8px}
+    .casa-modal-loc{display:flex;align-items:center;gap:6px;color:var(--gold,#A07840);font-family:'JetBrains Mono',monospace;font-size:.78rem;letter-spacing:.03em;margin-bottom:16px}
+    .casa-modal-desc{font-family:'Lora',serif;color:#2f342b;line-height:1.65;font-size:1rem;margin-bottom:18px}
+    .casa-modal-amen{font-family:'Lora',serif;color:#2f342b;font-size:.95rem;margin-bottom:18px;padding-top:16px;border-top:1px solid rgba(42,64,48,.14)}
+    .casa-modal-choose{padding-top:18px;border-top:1px solid rgba(42,64,48,.14)}
+    .casa-modal-choose-label{display:block;font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#6B7066);margin-bottom:10px}
+    .casa-modal-choose-btns{display:flex;gap:10px}
+    .casa-choose-btn{flex:1;text-align:center;padding:13px;border-radius:8px;font-family:'Lora',serif;font-size:1rem;text-decoration:none;transition:all .15s}
+    .casa-choose-btn.v{background:var(--green,#2A4030);color:var(--cream,#F6F1E7)}
+    .casa-choose-btn.f{background:#fff;color:var(--green,#2A4030);border:1px solid var(--green,#2A4030)}
+    .casa-choose-btn:hover{opacity:.9;transform:translateY(-1px)}
   </style>
   <script defer src="/assets/js/mobile-nav.js"></script>
 </head>
@@ -791,7 +812,7 @@
         <div class="pinos-sublabel">Las tres casas</div>
 
         <div class="pinos-casas-grid">
-          <a href="/varonil?casa=Casa%20Grande" class="pinos-casa">
+          <a href="#casas" class="pinos-casa casa-open" data-casa="Casa Grande" data-img="/assets/png/casa-grande/casa-grande-hero.png" data-loc="Sierra de Arteaga, Coahuila" data-desc="Descubre un espacio de retiro en conexión con la naturaleza adentrándote en la Sierra de Arteaga, Coahuila. Rodeada de paisajes montañosos y vistas panorámicas, Los Pinos ofrece un espacio único para vivir un recogimiento tranquilo y acogedor.">
             <div class="pinos-casa-img-wrap">
               <img class="pinos-casa-img" src="/assets/png/casa-grande/casa-grande-hero.png" alt="Casa Grande">
               <span class="pinos-casa-num">I</span>
@@ -805,7 +826,7 @@
             </div>
           </a>
 
-          <a href="/varonil?casa=Casa%20del%20Bosque%20I" class="pinos-casa">
+          <a href="#casas" class="pinos-casa casa-open" data-casa="Casa del Bosque I" data-img="/assets/png/casa-del-bosque-i/casa-del-bosque-i-hero.jpg" data-loc="Sierra de Arteaga, Coahuila" data-desc="Descubre un espacio de retiro en conexión con la naturaleza adentrándote en la Sierra de Arteaga, Coahuila. Rodeada de paisajes montañosos y vistas panorámicas, Los Pinos ofrece un espacio único para vivir un recogimiento tranquilo y acogedor.">
             <div class="pinos-casa-img-wrap">
               <img class="pinos-casa-img" src="/assets/png/casa-del-bosque-i/casa-del-bosque-i-hero.jpg" alt="Casa del Bosque I">
               <span class="pinos-casa-num">II</span>
@@ -819,7 +840,7 @@
             </div>
           </a>
 
-          <a href="/varonil?casa=Casa%20del%20Bosque%20II" class="pinos-casa">
+          <a href="#casas" class="pinos-casa casa-open" data-casa="Casa del Bosque II" data-img="/assets/png/casa-del-bosque-ii/casa-del-bosque-ii-hero.jpg" data-loc="Sierra de Arteaga, Coahuila" data-desc="Descubre un espacio de retiro en conexión con la naturaleza adentrándote en la Sierra de Arteaga, Coahuila. Rodeada de paisajes montañosos y vistas panorámicas, Los Pinos ofrece un espacio único para vivir un recogimiento tranquilo y acogedor.">
             <div class="pinos-casa-img-wrap">
               <img class="pinos-casa-img" src="/assets/png/casa-del-bosque-ii/casa-del-bosque-ii-hero.jpg" alt="Casa del Bosque II">
               <span class="pinos-casa-num">III</span>
@@ -839,7 +860,7 @@
       <div class="postcards-sublabel">Otras casas</div>
 
       <div class="postcards-grid">
-        <a href="/varonil?casa=El%20Dique" class="postcard reveal">
+        <a href="#casas" class="postcard reveal casa-open" data-casa="El Dique" data-img="/assets/png/el-dique/el-dique-hero.jpeg" data-loc="Mocorito, Sinaloa" data-desc="En el km 37.5 de la carretera México 15, al norte de Culiacán, se encuentra El Dique, un centro de convivencias y retiros en Mocorito, Sinaloa. Ofrece actividades educativas, culturales y espirituales con orientación cristiana.">
           <div class="postcard-img-wrap">
             <img class="postcard-img" src="/assets/png/el-dique/el-dique-hero.jpeg" alt="El Dique">
           </div>
@@ -865,7 +886,7 @@
           </div>
         </a>
 
-        <a href="/varonil?casa=El%20Estero" class="postcard reveal">
+        <a href="#casas" class="postcard reveal casa-open" data-casa="El Estero" data-img="/assets/png/el-estero/el-estero-hero.png" data-loc="Hermosillo, Sonora" data-desc="A 107 km de Hermosillo, Sonora, es una región de gran importancia paisajística que conecta el desierto Sonorense con el Golfo de California. Alberga 154 especies de aves y es parte del corredor migratorio del Pacífico.">
           <div class="postcard-img-wrap">
             <img class="postcard-img" src="/assets/png/el-estero/el-estero-hero.png" alt="El Estero">
           </div>
@@ -1100,5 +1121,58 @@
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
   </script>
 
+
+  <!-- Ficha de casa -->
+  <div class="casa-modal" id="casaModal" aria-hidden="true">
+    <div class="casa-modal-backdrop" data-close></div>
+    <div class="casa-modal-card" role="dialog" aria-modal="true" aria-labelledby="casaModalTitle">
+      <button class="casa-modal-x" data-close aria-label="Cerrar">&times;</button>
+      <div class="casa-modal-img-wrap"><img id="casaModalImg" src="" alt=""></div>
+      <div class="casa-modal-body">
+        <h3 class="casa-modal-title" id="casaModalTitle"></h3>
+        <div class="casa-modal-loc">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="casaModalLoc"></span>
+        </div>
+        <p class="casa-modal-desc" id="casaModalDesc"></p>
+        <div class="casa-modal-amen" id="casaModalAmen" hidden></div>
+        <div class="casa-modal-choose">
+          <span class="casa-modal-choose-label">Ver actividades</span>
+          <div class="casa-modal-choose-btns">
+            <a id="casaModalVaronil" class="casa-choose-btn v" href="#">Varonil</a>
+            <a id="casaModalFemenil" class="casa-choose-btn f" href="#">Femenil</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var modal=document.getElementById('casaModal'); if(!modal) return;
+    var img=document.getElementById('casaModalImg'),title=document.getElementById('casaModalTitle'),
+        loc=document.getElementById('casaModalLoc'),desc=document.getElementById('casaModalDesc'),
+        amen=document.getElementById('casaModalAmen'),
+        bV=document.getElementById('casaModalVaronil'),bF=document.getElementById('casaModalFemenil');
+    function openModal(el){
+      var casa=el.getAttribute('data-casa')||'';
+      img.src=el.getAttribute('data-img')||''; img.alt=casa;
+      title.textContent=casa;
+      loc.textContent=el.getAttribute('data-loc')||'';
+      desc.textContent=el.getAttribute('data-desc')||'';
+      var a=el.getAttribute('data-amen')||'';
+      if(a){amen.innerHTML=a;amen.hidden=false;}else{amen.hidden=true;}
+      var q=encodeURIComponent(casa);
+      bV.href='/varonil?casa='+q; bF.href='/femenil?casa='+q;
+      modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+      document.body.style.overflow='hidden';
+    }
+    function closeModal(){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+    document.querySelectorAll('.casa-open').forEach(function(el){
+      el.addEventListener('click',function(e){e.preventDefault();openModal(el);});
+    });
+    modal.querySelectorAll('[data-close]').forEach(function(x){x.addEventListener('click',closeModal);});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
+  })();
+  </script>
 </body>
 </html>
