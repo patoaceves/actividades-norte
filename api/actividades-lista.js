@@ -22,6 +22,8 @@ const FIELDS = {
   estatusCuota:  'fldIR9pYBqEv801Rt', // Aprobada / En revisión
   privado:       'fldQ7jrATbHqtam6L', // checkbox
   sitioWeb:      'fldxJHVBlDZvB99UF', // checkbox
+  registro:      'fld1z0mmnzign2JBL', // checkbox
+  dirigidoA:     'fldNPjqTvcvVSTcde', // singleSelect
 };
 
 function asBool(v) { return v === true || v === 1 || v === 'true'; }
@@ -127,7 +129,12 @@ module.exports = async function handler(req, res) {
         // Institucionales / SM / cualquier "En revisión" salen sin precio
         // (el front las marca "No disponible" y no permite registro).
         const estatusCta = String(firstScalar(f[FIELDS.estatusCuota]) || '').toLowerCase().trim();
-        const cuotaAprobada = estatusCta === 'aprobada';
+        const registroChk = asBool(firstScalar(f[FIELDS.registro]));
+        const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        const DIRIGIDO_EXCLUIDOS = ['icami', 'ipade', 'liceo blueridge', 'ciudad de los ninos'];
+        const dirigidoExcluido = DIRIGIDO_EXCLUIDOS.includes(norm(firstScalar(f[FIELDS.dirigidoA])));
+        // Cuota visible solo si aprobada + Registro ✓ + no es dirigido excluido
+        const cuotaAprobada = estatusCta === 'aprobada' && registroChk && !dirigidoExcluido;
         const cuotaRaw = String(firstScalar(f[FIELDS.cuota]) || '').trim();
         return {
           id,

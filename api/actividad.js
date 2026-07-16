@@ -154,11 +154,18 @@ module.exports = async function handler(req, res) {
     const privado     = asBool(firstVal(f[FIELDS.privado]));
     const registroChk = asBool(firstVal(f[FIELDS.registro]));
 
+    // Dirigidos que NUNCA muestran cuota ni permiten registro (institucionales)
+    const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const DIRIGIDO_EXCLUIDOS = ['icami', 'ipade', 'liceo blueridge', 'ciudad de los ninos'];
+    const dirigidoRaw = String(firstVal(f[FIELDS.dirigidoA]) || '').trim();
+    const dirigidoExcluido = DIRIGIDO_EXCLUIDOS.includes(norm(dirigidoRaw));
+
     const cuotaRaw      = String(firstVal(f[FIELDS.cuota]) || '').trim();
     const cuotaValida   = isCuotaValida(cuotaRaw);
     const cuotaAprobada = estatusCta === 'aprobada';
-    // La cuota SOLO se muestra si está aprobada Y es numérica válida.
-    const cuotaVisible  = cuotaAprobada && cuotaValida;
+    // La cuota se muestra solo si: aprobada, numérica válida, con Registro ✓ y
+    // NO es un dirigido excluido. Si no, sale "No disponible" (aunque tenga cuota).
+    const cuotaVisible  = cuotaAprobada && cuotaValida && registroChk && !dirigidoExcluido;
 
     const hayLugares = (lugares !== null && lugares !== undefined && !Number.isNaN(lugares) && lugares > 0);
 
@@ -197,7 +204,7 @@ module.exports = async function handler(req, res) {
       montoApartado:  cuotaVisible ? montoApartadoMXN(cuotaRaw) : 0,
 
       // ── 4 variantes de cuota (display; solo si aprobada) ──
-      cuotas: cuotaAprobada ? {
+      cuotas: cuotaVisible ? {
         sinExtras:        String(firstVal(f[FIELDS.cuotaSinExtras])        || '').trim(),
         sinExtrasStripe:  String(firstVal(f[FIELDS.cuotaSinExtrasStripe])  || '').trim(),
         conExtras:        String(firstVal(f[FIELDS.cuotaConExtras])        || '').trim(),
