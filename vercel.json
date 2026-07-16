@@ -45,6 +45,10 @@
     {
       "source": "/recuperar",
       "destination": "/pages/recuperar"
+    },
+    {
+      "source": "/reservar",
+      "destination": "/pages/reservar"
     }
   ],
   "headers": [

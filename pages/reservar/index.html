@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservar - Actividades Norte</title>
+  <meta name="description" content="Consulta disponibilidad y solicita tu reservación en Los Pinos.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/isotipo.png">
+  <link rel="shortcut icon" href="/assets/png/isotipo.png">
+  <link rel="apple-touch-icon" href="/assets/png/isotipo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <style>
+    :root{ --cream:#F6F1E7; --green:#2A4030; --gold:#A07840; --muted:#6B7066; }
+    .rsv-wrap{max-width:960px;margin:0 auto;padding:clamp(24px,5vw,64px) var(--gutter,24px)}
+    .rsv-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+    .rsv-wrap h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.9rem,4.5vw,2.6rem);color:var(--green);margin-bottom:6px;letter-spacing:-.01em}
+    .rsv-loc{display:flex;align-items:center;gap:6px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:.04em;margin-bottom:20px}
+    .rsv-hero{width:100%;height:clamp(200px,34vw,340px);object-fit:cover;border-radius:14px;margin-bottom:22px}
+    .rsv-desc{font-family:'Lora',serif;font-size:1.02rem;line-height:1.7;color:#2f342b;max-width:70ch;margin-bottom:24px}
+    /* amenidades */
+    .rsv-amen{border-top:1px solid rgba(42,64,48,.14);padding-top:20px;margin-bottom:28px}
+    .rsv-amen-title{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+    .rsv-amen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+    @media(max-width:520px){.rsv-amen-grid{grid-template-columns:repeat(2,1fr)}}
+    .rsv-amen-cell{background:#fff;border:1px solid rgba(42,64,48,.12);border-radius:8px;padding:12px 10px;text-align:center}
+    .rsv-amen-cell .n{display:block;font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--green);line-height:1}
+    .rsv-amen-cell .l{display:block;font-size:.7rem;color:var(--muted);margin-top:5px}
+    .rsv-amen-lists{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:520px){.rsv-amen-lists{grid-template-columns:1fr}}
+    .rsv-amen-lists h4{font-size:.8rem;color:var(--green);margin:0 0 6px}
+    .rsv-amen-lists ul{margin:0;padding-left:1rem;font-family:'Lora',serif;font-size:.9rem;color:#2f342b;line-height:1.6}
+    /* CTA */
+    .rsv-cta{display:inline-flex;align-items:center;gap:9px;font-family:'Lora',serif;font-size:1.05rem;padding:14px 26px;background:var(--green);color:var(--cream);border:none;border-radius:100px;cursor:pointer;text-decoration:none}
+    .rsv-cta:hover{background:#1f3123}
+    /* gate + notice */
+    .rsv-panel{margin-top:30px;background:#fff;border:1px solid rgba(42,64,48,.14);border-radius:14px;padding:clamp(20px,4vw,32px)}
+    .rsv-panel h2{font-family:'Playfair Display',serif;font-weight:500;font-size:1.4rem;color:var(--green);margin:0 0 6px}
+    .rsv-panel p{font-family:'Lora',serif;color:#2f342b;line-height:1.65;margin:0 0 14px}
+    .rsv-sec-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+    @media(max-width:520px){.rsv-sec-btns{grid-template-columns:1fr}}
+    .rsv-sec-btn{font-family:'Lora',serif;font-size:1rem;padding:16px;border-radius:10px;border:1.5px solid rgba(42,64,48,.2);background:var(--cream);color:var(--green);cursor:pointer;transition:.15s}
+    .rsv-sec-btn:hover{border-color:var(--gold);background:#fff}
+    .rsv-pass{margin-top:16px;display:none}
+    .rsv-pass.show{display:block}
+    .rsv-pass label{display:block;font-size:.9rem;color:var(--green);margin-bottom:6px;font-family:'Lora',serif}
+    .rsv-pass-row{display:flex;gap:10px}
+    .rsv-pass input{flex:1;font-family:'Lora',serif;font-size:1rem;padding:11px 13px;border:1px solid rgba(42,64,48,.2);border-radius:8px;background:var(--cream)}
+    .rsv-pass input:focus{outline:none;border-color:var(--gold);background:#fff}
+    .rsv-pass button{font-family:'Lora',serif;padding:11px 20px;background:var(--green);color:var(--cream);border:none;border-radius:8px;cursor:pointer}
+    .rsv-err{color:#8B2020;font-size:.88rem;margin-top:8px;font-family:'Lora',serif;display:none}
+    .rsv-err.show{display:block}
+    .rsv-back{background:none;border:none;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.72rem;cursor:pointer;margin-top:14px;text-transform:uppercase;letter-spacing:.08em}
+    /* notice */
+    .rsv-notice{border-left:3px solid var(--gold);background:var(--cream);border-radius:0 10px 10px 0;padding:18px 20px;margin-bottom:8px}
+    .rsv-notice h3{font-family:'Playfair Display',serif;font-weight:500;color:var(--green);margin:0 0 8px;font-size:1.15rem}
+    .rsv-notice p{font-size:.95rem;margin-bottom:8px}
+    .rsv-notice .firma{font-style:italic;color:var(--muted);margin:0}
+    /* calendar */
+    .rsv-calendar{margin-top:8px}
+    .rsv-legend{display:flex;flex-wrap:wrap;gap:14px;margin:16px 0}
+    .rsv-legend span{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-family:'Lora',serif;color:#2f342b}
+    .rsv-dot{width:14px;height:14px;border-radius:4px;display:inline-block}
+    .dot-3{background:#3E8E5A}.dot-2{background:#E8B54A}.dot-1{background:#D98C8C}.dot-0{background:#C7C9C4}
+    .rsv-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .rsv-cal-head button{background:#fff;border:1px solid rgba(42,64,48,.2);border-radius:8px;width:34px;height:34px;cursor:pointer;color:var(--green);font-size:1.1rem}
+    .rsv-cal-month{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--green)}
+    .rsv-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+    .rsv-dow{text-align:center;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);text-transform:uppercase;padding:4px 0}
+    .rsv-day{aspect-ratio:1;border-radius:8px;border:1px solid rgba(42,64,48,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:.9rem;color:#2f342b;cursor:pointer;position:relative;background:#fff}
+    .rsv-day.empty{border:none;background:transparent;cursor:default}
+    .rsv-day .cnt{width:8px;height:8px;border-radius:50%;margin-top:3px}
+    .rsv-day.c3{background:#EAF5EE;border-color:#3E8E5A55}
+    .rsv-day.c2{background:#FBF3DF;border-color:#E8B54A66}
+    .rsv-day.c1{background:#FaEcEc;border-color:#D98C8C66}
+    .rsv-day.c0{background:#F0F0EE;color:#B4B6B1;cursor:not-allowed}
+    .rsv-day.sel{outline:3px solid var(--gold);outline-offset:-1px}
+    .rsv-day.past{opacity:.4;cursor:not-allowed}
+    /* form */
+    .rsv-form{margin-top:26px}
+    .rsv-form h2{font-family:'Playfair Display',serif;font-weight:500;color:var(--green);font-size:1.4rem;margin:0 0 4px}
+    .rsv-form .sub{color:var(--muted);font-family:'Lora',serif;margin-bottom:18px}
+    .rsv-field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
+    .rsv-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:520px){.rsv-row2{grid-template-columns:1fr}}
+    .rsv-field label{font-size:.85rem;color:var(--green);font-family:'Lora',serif}
+    .rsv-field input,.rsv-field select{font-family:'Lora',serif;font-size:1rem;color:var(--green);background:var(--cream);border:1px solid rgba(42,64,48,.18);border-radius:8px;padding:11px 13px}
+    .rsv-field input:focus,.rsv-field select:focus{outline:none;border-color:var(--gold);background:#fff}
+    .rsv-casas{display:flex;flex-wrap:wrap;gap:10px}
+    .rsv-casas label{display:inline-flex;align-items:center;gap:7px;background:var(--cream);border:1px solid rgba(42,64,48,.18);border-radius:8px;padding:9px 13px;cursor:pointer;font-size:.92rem}
+    .rsv-submit{width:100%;font-family:'Lora',serif;font-size:1.05rem;padding:14px;background:var(--green);color:var(--cream);border:none;border-radius:10px;cursor:pointer;margin-top:6px}
+    .rsv-submit:disabled{opacity:.6}
+    .rsv-form-msg{margin-top:14px;font-family:'Lora',serif;display:none}
+    .rsv-form-msg.show{display:block}
+    .rsv-form-msg.ok{color:var(--green)}.rsv-form-msg.bad{color:#8B2020}
+    .hidden{display:none!important}
+  </style>
+  <script defer src="/assets/js/reveal.js"></script>
+  <script defer src="/assets/js/mobile-nav.js"></script>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-logo">
+      <span class="nav-logo-img-wrap">
+        <img class="nav-logo-img-light" src="/assets/png/isotipo.png" alt="">
+        <img class="nav-logo-img-dark" src="/assets/png/isotipo-dark.png" alt="">
+      </span>
+      <span>Actividades Norte</span>
+    </a>
+    <div class="nav-links">
+      <a href="/varonil">Varonil</a>
+      <a href="/femenil">Femenil</a>
+      <a href="/#casas">Casas</a>
+      <a href="/contacto">Contacto</a>
+    </div>
+    <a href="/" class="nav-cta">
+      <svg width="14" height="10" viewBox="0 0 18 12" fill="none"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Inicio</span>
+    </a>
+    <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
+  </nav>
+
+  <main class="rsv-wrap">
+    <div class="rsv-eyebrow">Reservación</div>
+    <h1 id="casaNombre">Casa</h1>
+    <div class="rsv-loc">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span>Sierra de Arteaga, Coahuila</span>
+    </div>
+    <img class="rsv-hero" id="casaHero" src="" alt="">
+    <p class="rsv-desc" id="casaDesc"></p>
+    <div id="casaAmen"></div>
+
+    <!-- Paso 1: consultar -->
+    <div id="paso-consultar">
+      <button class="rsv-cta" id="btnConsultar">
+        Consultar disponibilidad
+        <svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Paso 2: selector de sección + contraseña -->
+    <div class="rsv-panel hidden" id="paso-seccion">
+      <h2>Selecciona tu sección</h2>
+      <p>Elige la sección correspondiente e ingresa la contraseña para ver el calendario y solicitar tu reservación.</p>
+      <div class="rsv-sec-btns">
+        <button class="rsv-sec-btn" data-sec="admin">Administrador</button>
+        <button class="rsv-sec-btn" data-sec="femenil">Femenil</button>
+        <button class="rsv-sec-btn" data-sec="varonil">Varonil</button>
+      </div>
+      <div class="rsv-pass" id="passBox">
+        <label id="passLabel">Contraseña</label>
+        <div class="rsv-pass-row">
+          <input type="password" id="passInput" placeholder="Contraseña" autocomplete="off">
+          <button id="passBtn">Entrar</button>
+        </div>
+        <div class="rsv-err" id="passErr">Contraseña incorrecta. Intenta de nuevo.</div>
+      </div>
+      <button class="rsv-back" id="backConsultar">← Volver</button>
+    </div>
+
+    <!-- Paso 3: aviso + calendario + formulario -->
+    <div class="rsv-panel hidden" id="paso-calendario">
+      <div class="rsv-notice">
+        <h3>Actualización de Calendario 2026</h3>
+        <p>El calendario ahora muestra la <strong>disponibilidad</strong> de las casas (antes mostraba la ocupación). Selecciona las fechas disponibles para tu sección.</p>
+        <p class="firma">Atentamente, Administración Los Pinos</p>
+      </div>
+
+      <div class="rsv-calendar">
+        <div class="rsv-legend">
+          <span><i class="rsv-dot dot-3"></i> Todas las casas disponibles</span>
+          <span><i class="rsv-dot dot-2"></i> 2 casas disponibles</span>
+          <span><i class="rsv-dot dot-1"></i> 1 casa disponible</span>
+          <span><i class="rsv-dot dot-0"></i> Ninguna casa disponible</span>
+        </div>
+        <div class="rsv-cal-head">
+          <button id="calPrev" aria-label="Mes anterior">‹</button>
+          <div class="rsv-cal-month" id="calMonth"></div>
+          <button id="calNext" aria-label="Mes siguiente">›</button>
+        </div>
+        <div class="rsv-grid" id="calGrid"></div>
+      </div>
+
+      <div class="rsv-form">
+        <h2>Solicita una reservación</h2>
+        <p class="sub" id="formSub">Sección: <strong id="formSeccion"></strong></p>
+        <div class="rsv-field">
+          <label>Nombre de la actividad</label>
+          <input type="text" id="fNombre" placeholder="Ej. Retiro de fin de semana">
+        </div>
+        <div class="rsv-field">
+          <label>Casa(s) de interés</label>
+          <div class="rsv-casas">
+            <label><input type="checkbox" value="Casa Grande"> Casa Grande</label>
+            <label><input type="checkbox" value="Casa del Bosque I"> Bosque I</label>
+            <label><input type="checkbox" value="Casa del Bosque II"> Bosque II</label>
+          </div>
+        </div>
+        <div class="rsv-row2">
+          <div class="rsv-field">
+            <label>Fecha de inicio</label>
+            <input type="date" id="fInicio" min="2026-01-01" max="2026-12-31">
+          </div>
+          <div class="rsv-field">
+            <label>Fecha de fin</label>
+            <input type="date" id="fFin" min="2026-01-01" max="2026-12-31">
+          </div>
+        </div>
+        <div class="rsv-field">
+          <label>¿Quién coordina?</label>
+          <input type="text" id="fCoordina" placeholder="Nombre del coordinador">
+        </div>
+        <div class="rsv-row2">
+          <div class="rsv-field">
+            <label>N.º de asistentes</label>
+            <input type="number" id="fAsistentes" min="0" placeholder="0">
+          </div>
+          <div class="rsv-field">
+            <label>N.º de sacerdotes</label>
+            <input type="number" id="fSacerdotes" min="0" placeholder="0">
+          </div>
+        </div>
+        <div class="rsv-field">
+          <label>Personas adicionales</label>
+          <input type="number" id="fAdicionales" min="0" placeholder="0">
+        </div>
+        <div class="rsv-row2">
+          <div class="rsv-field">
+            <label>Tu nombre completo</label>
+            <input type="text" id="fSolicitante" autocomplete="name" placeholder="Nombre y apellidos">
+          </div>
+          <div class="rsv-field">
+            <label>Correo</label>
+            <input type="email" id="fEmail" autocomplete="email" placeholder="tucorreo@ejemplo.com">
+          </div>
+        </div>
+        <div class="rsv-field">
+          <label>WhatsApp</label>
+          <input type="tel" id="fWhatsapp" placeholder="81 1234 5678">
+        </div>
+        <button class="rsv-submit" id="btnEnviar">Enviar solicitud</button>
+        <div class="rsv-form-msg" id="formMsg"></div>
+      </div>
+
+      <button class="rsv-back" id="backSeccion">← Cambiar de sección</button>
+    </div>
+  </main>
+
+  <script>
+  (function(){
+    // ── Datos de casas (fotos del sitio) ──
+    var DESC = "En 1960, Rosario Garza de Zambrano donó su casa de verano, Los Pinos, en Sierra de Arteaga, Coahuila, para transformarla en un centro de formación. Desde el año 2000 también hospeda El Pinar, Escuela Técnica en Servicios de Hospitalidad, dedicada a la formación de mujeres de áreas rurales.";
+    var AREAS = ["Campo de fútbol","Cancha de tennis","Cancha de padel","Cancha de basquetbol","Lago"];
+    var CASAS = {
+      "casa-grande": { nombre:"Casa Grande", img:"/assets/png/casa-grande/casa-grande-hero.png",
+        amen:{"Huéspedes":24,"Habitaciones":22,"Baños":21,"Estacionamiento":"20 coches","Oratorio":1,"Aulas":1},
+        zonas:["Biblioteca","Sala de TV","Comedor"], areas:AREAS },
+      "casa-del-bosque-i": { nombre:"Casa del Bosque I", img:"/assets/png/casa-del-bosque-i/casa-del-bosque-i-hero.jpg",
+        amen:{"Huéspedes":20,"Habitaciones":20,"Baños":20,"Estacionamiento":"20 coches","Oratorio":1,"Aulas":2},
+        zonas:["Biblioteca","Sala de TV","Mediateca","Salón de conferencias","7 salas de entrevistas","Comedor"], areas:AREAS },
+      "casa-del-bosque-ii": { nombre:"Casa del Bosque II", img:"/assets/png/casa-del-bosque-ii/casa-del-bosque-ii-hero.jpg",
+        amen:{"Huéspedes":20,"Habitaciones":20,"Baños":20,"Estacionamiento":"20 coches","Oratorio":1,"Aulas":2},
+        zonas:["Biblioteca","Sala de TV","Mediateca","Salón de conferencias","7 salas de entrevistas","Comedor"], areas:AREAS },
+    };
+    var PASS = { admin:"Admin2026", femenil:"Femenil2026", varonil:"Varonil2026" };
+    var SEC_LABEL = { admin:"Administrador", femenil:"Femenil", varonil:"Varonil" };
+
+    function esc(s){return String(s).replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];});}
+    function qs(id){return document.getElementById(id);}
+
+    // ── Cargar casa ──
+    var params = new URLSearchParams(location.search);
+    var casaKey = params.get('casa') || 'casa-grande';
+    var casa = CASAS[casaKey] || CASAS['casa-grande'];
+    qs('casaNombre').textContent = casa.nombre;
+    qs('casaHero').src = casa.img; qs('casaHero').alt = casa.nombre;
+    qs('casaDesc').textContent = DESC;
+    (function(){
+      var cells=''; for(var k in casa.amen){ cells+='<div class="rsv-amen-cell"><span class="n">'+esc(casa.amen[k])+'</span><span class="l">'+esc(k)+'</span></div>'; }
+      var lists='<div><h4>Zonas comunes</h4><ul>'+casa.zonas.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'
+               +'<div><h4>Áreas recreativas</h4><ul>'+casa.areas.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';
+      qs('casaAmen').innerHTML='<div class="rsv-amen"><div class="rsv-amen-title">Amenidades</div><div class="rsv-amen-grid">'+cells+'</div><div class="rsv-amen-lists">'+lists+'</div></div>';
+    })();
+
+    // ── Navegación de pasos ──
+    function show(id){ ['paso-consultar','paso-seccion','paso-calendario'].forEach(function(p){ qs(p).classList.toggle('hidden', p!==id); }); }
+    qs('btnConsultar').addEventListener('click',function(){ show('paso-seccion'); });
+    qs('backConsultar').addEventListener('click',function(){ show('paso-consultar'); });
+    qs('backSeccion').addEventListener('click',function(){ resetSeccion(); show('paso-seccion'); });
+
+    // ── Selección de sección + contraseña ──
+    var secSel=null;
+    document.querySelectorAll('.rsv-sec-btn').forEach(function(b){
+      b.addEventListener('click',function(){
+        secSel=b.getAttribute('data-sec');
+        qs('passLabel').textContent='Contraseña — '+SEC_LABEL[secSel];
+        qs('passBox').classList.add('show'); qs('passErr').classList.remove('show');
+        qs('passInput').value=''; qs('passInput').focus();
+      });
+    });
+    function tryPass(){
+      if(!secSel) return;
+      if(qs('passInput').value===PASS[secSel]){
+        qs('formSeccion').textContent=SEC_LABEL[secSel];
+        show('paso-calendario'); loadCalendar(secSel);
+      } else { qs('passErr').classList.add('show'); }
+    }
+    qs('passBtn').addEventListener('click',tryPass);
+    qs('passInput').addEventListener('keydown',function(e){ if(e.key==='Enter') tryPass(); });
+    function resetSeccion(){ secSel=null; qs('passBox').classList.remove('show'); qs('passInput').value=''; }
+
+    // ── Calendario ──
+    var dias={}, viewYear=2026, viewMonth=0, selectedDate=null;
+    var MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    var DOW=['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+    var todayISO=new Date().toISOString().slice(0,10);
+
+    async function loadCalendar(sec){
+      qs('calGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px;font-family:Lora,serif">Cargando disponibilidad…</div>';
+      try{
+        var r=await fetch('/api/disponibilidad?seccion='+encodeURIComponent(sec));
+        var data=await r.json();
+        dias=data.dias||{};
+      }catch(e){ dias={}; }
+      // ir al primer mes con datos (o enero)
+      viewYear=2026; viewMonth=(new Date().getFullYear()===2026)?new Date().getMonth():0;
+      renderCal();
+    }
+    function pad(n){return n<10?'0'+n:''+n;}
+    function renderCal(){
+      var grid=qs('calGrid'); grid.innerHTML='';
+      qs('calMonth').textContent=MESES[viewMonth]+' '+viewYear;
+      DOW.forEach(function(d){ var el=document.createElement('div'); el.className='rsv-dow'; el.textContent=d; grid.appendChild(el); });
+      var first=new Date(viewYear,viewMonth,1).getDay();
+      var days=new Date(viewYear,viewMonth+1,0).getDate();
+      for(var i=0;i<first;i++){ var e=document.createElement('div'); e.className='rsv-day empty'; grid.appendChild(e); }
+      for(var d=1;d<=days;d++){
+        var iso=viewYear+'-'+pad(viewMonth+1)+'-'+pad(d);
+        var info=dias[iso]; var count=info?info.count:0;
+        var cell=document.createElement('div');
+        cell.className='rsv-day c'+count;
+        if(iso<todayISO) cell.className+=' past';
+        cell.innerHTML='<span>'+d+'</span>';
+        if(count>0 && iso>=todayISO){
+          (function(iso){ cell.addEventListener('click',function(){ selectDay(iso); }); })(iso);
+        }
+        if(iso===selectedDate) cell.className+=' sel';
+        grid.appendChild(cell);
+      }
+    }
+    function selectDay(iso){
+      selectedDate=iso; qs('fInicio').value=iso;
+      if(!qs('fFin').value || qs('fFin').value<iso) qs('fFin').value=iso;
+      renderCal();
+    }
+    qs('calPrev').addEventListener('click',function(){ if(viewMonth===0){if(viewYear>2026)return; viewMonth=0;} else {viewMonth--; renderCal();} });
+    qs('calNext').addEventListener('click',function(){ if(viewMonth<11){viewMonth++; renderCal();} });
+
+    // ── Envío del formulario ──
+    qs('btnEnviar').addEventListener('click',async function(){
+      var msg=qs('formMsg'); msg.className='rsv-form-msg';
+      var casas=[]; document.querySelectorAll('.rsv-casas input:checked').forEach(function(c){ casas.push(c.value); });
+      var payload={
+        seccion:SEC_LABEL[secSel], nombreActividad:qs('fNombre').value.trim(),
+        casas:casas, quienCoordina:qs('fCoordina').value.trim(),
+        fechaInicio:qs('fInicio').value, fechaFin:qs('fFin').value,
+        asistentes:qs('fAsistentes').value, sacerdotes:qs('fSacerdotes').value, adicionales:qs('fAdicionales').value,
+        solicitante:qs('fSolicitante').value.trim(), email:qs('fEmail').value.trim(), whatsapp:qs('fWhatsapp').value.trim()
+      };
+      if(!payload.solicitante||!payload.email||!payload.fechaInicio){
+        msg.textContent='Completa tu nombre, correo y la fecha de inicio.'; msg.className='rsv-form-msg bad show'; return;
+      }
+      qs('btnEnviar').disabled=true; qs('btnEnviar').textContent='Enviando…';
+      try{
+        var r=await fetch('/api/reservar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        var data=await r.json();
+        if(!r.ok){ msg.textContent=data.error||'No se pudo enviar. Intenta de nuevo.'; msg.className='rsv-form-msg bad show'; }
+        else{
+          msg.innerHTML='¡Solicitud enviada! Te contactaremos para confirmar la disponibilidad. Guarda tus datos.';
+          msg.className='rsv-form-msg ok show';
+          ['fNombre','fCoordina','fAsistentes','fSacerdotes','fAdicionales','fSolicitante','fEmail','fWhatsapp'].forEach(function(id){qs(id).value='';});
+          document.querySelectorAll('.rsv-casas input:checked').forEach(function(c){c.checked=false;});
+        }
+      }catch(e){ msg.textContent='No se pudo conectar. Revisa tu internet.'; msg.className='rsv-form-msg bad show'; }
+      finally{ qs('btnEnviar').disabled=false; qs('btnEnviar').textContent='Enviar solicitud'; }
+    });
+  })();
+  </script>
+</body>
+</html>
