@@ -14,27 +14,53 @@
   <link rel="stylesheet" href="/assets/css/site.css">
   <style>
     :root{ --cream:#F6F1E7; --green:#2A4030; --gold:#A07840; --muted:#6B7066; }
-    .rsv-wrap{max-width:960px;margin:0 auto;padding:clamp(24px,5vw,64px) var(--gutter,24px)}
-    .rsv-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
-    .rsv-wrap h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.9rem,4.5vw,2.6rem);color:var(--green);margin-bottom:6px;letter-spacing:-.01em}
-    .rsv-loc{display:flex;align-items:center;gap:6px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:.04em;margin-bottom:20px}
-    .rsv-hero{width:100%;height:clamp(200px,34vw,340px);object-fit:cover;border-radius:14px;margin-bottom:22px}
-    .rsv-desc{font-family:'Lora',serif;font-size:1.02rem;line-height:1.7;color:#2f342b;max-width:70ch;margin-bottom:24px}
-    .rsv-amen{border-top:1px solid rgba(42,64,48,.14);padding-top:20px;margin-bottom:28px}
-    .rsv-amen-title{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
-    .rsv-amen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
-    @media(max-width:520px){.rsv-amen-grid{grid-template-columns:repeat(2,1fr)}}
-    .rsv-amen-cell{background:#fff;border:1px solid rgba(42,64,48,.12);border-radius:8px;padding:12px 10px;text-align:center}
-    .rsv-amen-cell .n{display:block;font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--green);line-height:1}
-    .rsv-amen-cell .l{display:block;font-size:.7rem;color:var(--muted);margin-top:5px}
-    .rsv-amen-lists{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    @media(max-width:520px){.rsv-amen-lists{grid-template-columns:1fr}}
-    .rsv-amen-lists h4{font-size:.8rem;color:var(--green);margin:0 0 6px}
-    .rsv-amen-lists ul{margin:0;padding-left:1rem;font-family:'Lora',serif;font-size:.9rem;color:#2f342b;line-height:1.6}
-    .rsv-cta{display:inline-flex;align-items:center;gap:9px;font-family:'Lora',serif;font-size:1.05rem;padding:14px 26px;background:var(--green);color:var(--cream);border:none;border-radius:100px;cursor:pointer;text-decoration:none}
-    .rsv-cta:hover{background:#1f3123}
+    /* HERO */
+    .cd-hero{position:relative;min-height:clamp(420px,62vh,620px);display:flex;align-items:flex-end;
+      background-size:cover;background-position:center;color:var(--cream)}
+    .cd-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(20,30,22,.86) 0%,rgba(20,30,22,.35) 55%,rgba(20,30,22,.5) 100%)}
+    .cd-hero-inner{position:relative;z-index:2;max-width:1080px;margin:0 auto;width:100%;padding:clamp(30px,6vw,64px) var(--gutter,24px)}
+    .cd-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:#E8D9BE;margin-bottom:10px}
+    .cd-hero h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(2.3rem,6vw,4rem);letter-spacing:-.02em;margin:0 0 14px;line-height:1.02}
+    .cd-hero-loc{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:.76rem;letter-spacing:.05em;color:#E8D9BE}
+    /* CONTENT */
+    .cd-wrap{max-width:920px;margin:0 auto;padding:clamp(40px,6vw,72px) var(--gutter,24px)}
+    .cd-intro{font-family:'Lora',serif;font-size:clamp(1.02rem,2vw,1.18rem);line-height:1.8;color:#2f342b}
+    .cd-intro p{margin:0 0 18px}
+    /* GALLERY */
+    .cd-section-label{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:18px;text-align:center}
+    .cd-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:1080px;margin:0 auto;padding:0 var(--gutter,24px) clamp(30px,5vw,56px)}
+    @media(max-width:720px){.cd-gallery{grid-template-columns:repeat(2,1fr)}}
+    .cd-gallery img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;cursor:pointer;transition:transform .3s,box-shadow .3s}
+    .cd-gallery img:hover{transform:scale(1.02);box-shadow:0 12px 30px -10px rgba(0,0,0,.35)}
+    .cd-gallery img:first-child{grid-column:1/-1;aspect-ratio:16/7}
+    /* AMENIDADES STRIP */
+    .cd-amen-strip{position:relative;padding:clamp(48px,7vw,88px) var(--gutter,24px);
+      background:linear-gradient(rgba(30,45,32,.82),rgba(30,45,32,.9)),url('/assets/png/stock-hierba.jpg');
+      background-size:cover;background-position:center;background-attachment:fixed;color:var(--cream)}
+    .cd-amen-inner{max-width:1000px;margin:0 auto}
+    .cd-amen-title{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.8rem,4vw,2.6rem);text-align:center;margin:0 0 6px}
+    .cd-amen-sub{text-align:center;font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:#CDE0CF;margin-bottom:36px}
+    .cd-amen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+    @media(max-width:620px){.cd-amen-grid{grid-template-columns:repeat(2,1fr)}}
+    .cd-amen-cell{background:rgba(246,241,231,.12);backdrop-filter:blur(3px);border:1px solid rgba(246,241,231,.2);border-radius:14px;padding:22px 16px;text-align:center}
+    .cd-amen-cell .n{display:block;font-family:'Playfair Display',serif;font-size:2rem;line-height:1;color:#fff}
+    .cd-amen-cell .l{display:block;font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:#CDE0CF;margin-top:9px}
+    .cd-amen-lists{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+    @media(max-width:620px){.cd-amen-lists{grid-template-columns:1fr}}
+    .cd-amen-listcard{background:rgba(246,241,231,.12);border:1px solid rgba(246,241,231,.2);border-radius:14px;padding:22px}
+    .cd-amen-listcard h4{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:#E8D9BE;margin:0 0 12px}
+    .cd-amen-listcard ul{margin:0;padding-left:1.1rem;font-family:'Lora',serif;font-size:.98rem;line-height:1.8;color:var(--cream)}
+    /* CTA STRIP */
+    .cd-cta-strip{background:var(--green);color:var(--cream);text-align:center;padding:clamp(44px,6vw,72px) var(--gutter,24px)}
+    .cd-cta-strip h2{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.6rem,3.5vw,2.3rem);margin:0 0 20px}
+    .cd-cta-btn{display:inline-flex;align-items:center;gap:10px;font-family:'Lora',serif;font-size:1.08rem;padding:15px 32px;background:var(--gold);color:#fff;border:none;border-radius:100px;cursor:pointer;text-decoration:none;transition:.15s}
+    .cd-cta-btn:hover{background:#8a6634;transform:translateY(-2px)}
+    /* LIGHTBOX */
+    .cd-lb{position:fixed;inset:0;background:rgba(15,20,16,.92);display:none;align-items:center;justify-content:center;z-index:200;padding:24px;cursor:zoom-out}
+    .cd-lb.show{display:flex}
+    .cd-lb img{max-width:92vw;max-height:88vh;border-radius:10px}
+    .cd-lb-close{position:absolute;top:20px;right:24px;color:#fff;font-size:2rem;cursor:pointer;line-height:1}
   </style>
-  <script defer src="/assets/js/reveal.js"></script>
   <script defer src="/assets/js/mobile-nav.js"></script>
 </head>
 <body>
@@ -59,51 +85,91 @@
     <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
   </nav>
 
-  <main class="rsv-wrap">
-    <div class="rsv-eyebrow">Reservación</div>
-    <h1 id="casaNombre">Casa</h1>
-    <div class="rsv-loc">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      <span>Sierra de Arteaga, Coahuila</span>
+  <header class="cd-hero" id="hero">
+    <div class="cd-hero-inner">
+      <div class="cd-eyebrow">Bienvenido a</div>
+      <h1 id="casaNombre">Casa</h1>
+      <div class="cd-hero-loc">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Sierra de Arteaga, Coahuila</span>
+      </div>
     </div>
-    <img class="rsv-hero" id="casaHero" src="" alt="">
-    <p class="rsv-desc" id="casaDesc"></p>
-    <div id="casaAmen"></div>
-    <a class="rsv-cta" id="btnConsultar" href="#">
+  </header>
+
+  <div class="cd-wrap">
+    <div class="cd-intro" id="casaIntro"></div>
+  </div>
+
+  <div class="cd-section-label">Galería</div>
+  <div class="cd-gallery" id="galeria"></div>
+
+  <section class="cd-amen-strip">
+    <div class="cd-amen-inner">
+      <h2 class="cd-amen-title">Amenidades</h2>
+      <div class="cd-amen-sub" id="casaNombreAmen"></div>
+      <div class="cd-amen-grid" id="amenGrid"></div>
+      <div class="cd-amen-lists" id="amenLists"></div>
+    </div>
+  </section>
+
+  <section class="cd-cta-strip">
+    <h2>¿Quieres reservar la casa?</h2>
+    <a class="cd-cta-btn" id="btnConsultar" href="#">
       Consultar disponibilidad
       <svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
     </a>
-  </main>
+  </section>
+
+  <div class="cd-lb" id="lightbox"><span class="cd-lb-close">&times;</span><img id="lbImg" src="" alt=""></div>
 
   <script>
   (function(){
-    var DESC = "En 1960, Rosario Garza de Zambrano donó su casa de verano, Los Pinos, en Sierra de Arteaga, Coahuila, para transformarla en un centro de formación. Desde el año 2000 también hospeda El Pinar, Escuela Técnica en Servicios de Hospitalidad, dedicada a la formación de mujeres de áreas rurales.";
+    var DESC = ["En 1960, Rosario Garza de Zambrano donó generosamente su casa de verano, Los Pinos, en Sierra de Arteaga, Coahuila, para transformarla en un centro de formación. Originalmente el sitio contaba con cabañas para 30 personas; luego se expandió con Casa Grande y, finalmente, Casa del Bosque.",
+                "Desde el año 2000, este espacio también hospeda El Pinar, Escuela Técnica en Servicios de Hospitalidad, una institución dedicada a la formación de mujeres de áreas rurales, brindándoles educación y habilidades para su desarrollo humano y social."];
     var AREAS = ["Campo de fútbol","Cancha de tennis","Cancha de padel","Cancha de basquetbol","Lago"];
+    function fotos(slug,ext,extras){ var a=['/assets/png/'+slug+'/'+slug+'-hero.'+ext]; extras.forEach(function(n){ a.push('/assets/png/'+slug+'/'+slug+'-'+n+'.'+ext); }); return a; }
     var CASAS = {
-      "casa-grande": { nombre:"Casa Grande", img:"/assets/png/casa-grande/casa-grande-hero.png",
+      "casa-grande": { nombre:"Casa Grande",
         amen:{"Huéspedes":24,"Habitaciones":22,"Baños":21,"Estacionamiento":"20 coches","Oratorio":1,"Aulas":1},
-        zonas:["Biblioteca","Sala de TV","Comedor"], areas:AREAS },
-      "casa-del-bosque-i": { nombre:"Casa del Bosque I", img:"/assets/png/casa-del-bosque-i/casa-del-bosque-i-hero.jpg",
+        zonas:["Biblioteca","Sala de TV","Comedor"], areas:AREAS,
+        fotos:fotos('casa-grande','png',[2,3,4,5,6,7,8]) },
+      "casa-del-bosque-i": { nombre:"Casa del Bosque I",
         amen:{"Huéspedes":20,"Habitaciones":20,"Baños":20,"Estacionamiento":"20 coches","Oratorio":1,"Aulas":2},
-        zonas:["Biblioteca","Sala de TV","Mediateca","Salón de conferencias","7 salas de entrevistas","Comedor"], areas:AREAS },
-      "casa-del-bosque-ii": { nombre:"Casa del Bosque II", img:"/assets/png/casa-del-bosque-ii/casa-del-bosque-ii-hero.jpg",
+        zonas:["Biblioteca","Sala de TV","Mediateca","Salón de conferencias","7 salas de entrevistas","Comedor"], areas:AREAS,
+        fotos:fotos('casa-del-bosque-i','jpg',[2,3,4,5,6,7,8,9,10]) },
+      "casa-del-bosque-ii": { nombre:"Casa del Bosque II",
         amen:{"Huéspedes":20,"Habitaciones":20,"Baños":20,"Estacionamiento":"20 coches","Oratorio":1,"Aulas":2},
-        zonas:["Biblioteca","Sala de TV","Mediateca","Salón de conferencias","7 salas de entrevistas","Comedor"], areas:AREAS },
+        zonas:["Biblioteca","Sala de TV","Mediateca","Salón de conferencias","7 salas de entrevistas","Comedor"], areas:AREAS,
+        fotos:fotos('casa-del-bosque-ii','jpg',[2,3,4,5,6,7,8]) },
     };
-    function esc(s){return String(s).replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];});}
+    function esc(s){return String(s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];});}
     function qs(id){return document.getElementById(id);}
     var params = new URLSearchParams(location.search);
     var casaKey = params.get('casa') || 'casa-grande';
     if(!CASAS[casaKey]) casaKey='casa-grande';
     var casa = CASAS[casaKey];
+
     qs('casaNombre').textContent = casa.nombre;
-    qs('casaHero').src = casa.img; qs('casaHero').alt = casa.nombre;
-    qs('casaDesc').textContent = DESC;
-    var cells=''; for(var k in casa.amen){ cells+='<div class="rsv-amen-cell"><span class="n">'+esc(casa.amen[k])+'</span><span class="l">'+esc(k)+'</span></div>'; }
-    var lists='<div><h4>Zonas comunes</h4><ul>'+casa.zonas.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'
-             +'<div><h4>Áreas recreativas</h4><ul>'+casa.areas.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';
-    qs('casaAmen').innerHTML='<div class="rsv-amen"><div class="rsv-amen-title">Amenidades</div><div class="rsv-amen-grid">'+cells+'</div><div class="rsv-amen-lists">'+lists+'</div></div>';
+    qs('casaNombreAmen').textContent = casa.nombre;
+    qs('hero').style.backgroundImage = "url('"+casa.fotos[0]+"')";
+    qs('casaIntro').innerHTML = DESC.map(function(p){return '<p>'+esc(p)+'</p>';}).join('');
+
+    // galería
+    qs('galeria').innerHTML = casa.fotos.map(function(src){ return '<img src="'+src+'" alt="'+esc(casa.nombre)+'" loading="lazy">'; }).join('');
+
+    // amenidades
+    var cells=''; for(var k in casa.amen){ cells+='<div class="cd-amen-cell"><span class="n">'+esc(casa.amen[k])+'</span><span class="l">'+esc(k)+'</span></div>'; }
+    qs('amenGrid').innerHTML=cells;
+    qs('amenLists').innerHTML =
+      '<div class="cd-amen-listcard"><h4>Zonas comunes</h4><ul>'+casa.zonas.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'+
+      '<div class="cd-amen-listcard"><h4>Áreas recreativas</h4><ul>'+casa.areas.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';
+
     qs('btnConsultar').href = '/reservar/seccion?casa=' + encodeURIComponent(casaKey);
+
+    // lightbox
+    var lb=qs('lightbox'), lbImg=qs('lbImg');
+    qs('galeria').addEventListener('click',function(e){ if(e.target.tagName==='IMG'){ lbImg.src=e.target.src; lb.classList.add('show'); } });
+    lb.addEventListener('click',function(){ lb.classList.remove('show'); });
   })();
   </script>
 </body>
