@@ -156,7 +156,7 @@ module.exports = async function handler(req, res) {
 
     // Dirigidos que NUNCA muestran cuota ni permiten registro (institucionales)
     const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-    const DIRIGIDO_EXCLUIDOS = ['icami', 'ipade', 'liceo blueridge', 'ciudad de los ninos'];
+    const DIRIGIDO_EXCLUIDOS = ['icami', 'ipade', 'liceo blueridge', 'ciudad de los ninos', 'club lince - cdn'];
     const dirigidoRaw = String(firstVal(f[FIELDS.dirigidoA]) || '').trim();
     const dirigidoExcluido = DIRIGIDO_EXCLUIDOS.includes(norm(dirigidoRaw));
 

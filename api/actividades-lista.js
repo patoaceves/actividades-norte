@@ -131,7 +131,7 @@ module.exports = async function handler(req, res) {
         const estatusCta = String(firstScalar(f[FIELDS.estatusCuota]) || '').toLowerCase().trim();
         const registroChk = asBool(firstScalar(f[FIELDS.registro]));
         const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-        const DIRIGIDO_EXCLUIDOS = ['icami', 'ipade', 'liceo blueridge', 'ciudad de los ninos'];
+        const DIRIGIDO_EXCLUIDOS = ['icami', 'ipade', 'liceo blueridge', 'ciudad de los ninos', 'club lince - cdn'];
         const dirigidoExcluido = DIRIGIDO_EXCLUIDOS.includes(norm(firstScalar(f[FIELDS.dirigidoA])));
         // Cuota visible solo si aprobada + Registro ✓ + no es dirigido excluido
         const cuotaAprobada = estatusCta === 'aprobada' && registroChk && !dirigidoExcluido;
