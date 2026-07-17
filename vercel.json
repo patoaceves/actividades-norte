@@ -49,6 +49,14 @@
     {
       "source": "/reservar",
       "destination": "/pages/reservar"
+    },
+    {
+      "source": "/reservar/seccion",
+      "destination": "/pages/reservar/seccion"
+    },
+    {
+      "source": "/reservar/calendario",
+      "destination": "/pages/reservar/calendario"
     }
   ],
   "headers": [

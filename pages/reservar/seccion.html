@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selecciona tu sección - Actividades Norte</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/isotipo.png">
+  <link rel="shortcut icon" href="/assets/png/isotipo.png">
+  <link rel="apple-touch-icon" href="/assets/png/isotipo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <style>
+    :root{ --cream:#F6F1E7; --green:#2A4030; --gold:#A07840; --muted:#6B7066; }
+    .rsv-wrap{max-width:680px;margin:0 auto;padding:clamp(24px,5vw,64px) var(--gutter,24px)}
+    .rsv-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+    .rsv-back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.72rem;text-decoration:none;text-transform:uppercase;letter-spacing:.08em;margin-bottom:22px}
+    .rsv-back-link:hover{color:var(--green)}
+    .rsv-panel{background:#fff;border:1px solid rgba(42,64,48,.14);border-radius:14px;padding:clamp(22px,4vw,36px)}
+    .rsv-panel h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.6rem,4vw,2.1rem);color:var(--green);margin:0 0 6px}
+    .rsv-panel .casa-tag{font-family:'Lora',serif;color:var(--muted);margin:0 0 18px}
+    .rsv-panel p{font-family:'Lora',serif;color:#2f342b;line-height:1.65;margin:0 0 14px}
+    .rsv-sec-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+    @media(max-width:520px){.rsv-sec-btns{grid-template-columns:1fr}}
+    .rsv-sec-btn{font-family:'Lora',serif;font-size:1rem;padding:16px;border-radius:10px;border:1.5px solid rgba(42,64,48,.2);background:var(--cream);color:var(--green);cursor:pointer;transition:.15s}
+    .rsv-sec-btn:hover{border-color:var(--gold);background:#fff}
+    .rsv-sec-btn.active{border-color:var(--gold);background:#fff;box-shadow:0 0 0 2px rgba(160,120,64,.2)}
+    .rsv-pass{margin-top:20px;display:none}
+    .rsv-pass.show{display:block}
+    .rsv-pass label{display:block;font-size:.9rem;color:var(--green);margin-bottom:6px;font-family:'Lora',serif}
+    .rsv-pass-row{display:flex;gap:10px}
+    .rsv-pass input{flex:1;font-family:'Lora',serif;font-size:1rem;padding:12px 13px;border:1px solid rgba(42,64,48,.2);border-radius:8px;background:var(--cream)}
+    .rsv-pass input:focus{outline:none;border-color:var(--gold);background:#fff}
+    .rsv-pass button{font-family:'Lora',serif;padding:12px 22px;background:var(--green);color:var(--cream);border:none;border-radius:8px;cursor:pointer}
+    .rsv-err{color:#8B2020;font-size:.88rem;margin-top:8px;font-family:'Lora',serif;display:none}
+    .rsv-err.show{display:block}
+  </style>
+  <script defer src="/assets/js/mobile-nav.js"></script>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-logo">
+      <span class="nav-logo-img-wrap">
+        <img class="nav-logo-img-light" src="/assets/png/isotipo.png" alt="">
+        <img class="nav-logo-img-dark" src="/assets/png/isotipo-dark.png" alt="">
+      </span>
+      <span>Actividades Norte</span>
+    </a>
+    <div class="nav-links">
+      <a href="/varonil">Varonil</a>
+      <a href="/femenil">Femenil</a>
+      <a href="/#casas">Casas</a>
+      <a href="/contacto">Contacto</a>
+    </div>
+    <a href="/" class="nav-cta">
+      <svg width="14" height="10" viewBox="0 0 18 12" fill="none"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Inicio</span>
+    </a>
+    <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
+  </nav>
+
+  <main class="rsv-wrap">
+    <a class="rsv-back-link" id="backCasa" href="#">← Volver a la casa</a>
+    <div class="rsv-panel">
+      <div class="rsv-eyebrow">Paso 1 de 2</div>
+      <h1>Selecciona tu sección</h1>
+      <p class="casa-tag" id="casaTag"></p>
+      <p>Elige la sección correspondiente e ingresa la contraseña para ver el calendario y solicitar tu reservación.</p>
+      <div class="rsv-sec-btns">
+        <button class="rsv-sec-btn" data-sec="admin">Administrador</button>
+        <button class="rsv-sec-btn" data-sec="femenil">Femenil</button>
+        <button class="rsv-sec-btn" data-sec="varonil">Varonil</button>
+      </div>
+      <div class="rsv-pass" id="passBox">
+        <label id="passLabel">Contraseña</label>
+        <div class="rsv-pass-row">
+          <input type="password" id="passInput" placeholder="Contraseña" autocomplete="off">
+          <button id="passBtn">Entrar</button>
+        </div>
+        <div class="rsv-err" id="passErr">Contraseña incorrecta. Intenta de nuevo.</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  (function(){
+    var PASS = { admin:"Admin2026", femenil:"Femenil2026", varonil:"Varonil2026" };
+    var SEC_LABEL = { admin:"Administrador", femenil:"Femenil", varonil:"Varonil" };
+    var CASA_NOMBRE = { "casa-grande":"Casa Grande", "casa-del-bosque-i":"Casa del Bosque I", "casa-del-bosque-ii":"Casa del Bosque II" };
+    function qs(id){return document.getElementById(id);}
+    var params = new URLSearchParams(location.search);
+    var casaKey = params.get('casa') || 'casa-grande';
+    if(!CASA_NOMBRE[casaKey]) casaKey='casa-grande';
+    qs('casaTag').textContent = CASA_NOMBRE[casaKey];
+    qs('backCasa').href = '/reservar?casa=' + encodeURIComponent(casaKey);
+
+    var secSel=null;
+    document.querySelectorAll('.rsv-sec-btn').forEach(function(b){
+      b.addEventListener('click',function(){
+        document.querySelectorAll('.rsv-sec-btn').forEach(function(x){x.classList.remove('active');});
+        b.classList.add('active');
+        secSel=b.getAttribute('data-sec');
+        qs('passLabel').textContent='Contraseña — '+SEC_LABEL[secSel];
+        qs('passBox').classList.add('show'); qs('passErr').classList.remove('show');
+        qs('passInput').value=''; qs('passInput').focus();
+      });
+    });
+    function tryPass(){
+      if(!secSel) return;
+      if(qs('passInput').value===PASS[secSel]){
+        try{ sessionStorage.setItem('rsv_auth_'+secSel,'1'); }catch(e){}
+        location.href='/reservar/calendario?casa='+encodeURIComponent(casaKey)+'&seccion='+secSel;
+      } else { qs('passErr').classList.add('show'); }
+    }
+    qs('passBtn').addEventListener('click',tryPass);
+    qs('passInput').addEventListener('keydown',function(e){ if(e.key==='Enter') tryPass(); });
+  })();
+  </script>
+</body>
+</html>

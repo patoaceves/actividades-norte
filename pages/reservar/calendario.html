@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendario y reservación - Actividades Norte</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/isotipo.png">
+  <link rel="shortcut icon" href="/assets/png/isotipo.png">
+  <link rel="apple-touch-icon" href="/assets/png/isotipo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <style>
+    :root{ --cream:#F6F1E7; --green:#2A4030; --gold:#A07840; --muted:#6B7066; }
+    .rsv-wrap{max-width:760px;margin:0 auto;padding:clamp(24px,5vw,56px) var(--gutter,24px)}
+    .rsv-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+    .rsv-back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.72rem;text-decoration:none;text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px}
+    .rsv-back-link:hover{color:var(--green)}
+    h1.rsv-title{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.6rem,4vw,2.1rem);color:var(--green);margin:0 0 4px}
+    .rsv-subtag{font-family:'Lora',serif;color:var(--muted);margin:0 0 20px}
+    .rsv-subtag b{color:var(--green)}
+    .rsv-panel{background:#fff;border:1px solid rgba(42,64,48,.14);border-radius:14px;padding:clamp(20px,4vw,30px);margin-bottom:22px}
+    .rsv-notice{border-left:3px solid var(--gold);background:var(--cream);border-radius:0 10px 10px 0;padding:16px 18px;margin-bottom:20px}
+    .rsv-notice h3{font-family:'Playfair Display',serif;font-weight:500;color:var(--green);margin:0 0 8px;font-size:1.12rem}
+    .rsv-notice p{font-family:'Lora',serif;font-size:.94rem;color:#2f342b;line-height:1.6;margin-bottom:8px}
+    .rsv-notice .firma{font-style:italic;color:var(--muted);margin:0}
+    .rsv-legend{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 16px}
+    .rsv-legend span{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-family:'Lora',serif;color:#2f342b}
+    .rsv-dot{width:14px;height:14px;border-radius:4px;display:inline-block}
+    .dot-3{background:#3E8E5A}.dot-2{background:#E8B54A}.dot-1{background:#D98C8C}.dot-0{background:#C7C9C4}
+    .rsv-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .rsv-cal-head button{background:#fff;border:1px solid rgba(42,64,48,.2);border-radius:8px;width:34px;height:34px;cursor:pointer;color:var(--green);font-size:1.1rem}
+    .rsv-cal-head button:disabled{opacity:.3;cursor:default}
+    .rsv-cal-month{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--green)}
+    .rsv-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;position:relative}
+    .rsv-dow{text-align:center;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);text-transform:uppercase;padding:4px 0}
+    .rsv-day{aspect-ratio:1;border-radius:8px;border:1px solid rgba(42,64,48,.1);display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:.9rem;color:#2f342b;cursor:pointer;background:#fff;transition:.1s}
+    .rsv-day.empty{border:none;background:transparent;cursor:default}
+    .rsv-day.c3{background:#EAF5EE;border-color:#3E8E5A55}
+    .rsv-day.c2{background:#FBF3DF;border-color:#E8B54A66}
+    .rsv-day.c1{background:#FAECEC;border-color:#D98C8C66}
+    .rsv-day.c0{background:#F0F0EE;color:#B4B6B1;cursor:not-allowed}
+    .rsv-day.past{opacity:.35;cursor:not-allowed}
+    .rsv-day.inrange{outline:2px solid var(--gold);outline-offset:-2px;background:#F3E9D8}
+    .rsv-day.endpoint{background:var(--gold);color:#fff;border-color:var(--gold);font-weight:600}
+    .rsv-tip{position:fixed;z-index:50;background:var(--green);color:var(--cream);font-family:'Lora',serif;font-size:.8rem;line-height:1.4;padding:8px 11px;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .12s;max-width:200px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+    .rsv-tip.show{opacity:1}
+    .rsv-tip b{color:#fff;display:block;margin-bottom:2px;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
+    .rsv-range-box{margin-top:16px;background:var(--cream);border-radius:10px;padding:12px 14px;font-family:'Lora',serif;font-size:.92rem;color:var(--green);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .rsv-range-box .lbl{color:var(--muted);font-size:.82rem}
+    .rsv-range-box .clear{background:none;border:none;color:var(--gold);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
+    .rsv-form h2{font-family:'Playfair Display',serif;font-weight:500;color:var(--green);font-size:1.35rem;margin:0 0 16px}
+    .rsv-field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
+    .rsv-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:520px){.rsv-row2{grid-template-columns:1fr}}
+    .rsv-field label{font-size:.85rem;color:var(--green);font-family:'Lora',serif}
+    .rsv-field input,.rsv-field select{font-family:'Lora',serif;font-size:1rem;color:var(--green);background:var(--cream);border:1px solid rgba(42,64,48,.18);border-radius:8px;padding:11px 13px}
+    .rsv-field input:focus,.rsv-field select:focus{outline:none;border-color:var(--gold);background:#fff}
+    .rsv-casas{display:flex;flex-wrap:wrap;gap:10px}
+    .rsv-casas label{display:inline-flex;align-items:center;gap:7px;background:var(--cream);border:1px solid rgba(42,64,48,.18);border-radius:8px;padding:9px 13px;cursor:pointer;font-size:.92rem;font-family:'Lora',serif}
+    .rsv-submit{width:100%;font-family:'Lora',serif;font-size:1.05rem;padding:14px;background:var(--green);color:var(--cream);border:none;border-radius:10px;cursor:pointer;margin-top:6px}
+    .rsv-submit:disabled{opacity:.6}
+    .rsv-form-msg{margin-top:14px;font-family:'Lora',serif;display:none}
+    .rsv-form-msg.show{display:block}
+    .rsv-form-msg.ok{color:var(--green)}.rsv-form-msg.bad{color:#8B2020}
+  </style>
+  <script defer src="/assets/js/mobile-nav.js"></script>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-logo">
+      <span class="nav-logo-img-wrap">
+        <img class="nav-logo-img-light" src="/assets/png/isotipo.png" alt="">
+        <img class="nav-logo-img-dark" src="/assets/png/isotipo-dark.png" alt="">
+      </span>
+      <span>Actividades Norte</span>
+    </a>
+    <div class="nav-links">
+      <a href="/varonil">Varonil</a>
+      <a href="/femenil">Femenil</a>
+      <a href="/#casas">Casas</a>
+      <a href="/contacto">Contacto</a>
+    </div>
+    <a href="/" class="nav-cta">
+      <svg width="14" height="10" viewBox="0 0 18 12" fill="none"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Inicio</span>
+    </a>
+    <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
+  </nav>
+
+  <main class="rsv-wrap">
+    <a class="rsv-back-link" id="backSeccion" href="#">← Cambiar de sección</a>
+    <div class="rsv-eyebrow">Paso 2 de 2</div>
+    <h1 class="rsv-title">Calendario y reservación</h1>
+    <p class="rsv-subtag"><b id="casaTag"></b> · Sección <b id="secTag"></b></p>
+
+    <div class="rsv-notice">
+      <h3>Actualización de Calendario 2026</h3>
+      <p>El calendario ahora muestra la <strong>disponibilidad</strong> de las casas (antes mostraba la ocupación). Pasa el mouse sobre un día para ver qué casas están disponibles y haz clic para elegir tus fechas.</p>
+      <p class="firma">Atentamente, Administración Los Pinos</p>
+    </div>
+
+    <div class="rsv-panel">
+      <div class="rsv-legend">
+        <span><i class="rsv-dot dot-3"></i> Todas las casas disponibles</span>
+        <span><i class="rsv-dot dot-2"></i> 2 casas disponibles</span>
+        <span><i class="rsv-dot dot-1"></i> 1 casa disponible</span>
+        <span><i class="rsv-dot dot-0"></i> Ninguna casa disponible</span>
+      </div>
+      <div class="rsv-cal-head">
+        <button id="calPrev" aria-label="Mes anterior">‹</button>
+        <div class="rsv-cal-month" id="calMonth"></div>
+        <button id="calNext" aria-label="Mes siguiente">›</button>
+      </div>
+      <div class="rsv-grid" id="calGrid"></div>
+      <div class="rsv-range-box">
+        <span><span class="lbl">Fechas seleccionadas:</span> <strong id="rangeText">— ninguna —</strong></span>
+        <button class="clear" id="clearRange">Limpiar</button>
+      </div>
+    </div>
+
+    <div class="rsv-panel rsv-form">
+      <h2>Solicita una reservación</h2>
+      <div class="rsv-field">
+        <label>Nombre de la actividad</label>
+        <input type="text" id="fNombre" placeholder="Ej. Retiro de fin de semana">
+      </div>
+      <div class="rsv-field">
+        <label>Casa(s) de interés</label>
+        <div class="rsv-casas">
+          <label><input type="checkbox" value="Casa Grande"> Casa Grande</label>
+          <label><input type="checkbox" value="Casa del Bosque I"> Bosque I</label>
+          <label><input type="checkbox" value="Casa del Bosque II"> Bosque II</label>
+        </div>
+      </div>
+      <div class="rsv-field">
+        <label>¿Quién coordina?</label>
+        <input type="text" id="fCoordina" placeholder="Nombre del coordinador">
+      </div>
+      <div class="rsv-row2">
+        <div class="rsv-field"><label>N.º de asistentes</label><input type="number" id="fAsistentes" min="0" placeholder="0"></div>
+        <div class="rsv-field"><label>N.º de sacerdotes</label><input type="number" id="fSacerdotes" min="0" placeholder="0"></div>
+      </div>
+      <div class="rsv-field"><label>Personas adicionales</label><input type="number" id="fAdicionales" min="0" placeholder="0"></div>
+      <div class="rsv-row2">
+        <div class="rsv-field"><label>Tu nombre completo</label><input type="text" id="fSolicitante" autocomplete="name" placeholder="Nombre y apellidos"></div>
+        <div class="rsv-field"><label>Correo</label><input type="email" id="fEmail" autocomplete="email" placeholder="tucorreo@ejemplo.com"></div>
+      </div>
+      <div class="rsv-field"><label>WhatsApp</label><input type="tel" id="fWhatsapp" placeholder="81 1234 5678"></div>
+      <button class="rsv-submit" id="btnEnviar">Enviar solicitud</button>
+      <div class="rsv-form-msg" id="formMsg"></div>
+    </div>
+  </main>
+
+  <div class="rsv-tip" id="tip"></div>
+
+  <script>
+  (function(){
+    var SEC_LABEL = { admin:"Administrador", femenil:"Femenil", varonil:"Varonil" };
+    var CASA_NOMBRE = { "casa-grande":"Casa Grande", "casa-del-bosque-i":"Casa del Bosque I", "casa-del-bosque-ii":"Casa del Bosque II" };
+    function qs(id){return document.getElementById(id);}
+    function pad(n){return n<10?'0'+n:''+n;}
+    var params = new URLSearchParams(location.search);
+    var casaKey = params.get('casa') || 'casa-grande';
+    if(!CASA_NOMBRE[casaKey]) casaKey='casa-grande';
+    var secSel = params.get('seccion') || '';
+    if(!SEC_LABEL[secSel]) secSel='admin';
+
+    // gate suave: si no pasó la contraseña, regresa a seleccionar sección
+    try{ if(sessionStorage.getItem('rsv_auth_'+secSel)!=='1'){ location.replace('/reservar/seccion?casa='+encodeURIComponent(casaKey)); return; } }catch(e){}
+
+    qs('casaTag').textContent = CASA_NOMBRE[casaKey];
+    qs('secTag').textContent = SEC_LABEL[secSel];
+    qs('backSeccion').href = '/reservar/seccion?casa=' + encodeURIComponent(casaKey);
+
+    var dias={}, viewYear=2026, viewMonth=0, selStart=null, selEnd=null;
+    var MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    var DOW=['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+    var todayISO=new Date().toISOString().slice(0,10);
+
+    function fmtLegible(iso){ var p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+
+    (async function load(){
+      qs('calGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px;font-family:Lora,serif">Cargando disponibilidad…</div>';
+      try{
+        var r=await fetch('/api/disponibilidad?seccion='+encodeURIComponent(secSel));
+        var data=await r.json(); dias=data.dias||{};
+      }catch(e){ dias={}; }
+      viewYear=2026; viewMonth=(new Date().getFullYear()===2026)?new Date().getMonth():0;
+      renderCal();
+    })();
+
+    function renderCal(){
+      var grid=qs('calGrid'); grid.innerHTML='';
+      qs('calMonth').textContent=MESES[viewMonth]+' '+viewYear;
+      qs('calPrev').disabled = (viewYear===2026 && viewMonth<= (new Date().getFullYear()===2026?new Date().getMonth():0));
+      qs('calNext').disabled = (viewMonth>=11);
+      DOW.forEach(function(d){ var el=document.createElement('div'); el.className='rsv-dow'; el.textContent=d; grid.appendChild(el); });
+      var first=new Date(viewYear,viewMonth,1).getDay();
+      var days=new Date(viewYear,viewMonth+1,0).getDate();
+      for(var i=0;i<first;i++){ var e=document.createElement('div'); e.className='rsv-day empty'; grid.appendChild(e); }
+      for(var d=1;d<=days;d++){
+        var iso=viewYear+'-'+pad(viewMonth+1)+'-'+pad(d);
+        var info=dias[iso]; var count=info?info.count:0;
+        var cell=document.createElement('div');
+        cell.className='rsv-day c'+count;
+        var selectable = count>0 && iso>=todayISO;
+        if(iso<todayISO) cell.className+=' past';
+        cell.textContent=d;
+        // rango
+        if(selStart && selEnd && iso>=selStart && iso<=selEnd) cell.className+=' inrange';
+        if(iso===selStart || iso===selEnd) cell.className+=' endpoint';
+        if(selectable){
+          (function(iso,info){
+            cell.addEventListener('click',function(){ pickDate(iso); });
+            cell.addEventListener('mouseenter',function(ev){ showTip(ev,info); });
+            cell.addEventListener('mousemove',moveTip);
+            cell.addEventListener('mouseleave',hideTip);
+          })(iso,info);
+        }
+        grid.appendChild(cell);
+      }
+    }
+
+    function pickDate(iso){
+      if(!selStart || (selStart && selEnd)){ selStart=iso; selEnd=null; }
+      else if(iso<selStart){ selStart=iso; selEnd=null; }
+      else { selEnd=iso; }
+      updateRangeText(); renderCal();
+    }
+    function updateRangeText(){
+      if(selStart && selEnd) qs('rangeText').textContent = fmtLegible(selStart)+'  →  '+fmtLegible(selEnd);
+      else if(selStart) qs('rangeText').textContent = fmtLegible(selStart)+'  (elige la fecha de fin)';
+      else qs('rangeText').textContent='— ninguna —';
+    }
+    qs('clearRange').addEventListener('click',function(){ selStart=null; selEnd=null; updateRangeText(); renderCal(); });
+
+    // tooltip
+    var tip=qs('tip');
+    function showTip(ev,info){
+      var casas=(info&&info.casas)?info.casas.filter(function(c){return c.disponible;}).map(function(c){return c.nombre;}):[];
+      tip.innerHTML='<b>Casas disponibles</b>'+(casas.length?casas.join('<br>'):'Ninguna');
+      tip.classList.add('show'); moveTip(ev);
+    }
+    function moveTip(ev){ tip.style.left=(ev.clientX+14)+'px'; tip.style.top=(ev.clientY+14)+'px'; }
+    function hideTip(){ tip.classList.remove('show'); }
+
+    qs('calPrev').addEventListener('click',function(){ if(!qs('calPrev').disabled){viewMonth--; renderCal();} });
+    qs('calNext').addEventListener('click',function(){ if(!qs('calNext').disabled){viewMonth++; renderCal();} });
+
+    // envío
+    qs('btnEnviar').addEventListener('click',async function(){
+      var msg=qs('formMsg'); msg.className='rsv-form-msg';
+      if(!selStart){ msg.textContent='Selecciona al menos la fecha de inicio en el calendario.'; msg.className='rsv-form-msg bad show'; return; }
+      var casas=[]; document.querySelectorAll('.rsv-casas input:checked').forEach(function(c){ casas.push(c.value); });
+      var payload={
+        seccion:SEC_LABEL[secSel], nombreActividad:qs('fNombre').value.trim(), casas:casas,
+        quienCoordina:qs('fCoordina').value.trim(),
+        fechaInicio:selStart, fechaFin:selEnd||selStart,
+        asistentes:qs('fAsistentes').value, sacerdotes:qs('fSacerdotes').value, adicionales:qs('fAdicionales').value,
+        solicitante:qs('fSolicitante').value.trim(), email:qs('fEmail').value.trim(), whatsapp:qs('fWhatsapp').value.trim()
+      };
+      if(!payload.solicitante||!payload.email){ msg.textContent='Completa tu nombre y correo.'; msg.className='rsv-form-msg bad show'; return; }
+      qs('btnEnviar').disabled=true; qs('btnEnviar').textContent='Enviando…';
+      try{
+        var r=await fetch('/api/reservar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        var data=await r.json();
+        if(!r.ok){ msg.textContent=data.error||'No se pudo enviar. Intenta de nuevo.'; msg.className='rsv-form-msg bad show'; }
+        else{
+          msg.textContent='¡Solicitud enviada! Te contactaremos para confirmar la disponibilidad.';
+          msg.className='rsv-form-msg ok show';
+          ['fNombre','fCoordina','fAsistentes','fSacerdotes','fAdicionales','fSolicitante','fEmail','fWhatsapp'].forEach(function(id){qs(id).value='';});
+          document.querySelectorAll('.rsv-casas input:checked').forEach(function(c){c.checked=false;});
+          selStart=null; selEnd=null; updateRangeText(); renderCal();
+        }
+      }catch(e){ msg.textContent='No se pudo conectar. Revisa tu internet.'; msg.className='rsv-form-msg bad show'; }
+      finally{ qs('btnEnviar').disabled=false; qs('btnEnviar').textContent='Enviar solicitud'; }
+    });
+  })();
+  </script>
+</body>
+</html>
