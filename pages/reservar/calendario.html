@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calendario y reservación - Actividades Norte</title>
+  <title>Consultar disponibilidad - Actividades Norte</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/isotipo.png">
   <link rel="shortcut icon" href="/assets/png/isotipo.png">
   <link rel="apple-touch-icon" href="/assets/png/isotipo.png">
@@ -13,13 +13,17 @@
   <link rel="stylesheet" href="/assets/css/site.css">
   <style>
     :root{ --cream:#F6F1E7; --green:#2A4030; --gold:#A07840; --muted:#6B7066; }
-    .rsv-wrap{max-width:760px;margin:0 auto;padding:clamp(24px,5vw,56px) var(--gutter,24px)}
-    .rsv-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
-    .rsv-back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.72rem;text-decoration:none;text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px}
+    /* HERO */
+    .cal-hero{position:relative;min-height:clamp(280px,40vh,420px);display:flex;align-items:flex-end;background-size:cover;background-position:center;color:var(--cream)}
+    .cal-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(20,30,22,.88) 0%,rgba(20,30,22,.4) 60%,rgba(20,30,22,.55) 100%)}
+    .cal-hero-inner{position:relative;z-index:2;max-width:760px;margin:0 auto;width:100%;padding:clamp(28px,5vw,52px) var(--gutter,24px)}
+    .cal-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:#E8D9BE;margin-bottom:10px}
+    .cal-hero h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.9rem,4.5vw,3rem);letter-spacing:-.02em;margin:0 0 10px;line-height:1.05}
+    .cal-hero-sec{font-family:'Lora',serif;font-size:1rem;color:#E8D9BE}
+    .rsv-wrap{max-width:760px;margin:0 auto;padding:clamp(24px,5vw,48px) var(--gutter,24px)}
+    .rsv-back-link{display:inline-flex;align-items:center;gap:9px;color:var(--muted);font-family:'Lora',serif;font-size:.95rem;text-decoration:none;margin-bottom:22px;transition:color .15s}
     .rsv-back-link:hover{color:var(--green)}
-    h1.rsv-title{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.6rem,4vw,2.1rem);color:var(--green);margin:0 0 4px}
-    .rsv-subtag{font-family:'Lora',serif;color:var(--muted);margin:0 0 20px}
-    .rsv-subtag b{color:var(--green)}
+    .rsv-back-link svg{width:22px;height:22px}
     .rsv-panel{background:#fff;border:1px solid rgba(42,64,48,.14);border-radius:14px;padding:clamp(20px,4vw,30px);margin-bottom:22px}
     .rsv-notice{border-left:3px solid var(--gold);background:var(--cream);border-radius:0 10px 10px 0;padding:16px 18px;margin-bottom:20px}
     .rsv-notice h3{font-family:'Playfair Display',serif;font-weight:500;color:var(--green);margin:0 0 8px;font-size:1.12rem}
@@ -34,7 +38,7 @@
     .rsv-cal-head button:disabled{opacity:.3;cursor:default}
     .rsv-cal-month{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--green)}
     .rsv-hint-drag{font-size:.78rem;color:var(--muted);font-family:'Lora',serif;margin:0 0 10px}
-    .rsv-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;position:relative;touch-action:none;user-select:none}
+    .rsv-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;position:relative;user-select:none}
     .rsv-dow{text-align:center;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);text-transform:uppercase;padding:4px 0}
     .rsv-day{aspect-ratio:1;border-radius:8px;border:1px solid rgba(42,64,48,.1);display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:.9rem;color:#2f342b;cursor:pointer;background:#fff;transition:background .08s}
     .rsv-day.empty{border:none;background:transparent;cursor:default}
@@ -48,10 +52,10 @@
     .rsv-tip{position:fixed;z-index:50;background:var(--green);color:var(--cream);font-family:'Lora',serif;font-size:.8rem;line-height:1.4;padding:8px 11px;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .12s;max-width:210px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
     .rsv-tip.show{opacity:1}
     .rsv-tip b{color:#fff;display:block;margin-bottom:2px;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
-    .rsv-range-box{margin-top:16px;background:var(--cream);border-radius:10px;padding:12px 14px;font-family:'Lora',serif;font-size:.92rem;color:var(--green);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .rsv-range-box{margin-top:16px;background:var(--cream);border-radius:10px;padding:12px 14px;font-family:'Lora',serif;font-size:.92rem;color:var(--green);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .rsv-range-box .lbl{color:var(--muted);font-size:.82rem}
-    .rsv-range-box .clear{background:none;border:none;color:var(--gold);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
-    /* form */
+    .rsv-range-box .clear{background:var(--green);border:none;color:var(--cream);cursor:pointer;font-family:'Lora',serif;font-size:.85rem;padding:9px 18px;border-radius:8px;transition:background .15s}
+    .rsv-range-box .clear:hover{background:#1f3123}
     .rsv-form-sec{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid rgba(42,64,48,.12)}
     .rsv-field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
     .rsv-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -62,13 +66,10 @@
     .rsv-field input:focus,.rsv-field select:focus{outline:none;border-color:var(--gold);background:#fff}
     .rsv-casas{display:flex;flex-wrap:wrap;gap:10px}
     .rsv-casas label{display:inline-flex;align-items:center;gap:7px;background:var(--cream);border:1px solid rgba(42,64,48,.18);border-radius:8px;padding:9px 13px;cursor:pointer;font-size:.92rem;font-family:'Lora',serif}
-    .rsv-casas label.disabled{opacity:.4;cursor:not-allowed;text-decoration:line-through}
-    .rsv-avail{margin-top:12px;background:var(--cream);border-radius:10px;padding:12px 14px}
-    .rsv-avail-toggle{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;font-family:'Lora',serif;color:var(--green);cursor:pointer}
-    .rsv-avail-list{margin-top:8px;font-family:'Lora',serif;font-size:.9rem;color:#2f342b}
-    .rsv-avail-list .ok{color:#2A6B3F;font-weight:600}
+    .rsv-casas-hint{font-family:'Lora',serif;font-size:.9rem;color:var(--muted);margin:0}
+    .rsv-casas-hint.bad{color:#8B2020}
     .rsv-tel{display:flex;gap:8px}
-    .rsv-tel select{flex:0 0 auto;width:auto;min-width:96px}
+    .rsv-tel select{flex:0 0 auto;width:auto;max-width:150px}
     .rsv-tel input{flex:1}
     .rsv-submit{width:100%;font-family:'Lora',serif;font-size:1.05rem;padding:14px;background:var(--green);color:var(--cream);border:none;border-radius:10px;cursor:pointer;margin-top:6px}
     .rsv-submit:disabled{opacity:.6}
@@ -97,15 +98,23 @@
     <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
   </nav>
 
+  <header class="cal-hero" id="hero">
+    <div class="cal-hero-inner">
+      <div class="cal-eyebrow">Reservación</div>
+      <h1 id="heroTitle">Consultar disponibilidad</h1>
+      <div class="cal-hero-sec">Sección <b id="secTag"></b></div>
+    </div>
+  </header>
+
   <main class="rsv-wrap">
-    <a class="rsv-back-link" id="backSeccion" href="#">← Cambiar de sección</a>
-    <div class="rsv-eyebrow">Paso 2 de 2</div>
-    <h1 class="rsv-title">Calendario y reservación</h1>
-    <p class="rsv-subtag"><b id="casaTag"></b> · Sección <b id="secTag"></b></p>
+    <a class="rsv-back-link" id="backSeccion" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Regresar
+    </a>
 
     <div class="rsv-notice">
       <h3>Actualización de Calendario 2026</h3>
-      <p>El calendario muestra la <strong>disponibilidad</strong> de las casas. Pasa el mouse sobre un día para ver qué casas están disponibles, y <strong>haz clic y arrastra</strong> para elegir tu rango de fechas.</p>
+      <p>El calendario muestra la <strong>disponibilidad</strong> de las casas. Pasa el mouse sobre un día para ver qué casas están disponibles; <strong>haz clic en un día para el inicio y en otro para el fin</strong> del rango.</p>
       <p class="firma">Atentamente, Administración Los Pinos</p>
     </div>
 
@@ -117,19 +126,18 @@
         <span><i class="rsv-dot dot-0"></i> Ninguna casa disponible</span>
       </div>
       <div class="rsv-cal-head">
-        <button id="calPrev" aria-label="Mes anterior">‹</button>
+        <button id="calPrev" aria-label="Mes anterior">&#8249;</button>
         <div class="rsv-cal-month" id="calMonth"></div>
-        <button id="calNext" aria-label="Mes siguiente">›</button>
+        <button id="calNext" aria-label="Mes siguiente">&#8250;</button>
       </div>
-      <p class="rsv-hint-drag">Haz clic y arrastra sobre los días disponibles para seleccionar tu rango.</p>
+      <p class="rsv-hint-drag">Haz clic en el día de inicio, mueve el mouse y haz clic en el día de fin.</p>
       <div class="rsv-grid" id="calGrid"></div>
       <div class="rsv-range-box">
-        <span><span class="lbl">Fechas seleccionadas:</span> <strong id="rangeText">— ninguna —</strong></span>
+        <span><span class="lbl">Fechas seleccionadas:</span> <strong id="rangeText">- ninguna -</strong></span>
         <button class="clear" id="clearRange">Limpiar</button>
       </div>
     </div>
 
-    <!-- SECCIÓN 1: actividad -->
     <div class="rsv-panel">
       <div class="rsv-form-sec">Información de la actividad</div>
       <div class="rsv-field">
@@ -137,16 +145,8 @@
         <input type="text" id="fNombre" placeholder="Ej. Retiro de fin de semana">
       </div>
       <div class="rsv-field">
-        <label>Casa(s) de interés</label>
-        <div class="rsv-casas" id="casasChoices">
-          <label data-casa="Casa Grande"><input type="checkbox" value="Casa Grande"> Casa Grande</label>
-          <label data-casa="Casa del Bosque I"><input type="checkbox" value="Casa del Bosque I"> Bosque I</label>
-          <label data-casa="Casa del Bosque II"><input type="checkbox" value="Casa del Bosque II"> Bosque II</label>
-        </div>
-        <div class="rsv-avail">
-          <label class="rsv-avail-toggle"><input type="checkbox" id="availToggle" checked> Mostrar casas disponibles en mis fechas</label>
-          <div class="rsv-avail-list" id="availList">Selecciona fechas en el calendario para ver qué casas están disponibles.</div>
-        </div>
+        <label>Casa(s) disponibles en tus fechas</label>
+        <div class="rsv-casas" id="casasChoices"></div>
       </div>
       <div class="rsv-field">
         <label>¿Quién coordina?</label>
@@ -159,7 +159,6 @@
       </div>
     </div>
 
-    <!-- SECCIÓN 2: contacto -->
     <div class="rsv-panel">
       <div class="rsv-form-sec">Información de contacto</div>
       <div class="rsv-field">
@@ -174,20 +173,7 @@
         <div class="rsv-field">
           <label>WhatsApp</label>
           <div class="rsv-tel">
-            <select id="fLada">
-              <option value="+52" selected>🇲🇽 +52</option>
-              <option value="+1">🇺🇸 +1</option>
-              <option value="+34">🇪🇸 +34</option>
-              <option value="+54">🇦🇷 +54</option>
-              <option value="+57">🇨🇴 +57</option>
-              <option value="+56">🇨🇱 +56</option>
-              <option value="+51">🇵🇪 +51</option>
-              <option value="+593">🇪🇨 +593</option>
-              <option value="+502">🇬🇹 +502</option>
-              <option value="+503">🇸🇻 +503</option>
-              <option value="+55">🇧🇷 +55</option>
-              <option value="+44">🇬🇧 +44</option>
-            </select>
+            <select id="fLada"></select>
             <input type="tel" id="fWhatsapp" placeholder="81 1234 5678">
           </div>
         </div>
@@ -199,177 +185,257 @@
 
   <div class="rsv-tip" id="tip"></div>
 
+<footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/png/isotipo.png" alt="">
+        <div class="footer-brand-name">Actividades Norte</div>
+        <p class="footer-brand-desc">Plataforma de reservaciones.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Secciones</div>
+        <ul>
+          <li><a href="/varonil">Varonil</a></li>
+          <li><a href="/femenil">Femenil</a></li>
+          <li><a href="/#casas">Casas</a></li>
+          <li><a href="/apartado">Completar pago</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Oficinas</div>
+        <ul>
+          <li class="contact-line">Níspero 211-A<br>Valle del Campestre<br>San Pedro Garza García, NL 66265</li>
+          <li><a href="tel:+528183357430">81 8335 7430</a></li>
+          <li><a href="mailto:portalnortemx@gmail.com">portalnortemx@gmail.com</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Horario</div>
+        <ul>
+          <li class="contact-line">Lun – Vie<br>10:00 a 18:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-payments">
+      <div class="footer-payments-left">
+        <span class="footer-payments-label">Aceptamos</span>
+        <div class="footer-payments-icons">
+          <img src="/assets/png/icons/visa.png" alt="Visa">
+          <img src="/assets/png/icons/master-card.png" alt="Mastercard">
+          <img src="/assets/png/icons/amex.png" alt="American Express">
+          <img src="/assets/png/icons/oxxo.png" alt="OXXO">
+        </div>
+      </div>
+      <span class="footer-payments-label">Pagos seguros vía Stripe</span>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Actividades Norte</span>
+      <div class="footer-bottom-links">
+        <a href="/terminos">Términos</a>
+        <a href="/privacidad">Privacidad</a>
+        <a href="/politicas">Políticas de reservación</a>
+      </div>
+    </div>
+  </footer>
+
   <script>
   (function(){
+    // code|dial|nombre — México primero, luego alfabético
+var PAISES = [
+"MX|+52|México","US|+1|Estados Unidos","CA|+1|Canadá","ES|+34|España","AR|+54|Argentina",
+"BO|+591|Bolivia","BR|+55|Brasil","CL|+56|Chile","CO|+57|Colombia","CR|+506|Costa Rica",
+"CU|+53|Cuba","DO|+1|República Dominicana","EC|+593|Ecuador","SV|+503|El Salvador","GT|+502|Guatemala",
+"HN|+504|Honduras","NI|+505|Nicaragua","PA|+507|Panamá","PY|+595|Paraguay","PE|+51|Perú",
+"PR|+1|Puerto Rico","UY|+598|Uruguay","VE|+58|Venezuela",
+"AF|+93|Afganistán","AL|+355|Albania","DE|+49|Alemania","AD|+376|Andorra","AO|+244|Angola",
+"AI|+1|Anguila","AG|+1|Antigua y Barbuda","SA|+966|Arabia Saudita","DZ|+213|Argelia","AM|+374|Armenia",
+"AW|+297|Aruba","AU|+61|Australia","AT|+43|Austria","AZ|+994|Azerbaiyán","BS|+1|Bahamas",
+"BD|+880|Bangladés","BB|+1|Barbados","BH|+973|Baréin","BE|+32|Bélgica","BZ|+501|Belice",
+"BJ|+229|Benín","BM|+1|Bermudas","BY|+375|Bielorrusia","MM|+95|Birmania","BA|+387|Bosnia y Herzegovina",
+"BW|+267|Botsuana","BN|+673|Brunéi","BG|+359|Bulgaria","BF|+226|Burkina Faso","BI|+257|Burundi",
+"BT|+975|Bután","CV|+238|Cabo Verde","KH|+855|Camboya","CM|+237|Camerún","QA|+974|Catar",
+"TD|+235|Chad","CN|+86|China","CY|+357|Chipre","VA|+39|Ciudad del Vaticano","KM|+269|Comoras",
+"CG|+242|Congo","CD|+243|Congo (RD)","KP|+850|Corea del Norte","KR|+82|Corea del Sur","CI|+225|Costa de Marfil",
+"HR|+385|Croacia","DK|+45|Dinamarca","DM|+1|Dominica","EG|+20|Egipto","AE|+971|Emiratos Árabes Unidos",
+"ER|+291|Eritrea","SK|+421|Eslovaquia","SI|+386|Eslovenia","EE|+372|Estonia","SZ|+268|Esuatini",
+"ET|+251|Etiopía","PH|+63|Filipinas","FI|+358|Finlandia","FJ|+679|Fiyi","FR|+33|Francia",
+"GA|+241|Gabón","GM|+220|Gambia","GE|+995|Georgia","GH|+233|Ghana","GI|+350|Gibraltar",
+"GD|+1|Granada","GR|+30|Grecia","GL|+299|Groenlandia","GP|+590|Guadalupe","GU|+1|Guam",
+"GF|+594|Guayana Francesa","GN|+224|Guinea","GQ|+240|Guinea Ecuatorial","GW|+245|Guinea-Bisáu","GY|+592|Guyana",
+"HT|+509|Haití","HK|+852|Hong Kong","HU|+36|Hungría","IN|+91|India","ID|+62|Indonesia",
+"IQ|+964|Irak","IR|+98|Irán","IE|+353|Irlanda","IS|+354|Islandia","KY|+1|Islas Caimán",
+"IL|+972|Israel","IT|+39|Italia","JM|+1|Jamaica","JP|+81|Japón","JO|+962|Jordania",
+"KZ|+7|Kazajistán","KE|+254|Kenia","KG|+996|Kirguistán","KI|+686|Kiribati","KW|+965|Kuwait",
+"LA|+856|Laos","LS|+266|Lesoto","LV|+371|Letonia","LB|+961|Líbano","LR|+231|Liberia",
+"LY|+218|Libia","LI|+423|Liechtenstein","LT|+370|Lituania","LU|+352|Luxemburgo","MO|+853|Macao",
+"MK|+389|Macedonia del Norte","MG|+261|Madagascar","MY|+60|Malasia","MW|+265|Malaui","MV|+960|Maldivas",
+"ML|+223|Malí","MT|+356|Malta","MA|+212|Marruecos","MQ|+596|Martinica","MU|+230|Mauricio",
+"MR|+222|Mauritania","FM|+691|Micronesia","MD|+373|Moldavia","MC|+377|Mónaco","MN|+976|Mongolia",
+"ME|+382|Montenegro","MZ|+258|Mozambique","NA|+264|Namibia","NR|+674|Nauru","NP|+977|Nepal",
+"NE|+227|Níger","NG|+234|Nigeria","NO|+47|Noruega","NC|+687|Nueva Caledonia",
+"NZ|+64|Nueva Zelanda","OM|+968|Omán","NL|+31|Países Bajos","PK|+92|Pakistán","PW|+680|Palaos",
+"PS|+970|Palestina","PG|+675|Papúa Nueva Guinea","PL|+48|Polonia","PF|+689|Polinesia Francesa","PT|+351|Portugal",
+"GB|+44|Reino Unido","CF|+236|República Centroafricana","CZ|+420|República Checa","RW|+250|Ruanda","RO|+40|Rumanía",
+"RU|+7|Rusia","WS|+685|Samoa","KN|+1|San Cristóbal y Nieves","SM|+378|San Marino","VC|+1|San Vicente y las Granadinas",
+"SH|+290|Santa Elena","LC|+1|Santa Lucía","ST|+239|Santo Tomé y Príncipe","SN|+221|Senegal","RS|+381|Serbia",
+"SC|+248|Seychelles","SL|+232|Sierra Leona","SG|+65|Singapur","SY|+963|Siria","SO|+252|Somalia",
+"LK|+94|Sri Lanka","ZA|+27|Sudáfrica","SD|+249|Sudán","SS|+211|Sudán del Sur","SE|+46|Suecia",
+"CH|+41|Suiza","SR|+597|Surinam","TH|+66|Tailandia","TW|+886|Taiwán","TZ|+255|Tanzania",
+"TJ|+992|Tayikistán","TL|+670|Timor Oriental","TG|+228|Togo","TO|+676|Tonga","TT|+1|Trinidad y Tobago",
+"TN|+216|Túnez","TM|+993|Turkmenistán","TR|+90|Turquía","TV|+688|Tuvalu","UA|+380|Ucrania",
+"UG|+256|Uganda","UZ|+998|Uzbekistán","VU|+678|Vanuatu","VN|+84|Vietnam","YE|+967|Yemen",
+"DJ|+253|Yibuti","ZM|+260|Zambia","ZW|+263|Zimbabue"
+];
     var SEC_LABEL = { admin:"Administrador", femenil:"Femenil", varonil:"Varonil" };
     var CASA_NOMBRE = { "casa-grande":"Casa Grande", "casa-del-bosque-i":"Casa del Bosque I", "casa-del-bosque-ii":"Casa del Bosque II" };
+    var HERO = { "casa-grande":"/assets/png/casa-grande/casa-grande-hero.png", "casa-del-bosque-i":"/assets/png/casa-del-bosque-i/casa-del-bosque-i-hero.jpg", "casa-del-bosque-ii":"/assets/png/casa-del-bosque-ii/casa-del-bosque-ii-hero.jpg" };
     function qs(id){return document.getElementById(id);}
-    function pad(n){return n<10?'0'+n:''+n;}
+    function pad(n){return n<10?"0"+n:""+n;}
+    function flag(cc){ return cc.slice(0,2).toUpperCase().replace(/./g,function(c){return String.fromCodePoint(127397+c.charCodeAt(0));}); }
     var params = new URLSearchParams(location.search);
-    var casaKey = params.get('casa') || 'casa-grande';
-    if(!CASA_NOMBRE[casaKey]) casaKey='casa-grande';
-    var secSel = params.get('seccion') || '';
-    if(!SEC_LABEL[secSel]) secSel='admin';
+    var casaKey = params.get("casa") || "casa-grande";
+    if(!CASA_NOMBRE[casaKey]) casaKey="casa-grande";
+    var secSel = params.get("seccion") || "";
+    if(!SEC_LABEL[secSel]) secSel="admin";
 
-    try{ if(sessionStorage.getItem('rsv_auth_'+secSel)!=='1'){ location.replace('/reservar/seccion?casa='+encodeURIComponent(casaKey)); return; } }catch(e){}
+    try{ if(sessionStorage.getItem("rsv_auth_"+secSel)!=="1"){ location.replace("/reservar/seccion?casa="+encodeURIComponent(casaKey)); return; } }catch(e){}
 
-    qs('casaTag').textContent = CASA_NOMBRE[casaKey];
-    qs('secTag').textContent = SEC_LABEL[secSel];
-    qs('backSeccion').href = '/reservar/seccion?casa=' + encodeURIComponent(casaKey);
+    qs("heroTitle").textContent = "Consultar disponibilidad de " + CASA_NOMBRE[casaKey];
+    qs("secTag").textContent = SEC_LABEL[secSel];
+    qs("hero").style.backgroundImage = "url('" + HERO[casaKey] + "')";
+    qs("backSeccion").href = "/reservar/seccion?casa=" + encodeURIComponent(casaKey);
 
-    var dias={}, viewYear=2026, viewMonth=0, selStart=null, selEnd=null;
-    var dragging=false, dragAnchor=null;
-    var MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    var DOW=['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+    // lada: todos los paises (Mexico por defecto)
+    qs("fLada").innerHTML = PAISES.map(function(p){ var a=p.split("|"); return '<option value="'+a[1]+'">'+flag(a[0])+" "+a[2]+" ("+a[1]+")</option>"; }).join("");
+
+    var dias={}, viewYear=2026, viewMonth=0, selStart=null, selEnd=null, picking=false, hoverEnd=null;
+    var MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    var DOW=["Do","Lu","Ma","Mi","Ju","Vi","Sa"];
     var todayISO=new Date().toISOString().slice(0,10);
-    function fmtLegible(iso){ var p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+    function fmtLegible(iso){ var p=iso.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
 
     (async function load(){
-      qs('calGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px;font-family:Lora,serif">Cargando disponibilidad…</div>';
-      try{
-        var r=await fetch('/api/disponibilidad?seccion='+encodeURIComponent(secSel));
-        var data=await r.json(); dias=data.dias||{};
-      }catch(e){ dias={}; }
+      qs("calGrid").innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px;font-family:Lora,serif">Cargando disponibilidad...</div>';
+      try{ var r=await fetch("/api/disponibilidad?seccion="+encodeURIComponent(secSel)); var data=await r.json(); dias=data.dias||{}; }catch(e){ dias={}; }
       viewYear=2026; viewMonth=(new Date().getFullYear()===2026)?new Date().getMonth():0;
-      renderCal();
+      renderCal(); updateCasas();
     })();
 
     function renderCal(){
-      var grid=qs('calGrid'); grid.innerHTML='';
-      qs('calMonth').textContent=MESES[viewMonth]+' '+viewYear;
-      qs('calPrev').disabled = (viewYear===2026 && viewMonth<= (new Date().getFullYear()===2026?new Date().getMonth():0));
-      qs('calNext').disabled = (viewMonth>=11);
-      DOW.forEach(function(d){ var el=document.createElement('div'); el.className='rsv-dow'; el.textContent=d; grid.appendChild(el); });
+      var grid=qs("calGrid"); grid.innerHTML="";
+      qs("calMonth").textContent=MESES[viewMonth]+" "+viewYear;
+      qs("calPrev").disabled = (viewYear===2026 && viewMonth<= (new Date().getFullYear()===2026?new Date().getMonth():0));
+      qs("calNext").disabled = (viewMonth>=11);
+      DOW.forEach(function(d){ var el=document.createElement("div"); el.className="rsv-dow"; el.textContent=d; grid.appendChild(el); });
       var first=new Date(viewYear,viewMonth,1).getDay();
       var days=new Date(viewYear,viewMonth+1,0).getDate();
-      for(var i=0;i<first;i++){ var e=document.createElement('div'); e.className='rsv-day empty'; grid.appendChild(e); }
+      for(var i=0;i<first;i++){ var e=document.createElement("div"); e.className="rsv-day empty"; grid.appendChild(e); }
       for(var d=1;d<=days;d++){
-        var iso=viewYear+'-'+pad(viewMonth+1)+'-'+pad(d);
+        var iso=viewYear+"-"+pad(viewMonth+1)+"-"+pad(d);
         var info=dias[iso]; var count=info?info.count:0;
-        var cell=document.createElement('div');
-        cell.className='rsv-day c'+count;
-        cell.dataset.iso=iso;
+        var cell=document.createElement("div");
+        cell.className="rsv-day c"+count; cell.dataset.iso=iso;
         var selectable = count>0 && iso>=todayISO;
-        cell.dataset.sel = selectable ? '1':'0';
-        if(iso<todayISO) cell.className+=' past';
+        if(iso<todayISO) cell.className+=" past";
         cell.textContent=d;
         if(selectable){
           (function(iso,info,cell){
-            cell.addEventListener('mousedown',function(ev){ ev.preventDefault(); startDrag(iso); });
-            cell.addEventListener('mouseenter',function(ev){ if(dragging) setRange(dragAnchor,iso); showTip(ev,info); });
-            cell.addEventListener('mousemove',moveTip);
-            cell.addEventListener('mouseleave',hideTip);
-            cell.addEventListener('touchstart',function(ev){ startDrag(iso); },{passive:true});
+            cell.addEventListener("click",function(){ onDayClick(iso); });
+            cell.addEventListener("mouseenter",function(ev){ onDayHover(iso); showTip(ev,info); });
+            cell.addEventListener("mousemove",moveTip);
+            cell.addEventListener("mouseleave",hideTip);
           })(iso,info,cell);
         }
         grid.appendChild(cell);
       }
       paintSelection();
     }
+    qs("calGrid").addEventListener("mouseleave",function(){ if(picking){ hoverEnd=null; paintSelection(); } });
 
+    function rangeAB(){
+      if(selStart&&selEnd) return [selStart,selEnd];
+      if(picking&&selStart&&hoverEnd) return selStart<=hoverEnd?[selStart,hoverEnd]:[hoverEnd,selStart];
+      if(selStart) return [selStart,selStart];
+      return [null,null];
+    }
     function paintSelection(){
-      document.querySelectorAll('#calGrid .rsv-day').forEach(function(cell){
+      var ab=rangeAB(), a=ab[0], b=ab[1];
+      document.querySelectorAll("#calGrid .rsv-day").forEach(function(cell){
         var iso=cell.dataset.iso; if(!iso) return;
-        cell.classList.remove('inrange','endpoint');
-        if(selStart && selEnd && iso>=selStart && iso<=selEnd) cell.classList.add('inrange');
-        if(iso===selStart || iso===selEnd) cell.classList.add('endpoint');
+        cell.classList.remove("inrange","endpoint");
+        if(a&&b&&iso>=a&&iso<=b) cell.classList.add("inrange");
+        if(iso===a||iso===b) cell.classList.add("endpoint");
       });
     }
-
-    function startDrag(iso){ dragging=true; dragAnchor=iso; setRange(iso,iso); }
-    function setRange(a,b){ selStart = a<=b?a:b; selEnd = a<=b?b:a; updateRangeText(); paintSelection(); updateAvail(); }
-    function endDrag(){ dragging=false; }
-    document.addEventListener('mouseup',endDrag);
-    document.addEventListener('touchend',endDrag);
-
-    // arrastre táctil sobre el grid
-    qs('calGrid').addEventListener('touchmove',function(ev){
-      if(!dragging) return;
-      var t=ev.touches[0]; var el=document.elementFromPoint(t.clientX,t.clientY);
-      if(el && el.classList.contains('rsv-day') && el.dataset.sel==='1'){ setRange(dragAnchor, el.dataset.iso); ev.preventDefault(); }
-    },{passive:false});
+    function onDayClick(iso){
+      if(!picking){ selStart=iso; selEnd=null; picking=true; hoverEnd=null; }
+      else { if(iso<selStart){ selStart=iso; selEnd=null; } else { selEnd=iso; picking=false; hoverEnd=null; } }
+      updateRangeText(); paintSelection(); updateCasas();
+    }
+    function onDayHover(iso){ if(picking){ hoverEnd=iso; paintSelection(); } }
 
     function updateRangeText(){
-      if(selStart && selEnd && selStart!==selEnd) qs('rangeText').textContent = fmtLegible(selStart)+'  →  '+fmtLegible(selEnd);
-      else if(selStart) qs('rangeText').textContent = fmtLegible(selStart);
-      else qs('rangeText').textContent='— ninguna —';
+      if(selStart&&selEnd&&selStart!==selEnd) qs("rangeText").textContent=fmtLegible(selStart)+"  \u2192  "+fmtLegible(selEnd);
+      else if(selStart&&picking) qs("rangeText").textContent=fmtLegible(selStart)+" (elige la fecha de fin)";
+      else if(selStart) qs("rangeText").textContent=fmtLegible(selStart);
+      else qs("rangeText").textContent="- ninguna -";
     }
-    qs('clearRange').addEventListener('click',function(){ selStart=null; selEnd=null; updateRangeText(); paintSelection(); updateAvail(); });
+    qs("clearRange").addEventListener("click",function(){ selStart=null; selEnd=null; picking=false; hoverEnd=null; updateRangeText(); paintSelection(); updateCasas(); });
 
-    // casas disponibles en el rango (intersección: disponibles TODOS los días)
     function casasEnRango(){
       if(!selStart) return null;
-      var end=selEnd||selStart;
-      var start=new Date(selStart), fin=new Date(end);
-      var conteo={}, ndias=0;
+      var end=selEnd||selStart, start=new Date(selStart), fin=new Date(end), conteo={}, ndias=0;
       for(var dt=new Date(start); dt<=fin; dt.setDate(dt.getDate()+1)){
         var iso=dt.toISOString().slice(0,10); var info=dias[iso]; ndias++;
-        if(!info){ continue; }
+        if(!info) continue;
         info.casas.forEach(function(c){ if(c.disponible){ conteo[c.nombre]=(conteo[c.nombre]||0)+1; } });
       }
       return Object.keys(conteo).filter(function(n){ return conteo[n]===ndias; });
     }
-    function updateAvail(){
-      var list=qs('availList');
-      var casas=casasEnRango();
-      var labels=document.querySelectorAll('#casasChoices label');
-      if(casas===null){
-        list.textContent='Selecciona fechas en el calendario para ver qué casas están disponibles.';
-        labels.forEach(function(l){ l.classList.remove('disabled'); l.querySelector('input').disabled=false; });
-        return;
-      }
-      if(casas.length){ list.innerHTML='Disponibles en tus fechas: <span class="ok">'+casas.join(' · ')+'</span>'; }
-      else { list.innerHTML='<span style="color:#8B2020">Ninguna casa disponible en todo el rango seleccionado.</span>'; }
-      labels.forEach(function(l){
-        var ok=casas.indexOf(l.dataset.casa)>=0;
-        l.classList.toggle('disabled',!ok);
-        var cb=l.querySelector('input'); cb.disabled=!ok; if(!ok) cb.checked=false;
-      });
+    var checkedCasas={};
+    function updateCasas(){
+      var cont=qs("casasChoices"); var casas=casasEnRango();
+      if(casas===null){ cont.innerHTML='<p class="rsv-casas-hint">Elige tus fechas en el calendario para ver las casas disponibles.</p>'; return; }
+      if(!casas.length){ cont.innerHTML='<p class="rsv-casas-hint bad">Ninguna casa disponible en las fechas seleccionadas.</p>'; return; }
+      cont.innerHTML = casas.map(function(n){ var ck=checkedCasas[n]?" checked":""; return '<label><input type="checkbox" value="'+n+'"'+ck+"> "+n+"</label>"; }).join("");
+      cont.querySelectorAll("input").forEach(function(cb){ cb.addEventListener("change",function(){ checkedCasas[cb.value]=cb.checked; }); });
     }
-    qs('availToggle').addEventListener('change',function(){ qs('availList').style.display=this.checked?'':'none'; });
 
-    // tooltip
-    var tip=qs('tip');
+    var tip=qs("tip");
     function showTip(ev,info){
       var casas=(info&&info.casas)?info.casas.filter(function(c){return c.disponible;}).map(function(c){return c.nombre;}):[];
-      tip.innerHTML='<b>Casas disponibles</b>'+(casas.length?casas.join('<br>'):'Ninguna');
-      tip.classList.add('show'); moveTip(ev);
+      tip.innerHTML="<b>Casas disponibles</b>"+(casas.length?casas.join("<br>"):"Ninguna");
+      tip.classList.add("show"); moveTip(ev);
     }
-    function moveTip(ev){ tip.style.left=(ev.clientX+14)+'px'; tip.style.top=(ev.clientY+14)+'px'; }
-    function hideTip(){ tip.classList.remove('show'); }
+    function moveTip(ev){ tip.style.left=(ev.clientX+14)+"px"; tip.style.top=(ev.clientY+14)+"px"; }
+    function hideTip(){ tip.classList.remove("show"); }
 
-    qs('calPrev').addEventListener('click',function(){ if(!qs('calPrev').disabled){viewMonth--; renderCal();} });
-    qs('calNext').addEventListener('click',function(){ if(!qs('calNext').disabled){viewMonth++; renderCal();} });
+    qs("calPrev").addEventListener("click",function(){ if(!qs("calPrev").disabled){viewMonth--; renderCal();} });
+    qs("calNext").addEventListener("click",function(){ if(!qs("calNext").disabled){viewMonth++; renderCal();} });
 
-    // envío
-    qs('btnEnviar').addEventListener('click',async function(){
-      var msg=qs('formMsg'); msg.className='rsv-form-msg';
-      if(!selStart){ msg.textContent='Selecciona al menos una fecha en el calendario.'; msg.className='rsv-form-msg bad show'; return; }
-      var casas=[]; document.querySelectorAll('#casasChoices input:checked').forEach(function(c){ casas.push(c.value); });
-      var lada=qs('fLada').value, tel=qs('fWhatsapp').value.trim();
-      var payload={
-        seccion:SEC_LABEL[secSel], nombreActividad:qs('fNombre').value.trim(), casas:casas,
-        quienCoordina:qs('fCoordina').value.trim(),
-        fechaInicio:selStart, fechaFin:selEnd||selStart,
-        asistentes:qs('fAsistentes').value, sacerdotes:qs('fSacerdotes').value, adicionales:qs('fAdic').value,
-        solicitante:qs('fSolicitante').value.trim(), email:qs('fEmail').value.trim(),
-        whatsapp: tel ? (lada+' '+tel) : ''
-      };
-      if(!payload.solicitante||!payload.email){ msg.textContent='Completa tu nombre y correo.'; msg.className='rsv-form-msg bad show'; return; }
-      qs('btnEnviar').disabled=true; qs('btnEnviar').textContent='Enviando…';
+    qs("btnEnviar").addEventListener("click",async function(){
+      var msg=qs("formMsg"); msg.className="rsv-form-msg";
+      if(!selStart){ msg.textContent="Selecciona al menos una fecha en el calendario."; msg.className="rsv-form-msg bad show"; return; }
+      var casas=[]; document.querySelectorAll("#casasChoices input:checked").forEach(function(c){ casas.push(c.value); });
+      var lada=qs("fLada").value, tel=qs("fWhatsapp").value.trim();
+      var payload={ seccion:SEC_LABEL[secSel], nombreActividad:qs("fNombre").value.trim(), casas:casas,
+        quienCoordina:qs("fCoordina").value.trim(), fechaInicio:selStart, fechaFin:selEnd||selStart,
+        asistentes:qs("fAsistentes").value, sacerdotes:qs("fSacerdotes").value, adicionales:qs("fAdic").value,
+        solicitante:qs("fSolicitante").value.trim(), email:qs("fEmail").value.trim(), whatsapp: tel?(lada+" "+tel):"" };
+      if(!payload.solicitante||!payload.email){ msg.textContent="Completa tu nombre y correo."; msg.className="rsv-form-msg bad show"; return; }
+      qs("btnEnviar").disabled=true; qs("btnEnviar").textContent="Enviando...";
       try{
-        var r=await fetch('/api/reservar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        var r=await fetch("/api/reservar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
         var data=await r.json();
-        if(!r.ok){ msg.textContent=data.error||'No se pudo enviar. Intenta de nuevo.'; msg.className='rsv-form-msg bad show'; }
+        if(!r.ok){ msg.textContent=data.error||"No se pudo enviar. Intenta de nuevo."; msg.className="rsv-form-msg bad show"; }
         else{
-          msg.textContent='¡Solicitud enviada! Te contactaremos para confirmar la disponibilidad.';
-          msg.className='rsv-form-msg ok show';
-          ['fNombre','fCoordina','fAsistentes','fAdic','fSacerdotes','fSolicitante','fEmail','fWhatsapp'].forEach(function(id){qs(id).value='';});
-          document.querySelectorAll('#casasChoices input:checked').forEach(function(c){c.checked=false;});
-          selStart=null; selEnd=null; updateRangeText(); paintSelection(); updateAvail();
+          msg.textContent="¡Solicitud enviada! Te contactaremos para confirmar la disponibilidad.";
+          msg.className="rsv-form-msg ok show";
+          ["fNombre","fCoordina","fAsistentes","fAdic","fSacerdotes","fSolicitante","fEmail","fWhatsapp"].forEach(function(id){qs(id).value="";});
+          checkedCasas={}; selStart=null; selEnd=null; picking=false; hoverEnd=null; updateRangeText(); paintSelection(); updateCasas();
         }
-      }catch(e){ msg.textContent='No se pudo conectar. Revisa tu internet.'; msg.className='rsv-form-msg bad show'; }
-      finally{ qs('btnEnviar').disabled=false; qs('btnEnviar').textContent='Enviar solicitud'; }
+      }catch(e){ msg.textContent="No se pudo conectar. Revisa tu internet."; msg.className="rsv-form-msg bad show"; }
+      finally{ qs("btnEnviar").disabled=false; qs("btnEnviar").textContent="Enviar solicitud"; }
     });
   })();
   </script>

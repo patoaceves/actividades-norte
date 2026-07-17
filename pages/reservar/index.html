@@ -75,6 +75,10 @@
     .cd-amen-cell{background:rgba(246,241,231,.12);backdrop-filter:blur(3px);border:1px solid rgba(246,241,231,.2);border-radius:14px;padding:22px 16px;text-align:center}
     .cd-amen-cell .n{display:block;font-family:'Playfair Display',serif;font-size:2rem;line-height:1;color:#fff}
     .cd-amen-cell .l{display:block;font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:#CDE0CF;margin-top:9px}
+    .cd-amen-cell .ic{display:flex;justify-content:center;margin-bottom:11px;color:#E8D9BE}
+    .cd-amen-cell .ic svg{width:26px;height:26px}
+    .cd-chips{display:flex;flex-wrap:wrap;gap:9px}
+    .cd-chip{background:rgba(246,241,231,.14);border:1px solid rgba(246,241,231,.24);border-radius:100px;padding:8px 15px;font-family:'Lora',serif;font-size:.92rem;color:var(--cream);line-height:1}
     .cd-amen-lists{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
     @media(max-width:620px){.cd-amen-lists{grid-template-columns:1fr}}
     .cd-amen-listcard{background:rgba(246,241,231,.12);border:1px solid rgba(246,241,231,.2);border-radius:14px;padding:22px}
@@ -203,12 +207,21 @@
     qs('hero').style.backgroundImage = "url('"+casa.fotos[0]+"')";
     qs('casaIntro').innerHTML = DESC.map(function(p){return '<p>'+esc(p)+'</p>';}).join('');
 
-    // amenidades
-    var cells=''; for(var k in casa.amen){ cells+='<div class="cd-amen-cell"><span class="n">'+esc(casa.amen[k])+'</span><span class="l">'+esc(k)+'</span></div>'; }
+    // amenidades con iconos
+    var ICONS={
+      "Huéspedes":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+      "Habitaciones":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9"/><path d="M3 14h18"/><path d="M7 10a2 2 0 0 1 2-2h2v2"/><path d="M3 18v2"/><path d="M21 18v2"/></svg>',
+      "Baños":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V6a2 2 0 0 1 2-2 2 2 0 0 1 2 2"/><path d="M6 6h2"/><path d="M3 12h18v2a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M7 19l-1 2"/><path d="M18 19l1 2"/></svg>',
+      "Estacionamiento":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16l1.5-5.5A2 2 0 0 1 8.4 9h7.2a2 2 0 0 1 1.9 1.5L19 16"/><path d="M4 16h16v3a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H7v1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M7 16v0"/></svg>',
+      "Oratorio":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M8 7h8"/><path d="M5 22V11l7-4 7 4v11"/></svg>',
+      "Aulas":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
+    };
+    var cells=''; for(var k in casa.amen){ cells+='<div class="cd-amen-cell"><span class="ic">'+(ICONS[k]||'')+'</span><span class="n">'+esc(casa.amen[k])+'</span><span class="l">'+esc(k)+'</span></div>'; }
     qs('amenGrid').innerHTML=cells;
+    function chips(arr){ return '<div class="cd-chips">'+arr.map(function(x){return '<span class="cd-chip">'+esc(x)+'</span>';}).join('')+'</div>'; }
     qs('amenLists').innerHTML =
-      '<div class="cd-amen-listcard"><h4>Zonas comunes</h4><ul>'+casa.zonas.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'+
-      '<div class="cd-amen-listcard"><h4>Áreas recreativas</h4><ul>'+casa.areas.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';
+      '<div class="cd-amen-listcard"><h4>Zonas comunes</h4>'+chips(casa.zonas)+'</div>'+
+      '<div class="cd-amen-listcard"><h4>Áreas recreativas</h4>'+chips(casa.areas)+'</div>';
 
     qs('btnConsultar').href = '/reservar/seccion?casa=' + encodeURIComponent(casaKey);
 
@@ -257,5 +270,57 @@
     });
   })();
   </script>
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/png/isotipo.png" alt="">
+        <div class="footer-brand-name">Actividades Norte</div>
+        <p class="footer-brand-desc">Plataforma de reservaciones.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Secciones</div>
+        <ul>
+          <li><a href="/varonil">Varonil</a></li>
+          <li><a href="/femenil">Femenil</a></li>
+          <li><a href="/#casas">Casas</a></li>
+          <li><a href="/apartado">Completar pago</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Oficinas</div>
+        <ul>
+          <li class="contact-line">Níspero 211-A<br>Valle del Campestre<br>San Pedro Garza García, NL 66265</li>
+          <li><a href="tel:+528183357430">81 8335 7430</a></li>
+          <li><a href="mailto:portalnortemx@gmail.com">portalnortemx@gmail.com</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Horario</div>
+        <ul>
+          <li class="contact-line">Lun – Vie<br>10:00 a 18:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-payments">
+      <div class="footer-payments-left">
+        <span class="footer-payments-label">Aceptamos</span>
+        <div class="footer-payments-icons">
+          <img src="/assets/png/icons/visa.png" alt="Visa">
+          <img src="/assets/png/icons/master-card.png" alt="Mastercard">
+          <img src="/assets/png/icons/amex.png" alt="American Express">
+          <img src="/assets/png/icons/oxxo.png" alt="OXXO">
+        </div>
+      </div>
+      <span class="footer-payments-label">Pagos seguros vía Stripe</span>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Actividades Norte</span>
+      <div class="footer-bottom-links">
+        <a href="/terminos">Términos</a>
+        <a href="/privacidad">Privacidad</a>
+        <a href="/politicas">Políticas de reservación</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
