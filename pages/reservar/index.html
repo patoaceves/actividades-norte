@@ -14,6 +14,25 @@
   <link rel="stylesheet" href="/assets/css/site.css">
   <style>
     :root{ --cream:#F6F1E7; --green:#2A4030; --gold:#A07840; --muted:#6B7066; }
+    /* NAV igual al inicio: fija, transparente sobre el hero, solida al hacer scroll */
+    .nav{position:fixed;top:0;left:0;right:0;background:linear-gradient(to bottom,rgba(30,47,35,.72) 0%,rgba(30,47,35,0) 100%);border-bottom-color:transparent;transition:background .3s,border-color .3s,backdrop-filter .3s;}
+    .nav .nav-logo,.nav .nav-logo span{color:var(--cream);}
+    .nav .nav-links a{color:rgba(245,239,227,.85);}
+    .nav .nav-cta{color:var(--cream);border-color:rgba(245,239,227,.3);}
+    .nav .nav-menu-btn span{background:var(--cream);}
+    .nav .nav-cta:hover{background:var(--cream);color:var(--green);border-color:var(--cream);}
+    .nav-logo-img-wrap{position:relative;width:30px;height:30px;flex-shrink:0;}
+    .nav-logo-img-light,.nav-logo-img-dark{position:absolute;inset:0;width:30px;height:30px;object-fit:contain;transition:opacity .3s;}
+    .nav-logo-img-dark{opacity:0;}
+    .nav.scrolled{background:rgba(30,47,35,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(200,217,204,.1);}
+    .nav.scrolled .nav-logo,.nav.scrolled .nav-logo span{color:var(--cream);}
+    .nav.scrolled .nav-logo-img-light{opacity:1;}
+    .nav.scrolled .nav-logo-img-dark{opacity:0;}
+    .nav.scrolled .nav-links a{color:rgba(245,239,227,.75);}
+    .nav.scrolled .nav-links a:hover,.nav.scrolled .nav-links a.active{color:var(--cream);}
+    .nav.scrolled .nav-cta{color:var(--cream);border-color:rgba(245,239,227,.3);}
+    .nav.scrolled .nav-cta:hover{background:var(--cream);color:var(--green);border-color:var(--cream);}
+    .nav.scrolled .nav-menu-btn span{background:var(--cream);}
     /* HERO */
     .cd-hero{position:relative;min-height:clamp(420px,62vh,620px);display:flex;align-items:flex-end;
       background-size:cover;background-position:center;color:var(--cream)}
@@ -95,7 +114,10 @@
 <body>
   <nav class="nav" id="nav">
     <a href="/" class="nav-logo">
-      <img src="/assets/png/isotipo.png" alt="">
+      <span class="nav-logo-img-wrap">
+        <img class="nav-logo-img-light" src="/assets/png/isotipo.png" alt="">
+        <img class="nav-logo-img-dark" src="/assets/png/isotipo-dark.png" alt="">
+      </span>
       <span>Actividades Norte</span>
     </a>
     <div class="nav-links">
@@ -319,5 +341,6 @@
       </div>
     </div>
   </footer>
+  <script>(function(){var n=document.getElementById('nav');if(n)window.addEventListener('scroll',function(){n.classList.toggle('scrolled',window.scrollY>60);},{passive:true});})();</script>
 </body>
 </html>
