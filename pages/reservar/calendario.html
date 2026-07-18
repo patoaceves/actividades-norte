@@ -100,8 +100,8 @@
 
   <header class="cal-hero" id="hero">
     <div class="cal-hero-inner">
-      <div class="cal-eyebrow">Reservación</div>
-      <h1 id="heroTitle">Consultar disponibilidad</h1>
+      <div class="cal-eyebrow" id="heroEyebrow">Consultar disponibilidad de</div>
+      <h1 id="heroTitle">Casa</h1>
       <div class="cal-hero-sec">Sección <b id="secTag"></b></div>
     </div>
   </header>
@@ -300,7 +300,7 @@ var PAISES = [
 
     try{ if(sessionStorage.getItem("rsv_auth_"+secSel)!=="1"){ location.replace("/reservar/seccion?casa="+encodeURIComponent(casaKey)); return; } }catch(e){}
 
-    qs("heroTitle").textContent = "Consultar disponibilidad de " + CASA_NOMBRE[casaKey];
+    qs("heroTitle").textContent = CASA_NOMBRE[casaKey];
     qs("secTag").textContent = SEC_LABEL[secSel];
     qs("hero").style.backgroundImage = "url('" + HERO[casaKey] + "')";
     qs("backSeccion").href = "/reservar/seccion?casa=" + encodeURIComponent(casaKey);
