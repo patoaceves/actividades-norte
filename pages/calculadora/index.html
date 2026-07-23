@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
 <style>
   :root{
     --cream:#F6F1E7; --green:#2A4030; --gold:#A07840;
@@ -14,8 +16,9 @@
     --line:rgba(42,64,48,.14); --line2:rgba(42,64,48,.08);
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--cream);color:var(--green);font-family:'Figtree',sans-serif;line-height:1.5;padding:clamp(18px,4vw,48px);-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1080px;margin:0 auto}
+  /* El padding vive en .wrap, no en body: si no, el footer no llega a los bordes */
+  body{background:var(--cream);color:var(--green);font-family:'Figtree',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;width:100%;padding:clamp(18px,4vw,48px)}
   .eyebrow{font-size:.85rem;color:var(--gold);margin-bottom:8px;font-weight:500}
   h1{font-weight:600;font-size:clamp(1.7rem,4vw,2.3rem);letter-spacing:-.02em}
   .head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:28px;flex-wrap:wrap}
@@ -68,6 +71,8 @@
   .cost-wrap .cost{padding:7px 9px 7px 20px;font-size:.92rem;width:100%}
   .cost-wrap::before{content:"$";position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9em;pointer-events:none}
   .extras-head{display:grid;grid-template-columns:20px 1fr 72px 96px;gap:10px;font-size:.8rem;color:var(--muted);margin-bottom:2px}
+  .hidden{display:none}
+  .warn{font-size:.82rem;color:#8B2020;background:rgba(139,32,32,.06);border:1px solid rgba(139,32,32,.18);border-radius:var(--radius);padding:9px 12px;margin-top:14px}
 
 
   /* Candado */
@@ -78,18 +83,19 @@
   #gate input{text-align:center;margin-bottom:12px}
   #gate button{width:100%;font-family:'Figtree',sans-serif;font-size:.95rem;font-weight:500;padding:11px;background:var(--green);color:var(--cream);border:none;border-radius:var(--radius);cursor:pointer}
   #gate .err{color:#8B2020;font-size:.85rem;min-height:1.2em;margin-top:8px}
-  body.locked .wrap{display:none}
+  body.locked .wrap,body.locked footer{display:none}
 
-  .stripe-logo{height:1.35em;width:auto;vertical-align:-.35em}
+  .stripe-logo{display:inline-block;height:1.35em;width:auto;vertical-align:-.35em}
   .results{position:sticky;top:24px}
   .meta{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line2)}
   .meta div{font-size:.88rem;color:var(--muted)}
   .meta b{display:block;font-size:1.5rem;color:var(--green);font-weight:600;margin-top:2px;letter-spacing:-.01em}
+  .meta small{display:block;font-size:.8rem;color:var(--muted);margin-top:1px}
   .pick-hint{font-size:.86rem;color:var(--muted);margin-bottom:12px}
   .cuotas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media(max-width:480px){.cuotas{grid-template-columns:1fr}}
   .cuota{
-    position:relative;text-align:left;font-family:'Figtree',sans-serif;cursor:pointer;
+    position:relative;text-align:left;font-family:'Figtree',sans-serif;cursor:pointer;color:var(--green);
     border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;background:var(--cream);
     transition:border-color .15s,box-shadow .15s;
   }
@@ -187,10 +193,18 @@
       </div>
 
       <div class="panel">
-        <div class="section-title">Extras</div>
-        <p class="sub-note">por persona. La botella de vino se puede partir en cuartos.</p>
+        <div class="section-title">Extras por asistente</div>
+        <p class="sub-note">Se cobran a cada quien. Cantidad x costo, por persona.</p>
         <div class="extras-head"><span></span><span></span><span>Cantidad</span><span>Costo</span></div>
         <div id="extras"></div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Extras de la actividad</div>
+        <p class="sub-note">Se cobran una sola vez para toda la actividad y se reparten entre los asistentes. Esto siempre se prorratea, sin importar el ajuste de la primera sección.</p>
+        <div class="extras-head"><span></span><span></span><span>Cantidad</span><span>Costo</span></div>
+        <div id="extrasAct"></div>
+        <p class="warn hidden" id="actWarn">Captura el número de asistentes para poder repartir estos extras.</p>
       </div>
     </div>
 
@@ -200,6 +214,7 @@
         <div class="meta">
           <div>Duración<b id="oDur">—</b></div>
           <div>Extras por asistente<b id="oExtras">—</b></div>
+          <div class="hidden" id="oActWrap">De la actividad<b id="oAct">—</b><small id="oActSplit"></small></div>
         </div>
         <p class="pick-hint">Selecciona la cuota que vas a usar:</p>
         <div class="cuotas">
@@ -214,10 +229,65 @@
   </div>
 </div>
 
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/png/isotipo.png" alt="">
+        <div class="footer-brand-name">Actividades Norte</div>
+        <p class="footer-brand-desc">Plataforma de reservaciones.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Secciones</div>
+        <ul>
+          <li><a href="/varonil">Varonil</a></li>
+          <li><a href="/femenil">Femenil</a></li>
+          <li><a href="/#casas">Casas</a></li>
+          <li><a href="/apartado">Completar pago</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Oficinas</div>
+        <ul>
+          <li class="contact-line">Níspero 211-A<br>Valle del Campestre<br>San Pedro Garza García, NL 66265</li>
+          <li><a href="tel:+528183357430">81 8335 7430</a></li>
+          <li><a href="mailto:portalnortemx@gmail.com">portalnortemx@gmail.com</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Horario</div>
+        <ul>
+          <li class="contact-line">Lun – Vie<br>10:00 a 18:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-payments">
+      <div class="footer-payments-left">
+        <span class="footer-payments-label">Aceptamos</span>
+        <div class="footer-payments-icons">
+          <img src="/assets/png/icons/visa.png" alt="Visa">
+          <img src="/assets/png/icons/master-card.png" alt="Mastercard">
+          <img src="/assets/png/icons/amex.png" alt="American Express">
+          <img src="/assets/png/icons/oxxo.png" alt="OXXO">
+        </div>
+      </div>
+      <span class="footer-payments-label">Pagos seguros vía Stripe</span>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Actividades Norte</span>
+      <div class="footer-bottom-links">
+        <a href="/terminos">Términos</a>
+        <a href="/privacidad">Privacidad</a>
+        <a href="/politicas">Políticas de reservación</a>
+      </div>
+    </div>
+  </footer>
+
 <script>
   // [nombre, costo, cantidad, marcado, paso]
   // paso: incremento permitido en la cantidad. 1 = solo enteros, 0.25 = cuartos.
-  const EXTRA_GROUPS = [
+
+  // Se cobran a cada asistente: cantidad x costo por persona.
+  const EXTRAS_PERSONA = [
     ['Duración', [
       ['Media Mañana', 30, 1, false],
       ['Media Tarde', 30, 1, false],
@@ -231,8 +301,15 @@
       ['Hamburguesa', 60, 1, false],
     ]],
     ['Bebida', [
-      ['Cerveza', 18, 1, false],
-      ['Botella de Vino', 250, 1, false, 0.25],
+      ['Cerveza', 20, 1, false],
+    ]],
+  ];
+
+  // Se cobran una vez para toda la actividad y se reparten entre los asistentes.
+  // Este reparto es siempre, sin importar el toggle de prorrateo.
+  const EXTRAS_ACTIVIDAD = [
+    ['Bebida', [
+      ['Botella de Vino', 260, 1, false],
     ]],
   ];
 
@@ -253,29 +330,34 @@
     });
   }
 
-  // Render extras agrupados
-  const box = $('extras');
+  // Render extras agrupados. idx es global para que data-i no choque entre los dos bloques.
   let idx = 0;
-  EXTRA_GROUPS.forEach(([cat, items]) => {
-    const h = document.createElement('div');
-    h.className = 'extra-cat';
-    h.textContent = cat;
-    box.appendChild(h);
-    items.forEach(e => {
-      const i = idx++;
-      const paso = e[4] || 1;
-      const frac = paso < 1;
-      const row = document.createElement('div');
-      row.className = 'extra';
-      row.innerHTML = `
-        <input type="checkbox" data-i="${i}">
-        <span class="en">${e[0]}</span>
-        <input type="number" class="qty" data-i="${i}" value="0" min="0" step="${paso}"
-               inputmode="decimal" data-step="${paso}"${frac ? ' title="Se puede partir: 0.25, 0.5, 0.75, 1, 1.25..."' : ''}>
-        <span class="cost-wrap"><input type="text" inputmode="numeric" class="cost cash" data-i="${i}" value="${withCommas(e[1])}"></span>`;
-      box.appendChild(row);
+  function renderExtras(boxId, grupos, scope){
+    const box = $(boxId);
+    grupos.forEach(([cat, items]) => {
+      const h = document.createElement('div');
+      h.className = 'extra-cat';
+      h.textContent = cat;
+      box.appendChild(h);
+      items.forEach(e => {
+        const i = idx++;
+        const paso = e[4] || 1;
+        const frac = paso < 1;
+        const row = document.createElement('div');
+        row.className = 'extra';
+        row.innerHTML = `
+          <input type="checkbox" data-i="${i}" data-scope="${scope}">
+          <span class="en">${e[0]}</span>
+          <input type="number" class="qty" data-i="${i}" value="0" min="0" step="${paso}"
+                 inputmode="decimal" data-step="${paso}"${frac ? ' title="Se puede partir: 0.25, 0.5, 0.75, 1, 1.25..."' : ''}>
+          <span class="cost-wrap"><input type="text" inputmode="numeric" class="cost cash" data-i="${i}" value="${withCommas(e[1])}"></span>`;
+        box.appendChild(row);
+      });
     });
-  });
+  }
+  renderExtras('extras', EXTRAS_PERSONA, 'persona');
+  renderExtras('extrasAct', EXTRAS_ACTIVIDAD, 'actividad');
+
   document.querySelectorAll('.cash').forEach(attachCash);
 
   // Auto-marcar el checkbox del extra al escribir una cantidad (y desmarcar si queda en 0)
@@ -374,19 +456,31 @@
     const rA   = readMoney($('rAsis'));
     const rH   = readMoney($('rHues'));
 
-    let extraUnit = 0;
+    let extraPersona = 0, extraActividad = 0;
     document.querySelectorAll('.extra input[type=checkbox]').forEach(cb => {
-      if (cb.checked) {
-        const i = cb.dataset.i;
-        const q = +document.querySelector(`.qty[data-i="${i}"]`).value || 0;
-        const c = readMoney(document.querySelector(`.cost[data-i="${i}"]`));
-        extraUnit += q * c;
-      }
+      if (!cb.checked) return;
+      const i = cb.dataset.i;
+      const q = +document.querySelector(`.qty[data-i="${i}"]`).value || 0;
+      const c = readMoney(document.querySelector(`.cost[data-i="${i}"]`));
+      if (cb.dataset.scope === 'actividad') extraActividad += q * c;
+      else extraPersona += q * c;
     });
+
+    // Los extras de actividad SIEMPRE se reparten entre los asistentes,
+    // sin importar el toggle de prorrateo de la primera seccion.
+    const faltanAsis = extraActividad > 0 && asis < 1;
+    const actPorAsis = faltanAsis ? 0 : (extraActividad > 0 ? extraActividad / asis : 0);
+
+    $('actWarn').classList.toggle('hidden', !faltanAsis);
+    $('oActWrap').classList.toggle('hidden', extraActividad <= 0);
+    $('oAct').textContent = fmt(extraActividad);
+    $('oActSplit').textContent = faltanAsis
+      ? 'faltan asistentes'
+      : (extraActividad > 0 ? fmt(actPorAsis) + ' por asistente' : '');
 
     $('oDur').textContent = (dur === null) ? '—' : dur.toLocaleString('es-MX') + ' días';
 
-    if (dur === null || dur <= 0) {
+    if (dur === null || dur <= 0 || faltanAsis) {
       ['oExtras','c1','c2','c3','c4'].forEach(id => $(id).textContent = '—');
       syncSel(); return;
     }
@@ -401,7 +495,7 @@
       base = Math.round(dur * rA);
     }
 
-    const extras = extraUnit;   // fijos: cantidad x costo, sin multiplicar por duracion
+    const extras = extraPersona + actPorAsis;   // fijos: no se multiplican por duracion
     const conExtras = base + extras;
 
     $('oExtras').textContent = fmt(extras);
@@ -441,57 +535,5 @@
     } catch(e){}
   })();
 </script>
-  <footer>
-    <div class="footer-inner">
-      <div class="footer-brand">
-        <img src="/assets/png/isotipo.png" alt="">
-        <div class="footer-brand-name">Actividades Norte</div>
-        <p class="footer-brand-desc">Plataforma de reservaciones.</p>
-      </div>
-      <div class="footer-col">
-        <div class="footer-col-title">Secciones</div>
-        <ul>
-          <li><a href="/varonil">Varonil</a></li>
-          <li><a href="/femenil">Femenil</a></li>
-          <li><a href="/#casas">Casas</a></li>
-          <li><a href="/apartado">Completar pago</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <div class="footer-col-title">Oficinas</div>
-        <ul>
-          <li class="contact-line">Níspero 211-A<br>Valle del Campestre<br>San Pedro Garza García, NL 66265</li>
-          <li><a href="tel:+528183357430">81 8335 7430</a></li>
-          <li><a href="mailto:portalnortemx@gmail.com">portalnortemx@gmail.com</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <div class="footer-col-title">Horario</div>
-        <ul>
-          <li class="contact-line">Lun – Vie<br>10:00 a 18:00</li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-payments">
-      <div class="footer-payments-left">
-        <span class="footer-payments-label">Aceptamos</span>
-        <div class="footer-payments-icons">
-          <img src="/assets/png/icons/visa.png" alt="Visa">
-          <img src="/assets/png/icons/master-card.png" alt="Mastercard">
-          <img src="/assets/png/icons/amex.png" alt="American Express">
-          <img src="/assets/png/icons/oxxo.png" alt="OXXO">
-        </div>
-      </div>
-      <span class="footer-payments-label">Pagos seguros vía Stripe</span>
-    </div>
-    <div class="footer-bottom">
-      <span>© 2026 Actividades Norte</span>
-      <div class="footer-bottom-links">
-        <a href="/terminos">Términos</a>
-        <a href="/privacidad">Privacidad</a>
-        <a href="/politicas">Políticas de reservación</a>
-      </div>
-    </div>
-  </footer>
 </body>
 </html>
