@@ -64,6 +64,7 @@
   .extra input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);cursor:pointer}
   .extra .en{font-size:.94rem}
   .extra .qty{padding:7px 9px;font-size:.92rem}
+  .frac-tag{display:inline-block;font-size:.7rem;font-weight:600;color:var(--gold);background:rgba(160,120,64,.1);border:1px solid rgba(160,120,64,.25);border-radius:100px;padding:1px 7px;margin-left:6px;vertical-align:1px;white-space:nowrap}
   .cost-wrap{position:relative}
   .cost-wrap .cost{padding:7px 9px 7px 20px;font-size:.92rem;width:100%}
   .cost-wrap::before{content:"$";position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9em;pointer-events:none}
@@ -188,7 +189,7 @@
 
       <div class="panel">
         <div class="section-title">Extras</div>
-        <p class="sub-note">por persona</p>
+        <p class="sub-note">por persona. Los extras marcados con paso fraccionado admiten cuartos (0.25, 0.5, 0.75, 1.75...).</p>
         <div class="extras-head"><span></span><span></span><span>Cantidad</span><span>Costo</span></div>
         <div id="extras"></div>
       </div>
@@ -215,7 +216,8 @@
 </div>
 
 <script>
-  // [nombre, costo, cantidad, marcado]
+  // [nombre, costo, cantidad, marcado, paso]
+  // paso: incremento permitido en la cantidad. 1 = solo enteros, 0.25 = cuartos.
   const EXTRA_GROUPS = [
     ['Duración', [
       ['Media Mañana', 30, 1, false],
@@ -231,7 +233,7 @@
     ]],
     ['Bebida', [
       ['Cerveza', 18, 1, false],
-      ['Botella de Vino', 250, 1, false],
+      ['Botella de Vino', 250, 1, false, 0.25],
     ]],
   ];
 
@@ -262,12 +264,15 @@
     box.appendChild(h);
     items.forEach(e => {
       const i = idx++;
+      const paso = e[4] || 1;
+      const frac = paso < 1;
       const row = document.createElement('div');
       row.className = 'extra';
       row.innerHTML = `
         <input type="checkbox" data-i="${i}">
-        <span class="en">${e[0]}</span>
-        <input type="number" class="qty" data-i="${i}" value="0" min="0" step="1">
+        <span class="en">${e[0]}${frac ? ` <span class="frac-tag">${paso}</span>` : ''}</span>
+        <input type="number" class="qty" data-i="${i}" value="0" min="0" step="${paso}"
+               inputmode="decimal" data-step="${paso}"${frac ? ' title="Se puede partir: 0.25, 0.5, 0.75, 1, 1.25..."' : ''}>
         <span class="cost-wrap"><input type="text" inputmode="numeric" class="cost cash" data-i="${i}" value="${withCommas(e[1])}"></span>`;
       box.appendChild(row);
     });
@@ -277,6 +282,19 @@
   // Auto-marcar el checkbox del extra al escribir una cantidad (y desmarcar si queda en 0)
   document.querySelectorAll('.qty').forEach(q => {
     q.addEventListener('input', () => {
+      const cb = document.querySelector(`.extra input[type=checkbox][data-i="${q.dataset.i}"]`);
+      if (cb) cb.checked = (+q.value || 0) > 0;
+      calc();
+    });
+    // Al salir del campo, ajusta la cantidad al paso permitido (ej. 0.3 -> 0.25)
+    q.addEventListener('change', () => {
+      const paso = +q.dataset.step || 1;
+      const v = +q.value || 0;
+      if (v <= 0) { q.value = 0; }
+      else {
+        const snap = Math.round(v / paso) * paso;
+        q.value = +snap.toFixed(2);
+      }
       const cb = document.querySelector(`.extra input[type=checkbox][data-i="${q.dataset.i}"]`);
       if (cb) cb.checked = (+q.value || 0) > 0;
       calc();
