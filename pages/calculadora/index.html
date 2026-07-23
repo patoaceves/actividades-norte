@@ -64,7 +64,6 @@
   .extra input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);cursor:pointer}
   .extra .en{font-size:.94rem}
   .extra .qty{padding:7px 9px;font-size:.92rem}
-  .frac-tag{display:inline-block;font-size:.7rem;font-weight:600;color:var(--gold);background:rgba(160,120,64,.1);border:1px solid rgba(160,120,64,.25);border-radius:100px;padding:1px 7px;margin-left:6px;vertical-align:1px;white-space:nowrap}
   .cost-wrap{position:relative}
   .cost-wrap .cost{padding:7px 9px 7px 20px;font-size:.92rem;width:100%}
   .cost-wrap::before{content:"$";position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9em;pointer-events:none}
@@ -189,7 +188,7 @@
 
       <div class="panel">
         <div class="section-title">Extras</div>
-        <p class="sub-note">por persona. Los extras marcados con paso fraccionado admiten cuartos (0.25, 0.5, 0.75, 1.75...).</p>
+        <p class="sub-note">por persona. La botella de vino se puede partir en cuartos.</p>
         <div class="extras-head"><span></span><span></span><span>Cantidad</span><span>Costo</span></div>
         <div id="extras"></div>
       </div>
@@ -270,7 +269,7 @@
       row.className = 'extra';
       row.innerHTML = `
         <input type="checkbox" data-i="${i}">
-        <span class="en">${e[0]}${frac ? ` <span class="frac-tag">${paso}</span>` : ''}</span>
+        <span class="en">${e[0]}</span>
         <input type="number" class="qty" data-i="${i}" value="0" min="0" step="${paso}"
                inputmode="decimal" data-step="${paso}"${frac ? ' title="Se puede partir: 0.25, 0.5, 0.75, 1, 1.25..."' : ''}>
         <span class="cost-wrap"><input type="text" inputmode="numeric" class="cost cash" data-i="${i}" value="${withCommas(e[1])}"></span>`;
