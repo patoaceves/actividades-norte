@@ -93,6 +93,7 @@ async function getFieldMap(pat, baseId, tableId) {
     meta[f.name] = { id: f.id, type: f.type, linkedTableId: f.options?.linkedTableId };
   });
   map.__meta = meta;
+  map.__tables = data.tables || [];   // reusable: evita repetir el fetch de metadata
   return map;
 }
 
@@ -100,15 +101,19 @@ async function getFieldMap(pat, baseId, tableId) {
 // tabla VINCULADA de la base de asistentes. Esa tabla suele ser una synced
 // table desde la central y NO preserva los record IDs originales, por eso hay
 // que resolver el rec... local buscando por el campo "ID Actividad".
-async function resolverRecordEnTablaVinculada(pat, baseId, linkedTableId, idActividad) {
+async function resolverRecordEnTablaVinculada(pat, baseId, linkedTableId, idActividad, tablasMeta) {
   if (!linkedTableId) return null;
 
-  const meta = await fetch(`https://api.airtable.com/v0/meta/bases/${baseId}/tables`, {
-    headers: { Authorization: `Bearer ${pat}` },
-  });
-  const metaData = await meta.json();
-  if (!meta.ok) throw new Error(`Metadata (tabla vinculada): ${JSON.stringify(metaData)}`);
-  const tabla = metaData.tables?.find(t => t.id === linkedTableId);
+  let tablas = tablasMeta;
+  if (!tablas) {
+    const meta = await fetch(`https://api.airtable.com/v0/meta/bases/${baseId}/tables`, {
+      headers: { Authorization: `Bearer ${pat}` },
+    });
+    const metaData = await meta.json();
+    if (!meta.ok) throw new Error(`Metadata (tabla vinculada): ${JSON.stringify(metaData)}`);
+    tablas = metaData.tables;
+  }
+  const tabla = tablas?.find(t => t.id === linkedTableId);
   if (!tabla) { console.warn(`Tabla vinculada ${linkedTableId} no existe en base ${baseId}`); return null; }
 
   const fields = tabla.fields || [];
@@ -377,8 +382,12 @@ module.exports = async function handler(req, res) {
 
     const idActividad = String(fields['ID Actividad']).trim();
 
-    // 1. Buscar actividad
-    const actividad = await fetchActividad(idActividad);
+    // 1 y 4 en paralelo: buscar actividad (base central) y field map (base
+    //    destino) son independientes. Antes iban en serie y sumaban segundos.
+    const [actividad, fieldMap] = await Promise.all([
+      fetchActividad(idActividad),
+      getFieldMap(pat, cfg.base, cfg.table),
+    ]);
 
     // 2. Validar sección
     if (actividad.seccion && actividad.seccion !== genero.toUpperCase()) {
@@ -395,16 +404,25 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 4. Field map (Metadata API)
-    const fieldMap = await getFieldMap(pat, cfg.base, cfg.table);
+    // 5 y 7 en paralelo: listar idAsistentes existentes (colisiones del
+    //    random) y resolver el LINK a la actividad. Ambos solo dependen del
+    //    fieldMap. El link es best-effort: si falla, se guarda sin link.
+    //    Nota: NO validamos email duplicado: una persona puede registrar a
+    //    otros asistentes con el mismo correo (ej: pareja, hijos, etc.).
+    const linkField = findLinkActividadField(fieldMap, genero);
+    const linkFieldId = cfg.ids.linkActividad || linkField?.fieldId || null;
+    const linkedTableId = cfg.ids.linkTablaActividades || linkField?.linkedTableId || null;
 
-    // 5. Listar idAsistentes existentes (solo para evitar colisiones del random)
-    //    Filtrado en JS — NO usamos filterByFormula con nombres de campo.
-    //    Nota: NO validamos email duplicado: una persona puede registrar a otros
-    //    asistentes con el mismo correo (ej: pareja, hijos, etc.).
-    const idsExistentes = await listarIdsAsistenteParaActividad(
-      pat, cfg, idActividad, fieldMap
-    );
+    const [idsExistentes, linkRecordId] = await Promise.all([
+      listarIdsAsistenteParaActividad(pat, cfg, idActividad, fieldMap),
+      linkFieldId
+        ? resolverRecordEnTablaVinculada(pat, cfg.base, linkedTableId, idActividad, fieldMap.__tables)
+            .catch(e => { console.warn('Error resolviendo el link a la actividad:', e.message); return null; })
+        : Promise.resolve(null),
+    ]);
+    if (linkFieldId && !linkRecordId) {
+      console.warn(`No se encontró la actividad ${idActividad} en la tabla vinculada ${linkedTableId}; se guardará sin link.`);
+    }
 
     // 6. Generar idAsistente único (con retry contra colisiones)
     let idAsistente;
@@ -414,29 +432,6 @@ module.exports = async function handler(req, res) {
       if (!idsSet.has(candidato)) { idAsistente = candidato; break; }
     }
     if (!idAsistente) throw new Error('No se pudo generar un ID de asistente único');
-
-    // 7. Resolver el LINK a la actividad.
-    //    El campo "Actividades V/F" linkea a una tabla dentro de la MISMA base
-    //    de asistentes (synced desde la central). Esa tabla NO preserva los
-    //    record IDs de la central, así que buscamos el rec... local por su
-    //    "ID Actividad". Todo esto es best-effort: si algo falla, el registro
-    //    se guarda igual sin el link (retry defensivo abajo).
-    const linkField = findLinkActividadField(fieldMap, genero);
-    const linkFieldId = cfg.ids.linkActividad || linkField?.fieldId || null;
-    let linkRecordId = null;
-    if (linkFieldId) {
-      try {
-        const linkedTableId = cfg.ids.linkTablaActividades || linkField?.linkedTableId || null;
-        linkRecordId = await resolverRecordEnTablaVinculada(
-          pat, cfg.base, linkedTableId, idActividad
-        );
-        if (!linkRecordId) {
-          console.warn(`No se encontró la actividad ${idActividad} en la tabla vinculada ${linkedTableId}; se guardará sin link.`);
-        }
-      } catch (e) {
-        console.warn('Error resolviendo el link a la actividad:', e.message);
-      }
-    }
 
     // Campo de TEXTO "Actividades V/F" (sin rayo): se llena con el nombre
     // completo de la actividad. Es independiente del link.

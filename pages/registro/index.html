@@ -1499,6 +1499,18 @@
     // ANTI-BOT: timestamp de carga de la página (timing trap del submit)
     const PAGE_LOADED_AT = Date.now();
 
+    // Parseo tolerante: si el server regresa texto plano (504 de Vercel,
+    // HTML de error, etc.) no tronamos con "Unexpected token... is not valid JSON".
+    async function parseResp(r) {
+      const txt = await r.text();
+      try { return JSON.parse(txt); }
+      catch (e) {
+        return { error: r.status === 504
+          ? 'El servidor tardo demasiado en responder. Espera unos segundos e intenta de nuevo; es posible que tu registro SI se haya guardado, revisa tu correo antes de reintentar.'
+          : `Error del servidor (${r.status}). Intenta de nuevo.` };
+      }
+    }
+
     let genero = 'varonil';
     if (actividadId.startsWith('AF')) genero = 'femenil';
     else if (actividadId.startsWith('AV')) genero = 'varonil';
@@ -1931,7 +1943,7 @@
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ fields, genero, ...antiBot }),
         });
-        const submitData = await submitRes.json();
+        const submitData = await parseResp(submitRes);
 
         // 409 = capacidad llena. Mostramos bloqueo definitivo en vez de alert.
         if (submitRes.status === 409) {
@@ -2013,7 +2025,7 @@
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify(data),
         });
-        const piData = await piRes.json();
+        const piData = await parseResp(piRes);
 
         // 409 = la actividad se llenó entre /submit y /payment-intent.
         // El registro ya quedó en Airtable pero NO se cobró nada. Bloqueamos.

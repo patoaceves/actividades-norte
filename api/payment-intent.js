@@ -130,6 +130,15 @@ module.exports = async function handler(req, res) {
     // 1. Releer actividad de Airtable (fuente de verdad)
     const actividad = await fetchActividadServer(idActividad);
 
+    // 1.5 Cross-check: el genero del cliente DEBE coincidir con la seccion
+    //     real de la actividad en Airtable. Sin esto, un genero mal enviado
+    //     (bug o manipulacion) cobraria en la cuenta Stripe equivocada.
+    if (actividad.seccion && actividad.seccion !== genero.toUpperCase()) {
+      return res.status(400).json({
+        error: `Esta actividad es ${actividad.seccion} y el registro llego como ${genero.toUpperCase()}. No se creo el pago.`,
+      });
+    }
+
     // 2. Última barrera: cupo. Si la actividad se llenó entre el submit y
     //    este punto, devolvemos 409 para que el front bloquee. El registro
     //    queda en Airtable sin pago (Pato lo limpia manualmente o vía
