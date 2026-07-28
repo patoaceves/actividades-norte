@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Selecciona tu sección - Actividades Norte</title>
+  <title>Selecciona tu acceso - Actividades Norte</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/isotipo.png">
   <link rel="shortcut icon" href="/assets/png/isotipo.png">
   <link rel="apple-touch-icon" href="/assets/png/isotipo.png">
@@ -49,9 +49,9 @@
     .rsv-card .casa-tag{font-family:'Lora',serif;color:var(--muted);margin:0 0 22px}
     .rsv-sec-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     @media(max-width:520px){.rsv-sec-btns{grid-template-columns:1fr}}
-    .rsv-sec-btn{font-family:'Lora',serif;font-size:1rem;padding:17px;border-radius:12px;border:1.5px solid rgba(42,64,48,.2);background:var(--cream);color:var(--green);cursor:pointer;transition:.15s}
-    .rsv-sec-btn:hover{border-color:var(--gold);background:#fff;transform:translateY(-2px)}
-    .rsv-sec-btn.active{border-color:var(--gold);background:#fff;box-shadow:0 0 0 2px rgba(160,120,64,.25)}
+    .rsv-sec-btn{font-family:'Lora',serif;font-size:1rem;padding:17px;border-radius:12px;border:1.5px solid rgba(42,64,48,.18);background:#fff;color:var(--green);cursor:pointer;transition:.15s}
+    .rsv-sec-btn:hover{border-color:var(--gold);transform:translateY(-2px)}
+    .rsv-sec-btn.active{border-color:var(--green);background:var(--green);color:var(--cream)}
     .rsv-pass{margin-top:20px;display:none}
     .rsv-pass.show{display:block}
     .rsv-pass label{display:block;font-size:.9rem;color:var(--green);margin-bottom:6px;font-family:'Lora',serif}
@@ -62,8 +62,10 @@
     .rsv-pass button:hover{background:#1f3123}
     .rsv-err{color:#8B2020;font-size:.88rem;margin-top:8px;font-family:'Lora',serif;display:none}
     .rsv-err.show{display:block}
-    .rsv-back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.72rem;text-decoration:none;text-transform:uppercase;letter-spacing:.08em;margin-top:20px}
+    .rsv-back-link{display:inline-flex;align-items:center;gap:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.72rem;text-decoration:none;text-transform:uppercase;letter-spacing:.08em;margin-top:20px}
+    .rsv-back-link svg{transition:transform .2s ease;flex-shrink:0}
     .rsv-back-link:hover{color:var(--green)}
+    .rsv-back-link:hover svg{transform:translateX(-5px)}
   </style>
   <script defer src="/assets/js/mobile-nav.js"></script>
 </head>
@@ -89,7 +91,7 @@
   <main class="rsv-hero-bg">
     <div class="rsv-card">
       <div class="rsv-eyebrow">Paso 1 de 2</div>
-      <h1>Selecciona tu sección</h1>
+      <h1>Selecciona tu acceso</h1>
       <p class="casa-tag" id="casaTag"></p>
       <div class="rsv-sec-btns">
         <button class="rsv-sec-btn" data-sec="admin">Administrador</button>
@@ -104,7 +106,7 @@
         </div>
         <div class="rsv-err" id="passErr">Contraseña incorrecta. Intenta de nuevo.</div>
       </div>
-      <a class="rsv-back-link" id="backCasa" href="#">← Volver a la casa</a>
+      <a class="rsv-back-link" id="backCasa" href="#"><svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Volver a la casa</a>
     </div>
   </main>
 
@@ -126,7 +128,7 @@
         document.querySelectorAll('.rsv-sec-btn').forEach(function(x){x.classList.remove('active');});
         b.classList.add('active');
         secSel=b.getAttribute('data-sec');
-        qs('passLabel').textContent='Contraseña — '+SEC_LABEL[secSel];
+        qs('passLabel').textContent='Contraseña de '+SEC_LABEL[secSel];
         qs('passBox').classList.add('show'); qs('passErr').classList.remove('show');
         qs('passInput').value=''; qs('passInput').focus();
       });

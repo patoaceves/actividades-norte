@@ -682,6 +682,7 @@
     @media(max-width:420px){.casa-amen-lists{grid-template-columns:1fr}}
     .casa-amen-lists h4{font-size:.8rem;font-weight:600;color:var(--green,#2A4030);margin:0 0 6px}
     .casa-amen-lists ul{margin:0;padding-left:1rem;font-family:'Lora',serif;font-size:.9rem;color:#2f342b;line-height:1.6}
+    .postcard.casa-nodisp{cursor:default}
     .casa-nodisp-badge{position:absolute;top:12px;left:12px;z-index:2;background:rgba(139,32,32,.92);color:#fff;font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:100px}
     .casa-modal-nodisp{padding:16px 18px;background:#fff;border:1px solid rgba(139,32,32,.25);border-left:3px solid #8B2020;border-radius:0 8px 8px 0;font-family:'Lora',serif;color:#2f342b;margin-top:4px}
   </style>
@@ -1193,6 +1194,13 @@
     }
     function closeModal(){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.style.overflow='';}
     document.querySelectorAll('.casa-open').forEach(function(el){
+      // Casas sin actividades: no abren ficha, la caja se queda solo con hover
+      if (el.classList.contains('casa-nodisp')) {
+        el.addEventListener('click', function(e){ e.preventDefault(); });
+        el.removeAttribute('href');
+        el.setAttribute('aria-disabled', 'true');
+        return;
+      }
       el.addEventListener('click',function(e){e.preventDefault();openModal(el.getAttribute('data-casa'));});
     });
     modal.querySelectorAll('[data-close]').forEach(function(x){x.addEventListener('click',closeModal);});
