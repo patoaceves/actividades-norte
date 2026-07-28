@@ -87,6 +87,8 @@
 
   .stripe-logo{display:inline-block;height:1.35em;width:auto;vertical-align:-.35em}
   .results{position:sticky;top:24px}
+  .res-head{font-size:1.25rem;font-weight:600;letter-spacing:-.015em;color:var(--green);margin-bottom:14px}
+  .res-head span{color:var(--gold)}
   .meta{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line2)}
   .meta div{font-size:.88rem;color:var(--muted)}
   .meta b{display:block;font-size:1.35rem;color:var(--green);font-weight:600;margin-top:2px;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
@@ -110,6 +112,16 @@
   .selbar{margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);display:flex;justify-content:space-between;align-items:baseline;gap:10px}
   .selbar span{font-size:.9rem;color:var(--muted)}
   .selbar b{font-size:1.35rem;font-weight:600;color:var(--green);letter-spacing:-.01em;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+  /* Cuotas por rol (adicional, huesped/sacerdote) */
+  .rol{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 0;border-bottom:1px solid var(--line2)}
+  .rol:last-child{border-bottom:none;padding-bottom:2px}
+  .rol:first-of-type{padding-top:2px}
+  .rol .rl{font-size:.92rem;color:var(--green)}
+  .rol .rl small{display:block;font-size:.78rem;color:var(--muted);margin-top:1px}
+  .rol .rv{display:block;font-size:1.2rem;font-weight:600;color:var(--green);letter-spacing:-.01em;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
+  .rol .rv.pro{font-size:.88rem;font-weight:500;color:var(--gold)}
+  .rol .rs{display:block;font-size:.78rem;color:var(--muted);text-align:right;margin-top:2px}
 </style>
 </head>
 <body class="locked">
@@ -179,14 +191,14 @@
         <div class="section-title">Cálculo de asistentes</div>
         <div class="row three">
           <div class="field"><label>Asistentes</label><input type="number" id="asis" value="0" min="0"></div>
-          <div class="field pro-only"><label>Adicionales</label><input type="number" id="adic" value="0" min="0"></div>
+          <div class="field"><label>Adicionales</label><input type="number" id="adic" value="0" min="0"></div>
           <div class="field"><label>Costo asistente (día)</label>
             <div class="money"><input type="text" inputmode="numeric" class="cash" id="rAsis" value="1,685"></div>
           </div>
         </div>
         <div class="row">
-          <div class="field pro-only"><label>Sacerdotes</label><input type="number" id="sac" value="0" min="0"></div>
-          <div class="field pro-only"><label>Costo huésped (día)</label>
+          <div class="field"><label>Sacerdotes</label><input type="number" id="sac" value="0" min="0"></div>
+          <div class="field"><label>Costo huésped (día)</label>
             <div class="money"><input type="text" inputmode="numeric" class="cash" id="rHues" value="1,500"></div>
           </div>
         </div>
@@ -194,7 +206,7 @@
 
       <div class="panel">
         <div class="section-title">Extras por asistente</div>
-        <p class="sub-note">Se cobran a cada quien. Cantidad x costo, por persona.</p>
+        <p class="sub-note">Se cobran a cada quien: asistentes, adicionales y huéspedes o sacerdotes. Cantidad x costo, por persona.</p>
         <div class="extras-head"><span></span><span></span><span>Cantidad</span><span>Costo</span></div>
         <div id="extras"></div>
       </div>
@@ -210,6 +222,7 @@
 
     <div class="results">
       <div class="panel">
+        <div class="res-head">Calculadora de cuota <span>Los Pinos</span></div>
         <div class="section-title">Resultado</div>
         <div class="meta">
           <div>Duración<b id="oDur">—</b></div>
@@ -224,6 +237,18 @@
           <button class="cuota stripe" data-k="c4"><span class="dot"></span><div class="cl">+ Extras + <img class="stripe-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/3840px-Stripe_Logo%2C_revised_2016.svg.png" alt="Stripe"></div><div class="cv" id="c4">—</div></button>
         </div>
         <div class="selbar"><span>Cuota seleccionada</span><b id="oSel">—</b></div>
+      </div>
+
+      <div class="panel hidden" id="rolPanel">
+        <div class="section-title">Cuotas por rol</div>
+        <div class="rol hidden" id="rolAdic">
+          <div class="rl">Adicional<small>Hospedaje + extras, por persona</small></div>
+          <div><b class="rv" id="rAdicV">-</b><small class="rs" id="rAdicS"></small></div>
+        </div>
+        <div class="rol hidden" id="rolSac">
+          <div class="rl">Hu&eacute;sped / Sacerdote<small>Hospedaje + extras, por persona</small></div>
+          <div><b class="rv" id="rSacV">-</b><small class="rs" id="rSacS"></small></div>
+        </div>
       </div>
     </div>
   </div>
@@ -387,7 +412,6 @@
     const b = ev.target.closest('button'); if (!b) return;
     PRORRATEO = b.dataset.pro === '1';
     [...$('tgl').children].forEach(x => x.classList.toggle('on', x === b));
-    document.querySelectorAll('.pro-only').forEach(el => el.classList.toggle('off', !PRORRATEO));
     $('proOpts').classList.toggle('off', !PRORRATEO);
     syncProHint();
     calc();
@@ -417,12 +441,12 @@
   }
 
   function syncProHint(){
-    if (!PRORRATEO) { $('proHint').textContent = 'Cada asistente paga solo su parte.'; return; }
+    if (!PRORRATEO) { $('proHint').textContent = 'Cada quien paga su propia cuota: asistentes, adicionales y huespedes.'; return; }
     const s = $('pSac').checked, a = $('pAdic').checked;
-    let q = 'Nada se reparte entre los asistentes.';
-    if (s && a) q = 'El costo de sacerdotes y adicionales se reparte entre los asistentes.';
-    else if (s) q = 'El costo de sacerdotes se reparte entre los asistentes.';
-    else if (a) q = 'El costo de adicionales se reparte entre los asistentes.';
+    let q = 'Nada se reparte: sacerdotes y adicionales pagan su propia cuota.';
+    if (s && a) q = 'El costo de sacerdotes y adicionales (hospedaje y extras) se reparte entre los asistentes.';
+    else if (s) q = 'El costo de sacerdotes se reparte entre los asistentes; los adicionales pagan su propia cuota.';
+    else if (a) q = 'El costo de adicionales se reparte entre los asistentes; los sacerdotes pagan su propia cuota.';
     $('proHint').textContent = q;
   }
   $('pSac').addEventListener('change', () => { syncProHint(); calc(); });
@@ -480,22 +504,53 @@
 
     $('oDur').textContent = (dur === null) ? '—' : dur.toLocaleString('es-MX') + ' días';
 
-    if (dur === null || dur <= 0 || faltanAsis) {
+    // Cuotas por rol: si el rol NO se prorratea, paga su propia cuota (hospedaje + sus extras)
+    const proSac  = PRORRATEO && $('pSac').checked;
+    const proAdic = PRORRATEO && $('pAdic').checked;
+    const okDur = !(dur === null || dur <= 0);
+    const cuotaSacPropia  = okDur ? dur * rH + extraPersona : null;
+    const cuotaAdicPropia = okDur ? dur * rA + extraPersona : null;
+
+    function rolUI(show, vId, sId, prorrateado, monto){
+      if (!show) return;
+      const v = $(vId), s = $(sId);
+      if (prorrateado) {
+        v.textContent = 'Se reparte entre asistentes';
+        v.classList.add('pro');
+        s.textContent = 'Incluido en la cuota del asistente';
+      } else {
+        v.textContent = fmt(monto);
+        v.classList.remove('pro');
+        s.textContent = (monto === null) ? '' : 'Con Stripe: ' + fmt(stripe(monto));
+      }
+    }
+    const showAdic = adic > 0, showSac = sac > 0;
+    $('rolPanel').classList.toggle('hidden', !showAdic && !showSac);
+    $('rolAdic').classList.toggle('hidden', !showAdic);
+    $('rolSac').classList.toggle('hidden', !showSac);
+    rolUI(showAdic, 'rAdicV', 'rAdicS', proAdic, cuotaAdicPropia);
+    rolUI(showSac,  'rSacV',  'rSacS',  proSac,  cuotaSacPropia);
+
+    if (!okDur || faltanAsis) {
       ['oExtras','c1','c2','c3','c4'].forEach(id => $(id).textContent = '—');
       syncSel(); return;
     }
 
-    let base;
+    let base, extraOtros = 0;
     if (PRORRATEO) {
       if (asis < 1) { ['oExtras','c1','c2','c3','c4'].forEach(id => $(id).textContent = '—'); syncSel(); return; }
-      const partSac  = $('pSac').checked  ? dur * sac  * rH : 0;
-      const partAdic = $('pAdic').checked ? dur * adic * rA : 0;
+      // Hospedaje de los roles prorrateados se reparte entre los asistentes
+      const partSac  = proSac  ? dur * sac  * rH : 0;
+      const partAdic = proAdic ? dur * adic * rA : 0;
       base = Math.round(dur * rA + (partSac + partAdic) / asis);
+      // Los extras de los roles prorrateados tambien se reparten
+      extraOtros = ((proSac ? sac * extraPersona : 0) + (proAdic ? adic * extraPersona : 0)) / asis;
     } else {
       base = Math.round(dur * rA);
     }
 
-    const extras = extraPersona + actPorAsis;   // fijos: no se multiplican por duracion
+    // fijos: no se multiplican por duracion
+    const extras = extraPersona + actPorAsis + extraOtros;
     const conExtras = base + extras;
 
     $('oExtras').textContent = fmt(extras);
