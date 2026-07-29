@@ -42,7 +42,8 @@
     .rsv-wrap{max-width:760px;margin:0 auto;padding:clamp(24px,5vw,48px) var(--gutter,24px)}
     .rsv-back-link{display:inline-flex;align-items:center;gap:9px;color:var(--muted);font-family:'Lora',serif;font-size:.95rem;text-decoration:none;margin-bottom:22px;transition:color .15s}
     .rsv-back-link:hover{color:var(--green)}
-    .rsv-back-link svg{width:22px;height:22px}
+    .rsv-back-link svg{flex-shrink:0;transition:transform .2s ease}
+    .rsv-back-link:hover svg{transform:translateX(-5px)}
     .rsv-panel{background:#fff;border:1px solid rgba(42,64,48,.14);border-radius:14px;padding:clamp(20px,4vw,30px);margin-bottom:22px}
     .rsv-notice{border-left:3px solid var(--gold);background:var(--cream);border-radius:0 10px 10px 0;padding:16px 18px;margin-bottom:20px}
     .rsv-notice h3{font-family:'Playfair Display',serif;font-weight:500;color:var(--green);margin:0 0 8px;font-size:1.12rem}
@@ -127,7 +128,7 @@
 
   <main class="rsv-wrap">
     <a class="rsv-back-link" id="backSeccion" href="#">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      <svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       Regresar
     </a>
 
