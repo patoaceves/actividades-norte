@@ -77,10 +77,12 @@ module.exports = async function handler(req, res) {
         return res.status(400).json({ error: data.error?.message || 'No se pudo verificar la tarjeta' });
       }
       const plans = data.payment_method_options?.card?.installments?.available_plans || [];
-      // Solo mensualidades fijas (lo que ofrece Stripe MX)
+      // Solo mensualidades fijas, y NUNCA mas de 3 meses (politica del sitio):
+      // aunque la cuenta de Stripe o la tarjeta ofrezcan 6/9/12, aqui se capan.
+      const MAX_MESES = 3;
       return res.status(200).json({
         plans: plans
-          .filter(p => p.type === 'fixed_count' && p.count)
+          .filter(p => p.type === 'fixed_count' && p.count && p.count <= MAX_MESES)
           .map(p => ({ count: p.count, interval: p.interval || 'month' })),
       });
     }
@@ -94,6 +96,9 @@ module.exports = async function handler(req, res) {
         body.append('payment_method', paymentMethodId);
       }
       if (plan && Number.isInteger(plan.count) && plan.count > 0) {
+        if (plan.count > 3) {
+          return res.status(400).json({ error: 'Solo se aceptan planes de hasta 3 meses' });
+        }
         body.append('payment_method_options[card][installments][plan][count]', String(plan.count));
         body.append('payment_method_options[card][installments][plan][interval]', 'month');
         body.append('payment_method_options[card][installments][plan][type]', 'fixed_count');
