@@ -570,9 +570,8 @@
     }
 
     .info-box {
-      background: linear-gradient(135deg, rgba(42, 64, 48, 0.06), rgba(42, 64, 48, 0.02));
-      border: 1px solid var(--green-3);
-      border-left: 3px solid var(--gold);
+      background: #FBF3DC;
+      border: 1px solid rgba(160, 120, 64, 0.35);
       border-radius: var(--radius);
       padding: 14px 18px;
       margin-bottom: 22px;
@@ -687,6 +686,9 @@
       background: var(--green-2);
       border-color: var(--green-2);
     }
+    .btn svg { transition: transform 0.2s ease; flex-shrink: 0; }
+    .btn-next:hover svg, .btn-submit:hover svg { transform: translateX(5px); }
+    .btn-back:hover svg { transform: translateX(-5px); }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .spinner {
@@ -2303,7 +2305,7 @@
       }
       let html = `<button type="button" class="ccf-plan-btn${!ccf.plan ? ' active' : ''}" data-count="0"><span class="ccf-radio"></span><span>Una exhibición</span><span class="ccf-plan-amount">${fmtMx(base)}<small class="ccf-plan-total">Total, en un solo cargo</small></span></button>`;
       ccf.plans.forEach(p => {
-        html += `<button type="button" class="ccf-plan-btn${ccf.plan === p.count ? ' active' : ''}" data-count="${p.count}"><span class="ccf-radio"></span><span>${p.count} meses</span><span class="ccf-plan-amount">${fmtMx(p.perMonth)} <small>/mes</small><small class="ccf-plan-total">Total ${fmtMx(p.total)}</small></span></button>`;
+        html += `<button type="button" class="ccf-plan-btn${ccf.plan === p.count ? ' active' : ''}" data-count="${p.count}"><span class="ccf-radio"></span><span>${p.count} meses</span><span class="ccf-plan-amount">${fmtMx(p.perMonth)} <small>/mes</small></span></button>`;
       });
       grid.innerHTML = html;
       grid.querySelectorAll('.ccf-plan-btn').forEach(b => {
