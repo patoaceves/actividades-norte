@@ -776,6 +776,42 @@
       border-top-color: var(--green);
     }
 
+    /* ── Formulario de tarjeta custom (identidad del sitio) ── */
+    #custom-card { display: flex; flex-direction: column; gap: 16px; }
+    .ccf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .ccf-field .label { margin-bottom: 7px; display: block; }
+    .ccf-input {
+      background: #fff;
+      border: 1.5px solid var(--green-3);
+      border-radius: var(--radius);
+      padding: 13px 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .ccf-input.focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(42, 64, 48, 0.08);
+    }
+    .ccf-input.error { border-color: var(--error); }
+    #ccf-plans { margin-top: 4px; }
+    .ccf-plan-grid { display: flex; flex-wrap: wrap; gap: 9px; }
+    .ccf-plan-btn {
+      font-family: var(--font-body); font-size: 14px;
+      padding: 10px 16px;
+      background: #fff; color: var(--green);
+      border: 1.5px solid var(--green-3); border-radius: 100px;
+      cursor: pointer; transition: 0.15s;
+      display: flex; flex-direction: column; align-items: center; line-height: 1.3;
+    }
+    .ccf-plan-btn small { font-size: 11.5px; color: var(--muted); }
+    .ccf-plan-btn:hover { border-color: var(--gold); }
+    .ccf-plan-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+    .ccf-plan-btn.active small { color: rgba(255,255,255,0.75); }
+    .ccf-plan-note { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 10px; }
+    #ccf-checking {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: var(--muted); font-style: italic;
+    }
+
     #payment-message {
       font-size: 13px;
       color: var(--error);
@@ -1394,6 +1430,30 @@
             <div class="spinner"></div>
             Cargando formulario de pago…
           </div>
+        </div>
+
+        <!-- Formulario de tarjeta custom (flujo API directa, UI 100% nuestra) -->
+        <div id="custom-card" style="display:none;">
+          <div class="ccf-field">
+            <label class="label">Número de tarjeta</label>
+            <div id="ccf-number" class="ccf-input"></div>
+          </div>
+          <div class="ccf-row">
+            <div class="ccf-field">
+              <label class="label">Vencimiento</label>
+              <div id="ccf-expiry" class="ccf-input"></div>
+            </div>
+            <div class="ccf-field">
+              <label class="label">Código de seguridad</label>
+              <div id="ccf-cvc" class="ccf-input"></div>
+            </div>
+          </div>
+          <div id="ccf-plans" style="display:none;">
+            <label class="label">Forma de pago</label>
+            <div class="ccf-plan-grid" id="ccf-plan-grid"></div>
+            <p class="ccf-plan-note">Tu banco divide el cargo en mensualidades. El monto total es el mismo.</p>
+          </div>
+          <div id="ccf-checking" style="display:none;"><div class="spinner"></div> Verificando opciones de pago…</div>
         </div>
       </div>
 
@@ -2074,19 +2134,28 @@
             </div>`;
         } else {
           ctxEl.className = 'pay-context';
-          ctxEl.innerHTML = 'Ingresa los datos de tu tarjeta para confirmar el pago. Tu nombre y correo se llenan automáticamente.';
+          ctxEl.innerHTML = 'Ingresa los datos de tu tarjeta para confirmar el pago. Si tu tarjeta tiene opción de pago a meses, te la mostraremos.';
         }
 
-        const paymentEl = stripeElements.create('payment', {
-          layout: 'tabs',
-          defaultValues: {
-            billingDetails: {
-              name:  data.nombre || '',
-              email: data.email  || '',
+        if (isOXXO) {
+          ccf = null;
+          const paymentEl = stripeElements.create('payment', {
+            layout: 'tabs',
+            defaultValues: {
+              billingDetails: {
+                name:  data.nombre || '',
+                email: data.email  || '',
+              },
             },
-          },
-        });
-        paymentEl.mount('#payment-element');
+          });
+          paymentEl.mount('#payment-element');
+        } else {
+          // Tarjeta: flujo custom con Elements separados. La UI (labels,
+          // selector de mensualidades) es nuestra, con la identidad del sitio.
+          document.getElementById('payment-element').style.display = 'none';
+          document.getElementById('custom-card').style.display = '';
+          setupCustomCard(piData.clientSecret, piData.amount, data);
+        }
 
         window._stripePayData = data;
 
@@ -2108,6 +2177,7 @@
     }
 
     function cancelarPago() {
+      ccf = null;
       document.getElementById('section-4').style.display = 'none';
       document.getElementById('section-4').classList.remove('active');
       document.getElementById('progress-wrap').style.display = '';
@@ -2118,6 +2188,171 @@
       stripeInstance = null;
       stripeElements = null;
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Flujo custom de tarjeta (API directa) ──────────────────────────
+    // UI 100% nuestra: Elements individuales con la identidad del sitio y
+    // selector propio de mensualidades ("Forma de pago", sin la leyenda
+    // nativa del Payment Element).
+    let ccf = null;
+
+    function setupCustomCard(clientSecret, amount, data) {
+      ccf = {
+        piId: clientSecret.split('_secret')[0],
+        clientSecret, amount,
+        genero: data.genero,
+        pm: null, plans: null, plan: null,
+        complete: { number: false, expiry: false, cvc: false },
+        fetching: false,
+      };
+
+      const els = stripeInstance.elements({
+        fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Lora:wght@400;500&display=swap' }],
+      });
+      const style = {
+        base: {
+          color: '#1A1C18',
+          fontFamily: "'Lora', Georgia, serif",
+          fontSize: '15px',
+          '::placeholder': { color: '#9AA096' },
+        },
+        invalid: { color: '#8B2020' },
+      };
+      const num = els.create('cardNumber', { style, showIcon: true, placeholder: '1234 1234 1234 1234' });
+      const exp = els.create('cardExpiry', { style });
+      const cvc = els.create('cardCvc',    { style });
+      num.mount('#ccf-number'); exp.mount('#ccf-expiry'); cvc.mount('#ccf-cvc');
+      ccf.numEl = num;
+
+      function wire(el, key, boxId) {
+        const box = document.getElementById(boxId);
+        el.on('focus', () => box.classList.add('focus'));
+        el.on('blur',  () => box.classList.remove('focus'));
+        el.on('change', ev => {
+          box.classList.toggle('error', !!ev.error);
+          ccf.complete[key] = !!ev.complete;
+          // Cambió la tarjeta: el PaymentMethod y los planes ya no valen
+          ccf.pm = null; ccf.plans = null; ccf.plan = null;
+          renderPlans();
+          maybeFetchPlans();
+        });
+      }
+      wire(num, 'number', 'ccf-number');
+      wire(exp, 'expiry', 'ccf-expiry');
+      wire(cvc, 'cvc',    'ccf-cvc');
+    }
+
+    async function maybeFetchPlans() {
+      if (!ccf) return;
+      if (!(ccf.complete.number && ccf.complete.expiry && ccf.complete.cvc)) return;
+      if (ccf.pm || ccf.fetching) return;
+      ccf.fetching = true;
+      document.getElementById('ccf-checking').style.display = '';
+      try {
+        const { paymentMethod, error } = await stripeInstance.createPaymentMethod({
+          type: 'card',
+          card: ccf.numEl,
+          billing_details: {
+            name:  window._stripePayData?.nombre || '',
+            email: window._stripePayData?.email  || '',
+          },
+        });
+        if (error) throw new Error(error.message);
+        ccf.pm = paymentMethod.id;
+        const r = await fetch('/api/installments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'plans', genero: ccf.genero, paymentIntentId: ccf.piId, paymentMethodId: ccf.pm }),
+        });
+        const d = await parseResp(r);
+        if (!r.ok) throw new Error(d.error);
+        ccf.plans = d.plans || [];
+      } catch (e) {
+        // Sin planes no se bloquea nada: se paga en una exhibición
+        console.warn('planes de mensualidades:', e.message);
+        ccf.plans = [];
+      }
+      ccf.fetching = false;
+      document.getElementById('ccf-checking').style.display = 'none';
+      renderPlans();
+    }
+
+    function renderPlans() {
+      if (!ccf) return;
+      const wrap = document.getElementById('ccf-plans');
+      const grid = document.getElementById('ccf-plan-grid');
+      if (!ccf.plans || !ccf.plans.length) { wrap.style.display = 'none'; grid.innerHTML = ''; return; }
+      const fmtMx = c => (c / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+      let html = `<button type="button" class="ccf-plan-btn${!ccf.plan ? ' active' : ''}" data-count="0">Una exhibición<small>${fmtMx(ccf.amount)}</small></button>`;
+      ccf.plans.forEach(p => {
+        html += `<button type="button" class="ccf-plan-btn${ccf.plan === p.count ? ' active' : ''}" data-count="${p.count}">${p.count} meses<small>${fmtMx(Math.round(ccf.amount / p.count))}/mes</small></button>`;
+      });
+      grid.innerHTML = html;
+      grid.querySelectorAll('.ccf-plan-btn').forEach(b => {
+        b.onclick = () => {
+          const c = parseInt(b.dataset.count, 10);
+          ccf.plan = c > 0 ? c : null;
+          renderPlans();
+        };
+      });
+      wrap.style.display = '';
+    }
+
+    async function confirmCustomCard(btn) {
+      const data = window._stripePayData || {};
+      try {
+        if (!ccf.pm) {
+          const { paymentMethod, error } = await stripeInstance.createPaymentMethod({
+            type: 'card',
+            card: ccf.numEl,
+            billing_details: { name: data.nombre || '', email: data.email || '' },
+          });
+          if (error) throw new Error(error.message);
+          ccf.pm = paymentMethod.id;
+        }
+        const r = await fetch('/api/installments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'confirm',
+            genero: ccf.genero,
+            paymentIntentId: ccf.piId,
+            paymentMethodId: ccf.pm,
+            plan: ccf.plan ? { count: ccf.plan } : null,
+          }),
+        });
+        const d = await parseResp(r);
+        if (!r.ok) throw new Error(d.error);
+
+        let status = d.status;
+        if (d.requiresAction) {
+          // 3D Secure u otra autenticación del banco
+          const { error: naErr, paymentIntent } = await stripeInstance.handleNextAction({
+            clientSecret: d.clientSecret || ccf.clientSecret,
+          });
+          if (naErr) throw new Error(naErr.message);
+          status = paymentIntent.status;
+        }
+
+        if (['succeeded', 'processing'].includes(status)) {
+          window.location.href = `${BASE_URL}/success`
+            + `?id=${encodeURIComponent(data.idAsistente || '')}`
+            + `&genero=${encodeURIComponent(data.genero || '')}`
+            + `&payment_intent=${encodeURIComponent(ccf.piId)}`
+            + `&payment_intent_client_secret=${encodeURIComponent(ccf.clientSecret)}`
+            + `&redirect_status=${encodeURIComponent(status === 'succeeded' ? 'succeeded' : 'pending')}`;
+          return;
+        }
+        throw new Error('El pago no se completó. Intenta de nuevo o usa otra tarjeta.');
+      } catch (e) {
+        hideProc();
+        const msg = document.getElementById('payment-message');
+        msg.textContent = e.message;
+        msg.style.display = 'block';
+        // El siguiente intento recrea el PaymentMethod desde los Elements
+        ccf.pm = null;
+        btn.classList.remove('loading'); btn.disabled = false;
+      }
     }
 
     async function confirmPago() {
@@ -2135,6 +2370,9 @@
       ov.classList.add('show');
 
       const returnUrl = `${BASE_URL}/success?id=${encodeURIComponent(data.idAsistente || '')}&genero=${encodeURIComponent(data.genero || '')}`;
+
+      // Tarjeta con flujo custom: confirmación por API directa
+      if (ccf && !isOXXO) return confirmCustomCard(btn);
 
       const { error, paymentIntent } = await stripeInstance.confirmPayment({
         elements: stripeElements,
