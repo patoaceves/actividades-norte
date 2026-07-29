@@ -793,20 +793,31 @@
     }
     .ccf-input.error { border-color: var(--error); }
     #ccf-plans { margin-top: 4px; }
-    .ccf-plan-grid { display: flex; flex-wrap: wrap; gap: 9px; }
+    .ccf-plan-grid { display: flex; flex-direction: column; gap: 8px; }
     .ccf-plan-btn {
-      font-family: var(--font-body); font-size: 14px;
-      padding: 10px 16px;
-      background: #fff; color: var(--green);
-      border: 1.5px solid var(--green-3); border-radius: 100px;
+      font-family: var(--font-body); font-size: 15px;
+      display: flex; align-items: center; gap: 14px;
+      width: 100%; padding: 14px 18px; text-align: left;
+      background: #fff; color: inherit;
+      border: 1.5px solid var(--green-3); border-radius: var(--radius);
       cursor: pointer; transition: 0.15s;
-      display: flex; flex-direction: column; align-items: center; line-height: 1.3;
     }
-    .ccf-plan-btn small { font-size: 11.5px; color: var(--muted); }
-    .ccf-plan-btn:hover { border-color: var(--gold); }
-    .ccf-plan-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
-    .ccf-plan-btn.active small { color: rgba(255,255,255,0.75); }
-    .ccf-plan-note { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 10px; }
+    .ccf-plan-btn:hover { border-color: var(--gold, #A07840); }
+    .ccf-plan-btn .ccf-radio {
+      width: 18px; height: 18px; flex-shrink: 0; position: relative;
+      border: 1.5px solid var(--green-3); border-radius: 50%; transition: 0.15s;
+    }
+    .ccf-plan-btn.active { border-color: var(--green); background: rgba(42, 64, 48, 0.05); }
+    .ccf-plan-btn.active .ccf-radio { border-color: var(--green); }
+    .ccf-plan-btn.active .ccf-radio::after {
+      content: ''; position: absolute; inset: 3.5px;
+      border-radius: 50%; background: var(--green);
+    }
+    .ccf-plan-amount {
+      margin-left: auto; font-size: 17px; font-weight: 600;
+      color: var(--green); font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .ccf-plan-amount small { font-size: 12px; font-weight: 400; color: var(--muted); }
     #ccf-checking {
       display: flex; align-items: center; gap: 10px;
       font-size: 13px; color: var(--muted); font-style: italic;
@@ -1451,7 +1462,6 @@
           <div id="ccf-plans" style="display:none;">
             <label class="label">Forma de pago</label>
             <div class="ccf-plan-grid" id="ccf-plan-grid"></div>
-            <p class="ccf-plan-note">Tu banco divide el cargo en mensualidades. El monto total es el mismo.</p>
           </div>
           <div id="ccf-checking" style="display:none;"><div class="spinner"></div> Verificando opciones de pago…</div>
         </div>
@@ -2283,9 +2293,9 @@
       const grid = document.getElementById('ccf-plan-grid');
       if (!ccf.plans || !ccf.plans.length) { wrap.style.display = 'none'; grid.innerHTML = ''; return; }
       const fmtMx = c => (c / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-      let html = `<button type="button" class="ccf-plan-btn${!ccf.plan ? ' active' : ''}" data-count="0">Una exhibición<small>${fmtMx(ccf.amount)}</small></button>`;
+      let html = `<button type="button" class="ccf-plan-btn${!ccf.plan ? ' active' : ''}" data-count="0"><span class="ccf-radio"></span><span>Una exhibición</span><span class="ccf-plan-amount">${fmtMx(ccf.amount)}</span></button>`;
       ccf.plans.forEach(p => {
-        html += `<button type="button" class="ccf-plan-btn${ccf.plan === p.count ? ' active' : ''}" data-count="${p.count}">${p.count} meses<small>${fmtMx(Math.round(ccf.amount / p.count))}/mes</small></button>`;
+        html += `<button type="button" class="ccf-plan-btn${ccf.plan === p.count ? ' active' : ''}" data-count="${p.count}"><span class="ccf-radio"></span><span>${p.count} meses</span><span class="ccf-plan-amount">${fmtMx(Math.round(ccf.amount / p.count))} <small>/mes</small></span></button>`;
       });
       grid.innerHTML = html;
       grid.querySelectorAll('.ccf-plan-btn').forEach(b => {
