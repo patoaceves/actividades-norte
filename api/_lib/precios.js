@@ -39,4 +39,21 @@ function montoCentavos(cuotaRaw, tipoPago) {
   return pesos * 100;
 }
 
-module.exports = { parseCuota, montoContadoMXN, montoApartadoMXN, montoCentavos };
+// Total ajustado para pago a meses, en CENTAVOS, a partir del monto base
+// (contado) en centavos. El asistente absorbe la comision ADICIONAL del plan:
+// el neto que recibe la cuenta queda identico al de un pago en una exhibicion.
+//   neto(contado) = base - (base*0.036 + 300) * IVA
+//   total(plan)   = (neto + 300*IVA) / (1 - (0.036 + recargo) * IVA)
+// Recargos oficiales de Stripe MX por plazo. Politica del sitio: solo 3 meses.
+// Este total NO se redondea a multiplos de 50: se cobra el centavo exacto.
+const IVA_FEES = 1.16;
+const RECARGO_MSI = { 3: 0.05 };
+
+function montoPlanCentavos(baseCentavos, meses) {
+  const recargo = RECARGO_MSI[meses];
+  if (!recargo || !baseCentavos) return null;
+  const neto = baseCentavos - (baseCentavos * 0.036 + 300) * IVA_FEES;
+  return Math.round((neto + 300 * IVA_FEES) / (1 - (0.036 + recargo) * IVA_FEES));
+}
+
+module.exports = { parseCuota, montoContadoMXN, montoApartadoMXN, montoCentavos, montoPlanCentavos };

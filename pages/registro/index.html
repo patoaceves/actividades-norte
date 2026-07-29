@@ -817,6 +817,8 @@
       color: var(--green); font-variant-numeric: tabular-nums; white-space: nowrap;
     }
     .ccf-plan-amount small { font-size: 12px; font-weight: 400; color: var(--muted); }
+    .ccf-plan-amount { text-align: right; }
+    .ccf-plan-total { display: block; margin-top: 2px; }
     #ccf-checking {
       display: flex; align-items: center; gap: 10px;
       font-size: 13px; color: var(--muted); font-style: italic;
@@ -2276,6 +2278,7 @@
         const d = await parseResp(r);
         if (!r.ok) throw new Error(d.error);
         ccf.plans = d.plans || [];
+        ccf.base  = d.base || ccf.amount;
       } catch (e) {
         // Sin planes no se bloquea nada: se paga en una exhibición
         console.warn('planes de mensualidades:', e.message);
@@ -2288,13 +2291,19 @@
 
     function renderPlans() {
       if (!ccf) return;
+      const fmtMx = c => (c / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
       const wrap = document.getElementById('ccf-plans');
       const grid = document.getElementById('ccf-plan-grid');
-      if (!ccf.plans || !ccf.plans.length) { wrap.style.display = 'none'; grid.innerHTML = ''; return; }
-      const fmtMx = c => (c / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-      let html = `<button type="button" class="ccf-plan-btn${!ccf.plan ? ' active' : ''}" data-count="0"><span class="ccf-radio"></span><span>Una exhibición</span><span class="ccf-plan-amount">${fmtMx(ccf.amount)}</span></button>`;
+      const base = ccf.base || ccf.amount;
+      const payEl = document.getElementById('pay-amount');
+      if (!ccf.plans || !ccf.plans.length) {
+        wrap.style.display = 'none'; grid.innerHTML = '';
+        if (payEl) payEl.textContent = fmtMx(base);
+        return;
+      }
+      let html = `<button type="button" class="ccf-plan-btn${!ccf.plan ? ' active' : ''}" data-count="0"><span class="ccf-radio"></span><span>Una exhibición</span><span class="ccf-plan-amount">${fmtMx(base)}<small class="ccf-plan-total">Total, en un solo cargo</small></span></button>`;
       ccf.plans.forEach(p => {
-        html += `<button type="button" class="ccf-plan-btn${ccf.plan === p.count ? ' active' : ''}" data-count="${p.count}"><span class="ccf-radio"></span><span>${p.count} meses</span><span class="ccf-plan-amount">${fmtMx(Math.round(ccf.amount / p.count))} <small>/mes</small></span></button>`;
+        html += `<button type="button" class="ccf-plan-btn${ccf.plan === p.count ? ' active' : ''}" data-count="${p.count}"><span class="ccf-radio"></span><span>${p.count} meses</span><span class="ccf-plan-amount">${fmtMx(p.perMonth)} <small>/mes</small><small class="ccf-plan-total">Total ${fmtMx(p.total)}</small></span></button>`;
       });
       grid.innerHTML = html;
       grid.querySelectorAll('.ccf-plan-btn').forEach(b => {
@@ -2305,6 +2314,11 @@
         };
       });
       wrap.style.display = '';
+      // El TOTAL del resumen refleja lo que realmente se va a cobrar
+      if (payEl) {
+        const sel = ccf.plan ? ccf.plans.find(p => p.count === ccf.plan) : null;
+        payEl.textContent = fmtMx(sel ? sel.total : base);
+      }
     }
 
     async function confirmCustomCard(btn) {
