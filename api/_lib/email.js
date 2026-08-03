@@ -129,6 +129,39 @@ function envolver({ eyebrow, saludo, inner }) {
 </div>`;
 }
 
+// Correo de COMPLETA TU PAGO: se manda cuando alguien pide completar su
+// apartado desde /apartado. Reemplaza al de la automation "Forma Completado"
+// de Airtable (que mandaba un link de Stripe con 24h de vigencia). Aqui el
+// boton lleva al checkout del sitio, que no expira: el monto se recalcula
+// server-side cada vez.
+function construirEmailCompletado({
+  idAsistente, nombre, actividad, fechaCompleta, casa, completadoMxn,
+}) {
+  const nom = nombreBonito(nombre);
+  const url = `${BASE_SITIO}/registro?completar=${encodeURIComponent(idAsistente)}`;
+  const filas = [
+    ...(nom ? [filaDato('Asistente', nom)] : []),
+    filaDato('Actividad', `<strong>${actividad}</strong>`),
+    filaDato('Fecha', fechaCompleta),
+    filaDato('Casa', casa),
+    filaDato('Monto por completar', formatMXN(completadoMxn), true),
+  ];
+  return {
+    subject: `Completa tu pago - ${actividad}`,
+    html: envolver({
+      eyebrow: 'Completa tu pago',
+      saludo: `Hola${nom ? ' ' + nom : ''}, recibimos tu solicitud para completar el pago de tu apartado. Este es el detalle:`,
+      inner: `
+        ${cajaId(idAsistente)}
+        ${tablaDatos(filas)}
+        <p style="font-size:14px;color:${C.tinta};line-height:1.7;margin:24px 0 0;font-family:Georgia,serif">Para asegurar tu lugar, completa tu pago aquí:</p>
+        ${botonVerde(url, 'Completar mi pago')}
+        <div style="text-align:center;font-size:12px;color:${C.muted};margin-top:2px;font-family:Georgia,serif">Este enlace no expira. Si tu pago ya se realizó, te lo confirmará sin cobrarte de nuevo.</div>
+        ${bloqueFactura()}`,
+    }),
+  };
+}
+
 // Construye el cuerpo HTML del correo según método de pago y disponibilidad.
 // Devuelve { subject, html }. Si no hay lugares, subject/flow de disculpa.
 // Primer nombre + apellidos con mayuscula inicial (llegan en CAPS del form)
@@ -146,8 +179,6 @@ function construirEmailBody({
 }) {
   const nom = nombreBonito(nombre);
   const contado  = formatMXN(contadoMxn);
-  // Lo que quedara pendiente despues del apartado (66% + comision)
-  const restante = formatMXN(montoCompletadoMXN(contadoMxn));
   const apartado = formatMXN(apartadoMxn);
   const msi      = formatMXN(msiMxn);
 
@@ -219,13 +250,7 @@ function construirEmailBody({
       html: envolver({
         eyebrow: 'Registro confirmado',
         saludo: saludoExito,
-        inner: `${cajaId(idAsistente)}${tablaDatos([
-            ...filasBase,
-            filaDato('A pagar ahora', apartado, true),
-            filaDato('Por completar después', restante),
-          ])}${bloqueRetomarPago(idAsistente)}${cajaAmarilla(
-            `Este apartado cubre solo una parte de tu cuota. El resto (<strong>${restante}</strong>) lo completas después desde el <a href="${BASE_SITIO}/apartado" style="color:${C.gold}">portal de apartados</a> con tu ID de Asistente.`
-          )}${bloqueFactura()}`,
+        inner: `${cajaId(idAsistente)}${tablaDatos([...filasBase, filaDato('Monto de apartado (33%)', apartado, true)])}${bloqueRetomarPago(idAsistente)}${bloqueFactura()}`,
       }),
     };
   }
@@ -288,4 +313,4 @@ async function enviarEmail({ to, subject, html }) {
   }
 }
 
-module.exports = { construirEmailBody, enviarEmail, formatMXN };
+module.exports = { construirEmailBody, construirEmailCompletado, enviarEmail, formatMXN };

@@ -9,6 +9,7 @@
 // El monto es informativo: /api/payment-intent lo recalcula server-side.
 
 const { montoCompletadoMXN, parseCuota } = require('./_lib/precios');
+const { construirEmailCompletado, enviarEmail } = require('./_lib/email');
 
 const BASE = 'appxtlc0kwOVOI0lm';
 
@@ -114,6 +115,24 @@ module.exports = async (req, res) => {
       return res.status(409).json({
         error: 'No pudimos calcular tu monto pendiente. Escríbenos a admin@actividadesnorte.com y lo resolvemos.',
       });
+    }
+
+    // Correo de respaldo con el link al checkout (equivale al que mandaba la
+    // automation vieja, pero sin vigencia de 24h). Best-effort: si falla, la
+    // persona igual puede pagar en la pantalla que ya tiene enfrente.
+    try {
+      const { subject, html } = construirEmailCompletado({
+        idAsistente:   id,
+        nombre:        txt(f[cfg.f.nombre]),
+        actividad:     nombreActividad,
+        fechaCompleta: txt(f[cfg.f.fecha]),
+        casa:          txt(f[cfg.f.casa]),
+        completadoMxn: completado,
+      });
+      const envio = await enviarEmail({ to: txt(f[cfg.f.email]), subject, html });
+      if (!envio.ok) console.warn('No se pudo enviar el correo de completado:', envio.error);
+    } catch (e) {
+      console.warn('Error enviando el correo de completado:', e.message);
     }
 
     return res.status(200).json({
