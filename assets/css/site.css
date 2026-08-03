@@ -71,6 +71,8 @@ button { font: inherit; cursor: pointer; background: none; border: none; color: 
   color: var(--cream);
 }
 .nav-logo img { width: 30px; height: 30px; object-fit: contain; }
+/* Mismo tratamiento que el hero del inicio: "Norte" en dorado e italica */
+.nav-logo em { font-style: italic; color: var(--gold-soft); font-weight: 400; }
 /* El nombre acompana al icono en TODOS los tamanos (header del sitio) */
 @media (max-width: 400px) { .nav-logo { font-size: 15px; gap: 9px; } }
 
@@ -115,7 +117,7 @@ button { font: inherit; cursor: pointer; background: none; border: none; color: 
   color: var(--gold-soft);
 }
 
-.nav-menu-btn { display: flex; flex-direction: column; gap: 4px; padding: 10px; cursor: pointer; position: relative; z-index: 101; }
+.nav-menu-btn { display: flex; flex-direction: column; gap: 4px; padding: 10px; cursor: pointer; position: relative; z-index: 130; }
 .nav-menu-btn span { width: 20px; height: 1.5px; background: var(--cream); transition: transform 0.3s, opacity 0.2s; transform-origin: center; }
 .nav-menu-btn.open span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
 .nav-menu-btn.open span:nth-child(2) { opacity: 0; }
@@ -130,12 +132,14 @@ button { font: inherit; cursor: pointer; background: none; border: none; color: 
   padding: 88px 32px 40px;
   transform: translateX(100%);
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  z-index: 99;
+  z-index: 120;
   display: flex; flex-direction: column; gap: 20px;
   border-left: 1px solid rgba(200, 217, 204, 0.08);
   box-shadow: -16px 0 40px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
 }
+/* El panel y su backdrop tapan el header (nav: z-index 100); el boton de
+   cerrar queda por encima de todo para seguir siendo clickeable. */
 .nav-mobile-panel.open { transform: translateX(0); }
 .nav-mobile-panel a {
   font-family: var(--font-display);
@@ -152,11 +156,11 @@ button { font: inherit; cursor: pointer; background: none; border: none; color: 
 /* Backdrop */
 .nav-mobile-backdrop {
   position: fixed; inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.55);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s;
-  z-index: 98;
+  z-index: 110;
 }
 .nav-mobile-backdrop.open { opacity: 1; pointer-events: auto; }
 @media (min-width: 880px) {
