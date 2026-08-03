@@ -26,7 +26,7 @@ function formatMXN(v) {
 // ── Diseño del correo: identidad del sitio, estilos inline email-safe ──
 // Opcion B "editorial crema": tarjeta blanca sobre crema, eyebrow mono dorado,
 // ID protagonista entre lineas finas, footer verde con la info del sitio.
-const { montoPlanCentavos } = require('./precios');
+const { montoPlanCentavos, montoCompletadoMXN } = require('./precios');
 
 const C = {
   verde: '#2A4030', crema: '#F6F1E7', crema2: '#EFE8DA', dorado: '#A07840',
@@ -146,6 +146,8 @@ function construirEmailBody({
 }) {
   const nom = nombreBonito(nombre);
   const contado  = formatMXN(contadoMxn);
+  // Lo que quedara pendiente despues del apartado (66% + comision)
+  const restante = formatMXN(montoCompletadoMXN(contadoMxn));
   const apartado = formatMXN(apartadoMxn);
   const msi      = formatMXN(msiMxn);
 
@@ -217,7 +219,13 @@ function construirEmailBody({
       html: envolver({
         eyebrow: 'Registro confirmado',
         saludo: saludoExito,
-        inner: `${cajaId(idAsistente)}${tablaDatos([...filasBase, filaDato('Monto de apartado (33%)', apartado, true)])}${bloqueRetomarPago(idAsistente)}${bloqueFactura()}`,
+        inner: `${cajaId(idAsistente)}${tablaDatos([
+            ...filasBase,
+            filaDato('A pagar ahora', apartado, true),
+            filaDato('Por completar después', restante),
+          ])}${bloqueRetomarPago(idAsistente)}${cajaAmarilla(
+            `Este apartado cubre solo una parte de tu cuota. El resto (<strong>${restante}</strong>) lo completas después desde el <a href="${BASE_SITIO}/apartado" style="color:${C.gold}">portal de apartados</a> con tu ID de Asistente.`
+          )}${bloqueFactura()}`,
       }),
     };
   }

@@ -1612,6 +1612,18 @@
         const d = await parseResp(r);
         document.getElementById('loading-state').classList.add('hidden');
 
+        if (d.apartadoPagado) {
+          // Ya cubrio el apartado: lo que sigue es completar el resto
+          const sw = document.getElementById('success-wrap');
+          sw.querySelector('.success-title').innerHTML = 'Tu apartado ya está <em>pagado</em>';
+          sw.querySelector('.success-desc').innerHTML =
+            'Ya recibimos el pago de tu apartado. Lo que sigue es completar el monto restante: '
+            + '<a href="/apartado?id=' + encodeURIComponent(d.idAsistente || id) + '" style="text-decoration:underline;">continúa aquí</a>.';
+          document.getElementById('success-id-asistente').textContent = d.idAsistente || id;
+          sw.classList.add('show');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
         if (d.yaPagado || d.enProceso) {
           const sw = document.getElementById('success-wrap');
           sw.querySelector('.success-title').innerHTML = d.yaPagado

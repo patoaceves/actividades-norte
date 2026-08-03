@@ -40,7 +40,13 @@ module.exports = async (req, res) => {
     }
 
     const pis = data.data || [];
-    if (pis.some(p => p.status === 'succeeded')) {
+    const pagado = pis.find(p => p.status === 'succeeded');
+    if (pagado) {
+      // Un apartado pagado NO es el fin del camino: falta el completado.
+      const tipo = String(pagado.metadata?.tipo_pago || '');
+      if (tipo === 'Apartado') {
+        return res.status(200).json({ apartadoPagado: true, idAsistente: id });
+      }
       return res.status(200).json({ yaPagado: true, idAsistente: id });
     }
     if (pis.some(p => p.status === 'processing')) {
