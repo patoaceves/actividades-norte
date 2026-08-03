@@ -4,6 +4,11 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* iOS Safari infla el texto por su cuenta ("text autosizing") cuando un bloque
+   es mas ancho que el viewport: el resultado es tipografia gigante que se sale
+   de la pantalla. Con esto el tamano lo decide el CSS, no el navegador. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
 :root {
   /* paleta — cremita con acentos verde + dorado */
   --cream:        #F6F1E7;
