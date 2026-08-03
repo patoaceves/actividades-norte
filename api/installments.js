@@ -78,6 +78,14 @@ module.exports = async function handler(req, res) {
       if (!r.ok) {
         return res.status(400).json({ error: data.error?.message || 'No se pudo verificar la tarjeta' });
       }
+      // Apartado y Completado se pagan SIEMPRE en una exhibicion: no tiene
+      // sentido financiar a meses un parcial. Aunque la cuenta de Stripe
+      // ofrezca planes, aqui se cortan.
+      const tipoPagoPI = String(data.metadata?.tipo_pago || 'Contado');
+      if (tipoPagoPI !== 'Contado') {
+        return res.status(200).json({ base: data.amount, plans: [] });
+      }
+
       const plans = data.payment_method_options?.card?.installments?.available_plans || [];
       // Solo mensualidades fijas, y NUNCA mas de 3 meses (politica del sitio):
       // aunque la cuenta de Stripe o la tarjeta ofrezcan 6/9/12, aqui se capan.
@@ -112,7 +120,11 @@ module.exports = async function handler(req, res) {
       }
       const base = parseInt(pi.metadata?.base_amount_centavos, 10) || pi.amount;
 
+      const tipoPagoPI = String(pi.metadata?.tipo_pago || 'Contado');
       const quierePlan = plan && Number.isInteger(plan.count) && plan.count > 0;
+      if (quierePlan && tipoPagoPI !== 'Contado') {
+        return res.status(400).json({ error: 'Los pagos de apartado y de completado se cubren en una sola exhibición.' });
+      }
       let montoDeseado = base;
       if (quierePlan) {
         montoDeseado = montoPlanCentavos(base, plan.count);

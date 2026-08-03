@@ -131,16 +131,26 @@ function envolver({ eyebrow, saludo, inner }) {
 
 // Construye el cuerpo HTML del correo según método de pago y disponibilidad.
 // Devuelve { subject, html }. Si no hay lugares, subject/flow de disculpa.
+// Primer nombre + apellidos con mayuscula inicial (llegan en CAPS del form)
+function nombreBonito(n) {
+  return String(n || '').trim().toLowerCase()
+    .split(/\s+/).filter(Boolean)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
 function construirEmailBody({
-  idAsistente, actividad, fechaCompleta, casa,
+  idAsistente, nombre, actividad, fechaCompleta, casa,
   metodoPago, lugaresDisponibles,
   contadoMxn, apartadoMxn, msiMxn,
 }) {
+  const nom = nombreBonito(nombre);
   const contado  = formatMXN(contadoMxn);
   const apartado = formatMXN(apartadoMxn);
   const msi      = formatMXN(msiMxn);
 
   const filasBase = [
+    ...(nom ? [filaDato('Asistente', nom)] : []),
     filaDato('Actividad', `<strong>${actividad}</strong>`),
     filaDato('Fecha', fechaCompleta),
     filaDato('Casa', casa),
@@ -152,7 +162,7 @@ function construirEmailBody({
       subject: `Sin lugares disponibles - ${actividad}`,
       html: envolver({
         eyebrow: 'Sin lugares disponibles',
-        saludo: 'Hola, gracias por tu interés en registrarte. Lamentablemente, <strong>ya no hay lugares disponibles</strong> para la siguiente actividad:',
+        saludo: `Hola${nom ? ' ' + nom : ''}, gracias por tu interés en registrarte. Lamentablemente, <strong>ya no hay lugares disponibles</strong> para la siguiente actividad:`,
         inner: `
           <div style="margin-top:20px">${tablaDatos(filasBase)}</div>
           <p style="font-size:14px;color:${C.tinta};line-height:1.7;margin:20px 0 0">Te pedimos una disculpa por los inconvenientes. Si tienes alguna duda o deseas que te avisemos de futuras fechas, no dudes en contactarnos.</p>`,
@@ -160,7 +170,7 @@ function construirEmailBody({
     };
   }
 
-  const saludoExito = 'Hola, ¡tu registro se ha realizado con éxito! Aquí están los detalles de tu inscripción:';
+  const saludoExito = `Hola${nom ? ' ' + nom : ''}, ¡tu registro se ha realizado con éxito! Aquí están los detalles de tu inscripción:`;
   const subjectExito = `Registro confirmado - ${actividad}`;
 
   // 2) CONTADO con Tarjeta/OXXO

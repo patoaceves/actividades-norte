@@ -542,6 +542,7 @@ module.exports = async function handler(req, res) {
 
       const { subject, html } = construirEmailBody({
         idAsistente,
+        nombre:             `${fields['Nombre'] || ''} ${fields['Apellidos'] || ''}`.trim(),
         actividad:          actividad.nombre,
         fechaCompleta:      actividad.fechaCompleta,
         casa:               actividad.casa,
