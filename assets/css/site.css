@@ -66,8 +66,8 @@ button { font: inherit; cursor: pointer; background: none; border: none; color: 
   color: var(--cream);
 }
 .nav-logo img { width: 30px; height: 30px; object-fit: contain; }
-.nav-logo span { display: none; }
-@media (min-width: 640px) { .nav-logo span { display: inline; } }
+/* El nombre acompana al icono en TODOS los tamanos (header del sitio) */
+@media (max-width: 400px) { .nav-logo { font-size: 15px; gap: 9px; } }
 
 .nav-links {
   display: none; gap: 32px; align-items: center;

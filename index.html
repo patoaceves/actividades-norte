@@ -428,6 +428,16 @@
       border-radius: var(--radius);
       border: 1.5px solid var(--green-3);
     }
+    /* Movil: sin aspect-ratio (21/9 + min-height forzaba 700px de ancho y se
+       cortaba). La altura la da el contenido y el overlay se vuelve estatico. */
+    @media (max-width: 700px) {
+      .pinos-hero { aspect-ratio: auto; min-height: 0; }
+      .pinos-hero-overlay {
+        position: relative; inset: auto;
+        background: rgba(30, 47, 35, 0.84);
+      }
+      .pinos-hero-content { max-width: 100%; }
+    }
     .pinos-hero img {
       position: absolute; inset: 0;
       width: 100%; height: 100%; object-fit: cover;
