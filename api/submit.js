@@ -86,15 +86,40 @@ async function getFieldMap(pat, baseId, tableId) {
   if (!r.ok) throw new Error(`Metadata API: ${JSON.stringify(data)}`);
   const table = data.tables?.find(t => t.id === tableId);
   if (!table) throw new Error(`Tabla ${tableId} no encontrada`);
-  const map   = {};   // name -> id  (retrocompat)
-  const meta  = {};   // name -> { id, type, linkedTableId }
+  const map    = {};   // name -> id  (retrocompat)
+  const meta   = {};   // name -> { id, type, linkedTableId }
+  const choices = {};  // fieldId -> [nombres exactos de las opciones]
   table.fields?.forEach(f => {
     map[f.name] = f.id;
     meta[f.name] = { id: f.id, type: f.type, linkedTableId: f.options?.linkedTableId };
+    if (f.options?.choices) choices[f.id] = f.options.choices.map(c => c.name);
   });
+  map.__choices = choices;
   map.__meta = meta;
   map.__tables = data.tables || [];   // reusable: evita repetir el fetch de metadata
   return map;
+}
+
+// Resuelve el nombre EXACTO de una opcion de singleSelect. Airtable rechaza
+// el write (INVALID_MULTIPLE_CHOICE_OPTIONS) si el texto no calza al caracter
+// con la opcion existente, y varias opciones de "Centro" traen caracteres
+// invisibles (U+2060 WORD JOINER) de un copy/paste viejo. Comparamos sin esos
+// caracteres, sin acentos y sin mayusculas, y mandamos el nombre tal cual esta
+// en Airtable. Si no hay match, devolvemos null para no tronar el registro.
+function normOpcion(s) {
+  return String(s || '')
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')  // invisibles
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim().toLowerCase();
+}
+function resolverOpcion(fieldMap, fieldId, valor) {
+  const opciones = fieldMap.__choices?.[fieldId];
+  if (!opciones || !opciones.length) return valor;            // no es select
+  if (opciones.includes(valor)) return valor;                 // calza exacto
+  const objetivo = normOpcion(valor);
+  const match = opciones.find(o => normOpcion(o) === objetivo);
+  return match || null;
 }
 
 // Dado el ID textual de actividad (ej "AF052"), encuentra el record ID en la
@@ -293,7 +318,14 @@ function buildPayload(formFields, fieldMap, cfg, idAsistente, genero, linkInfo) 
 
   const centroVal = formFields['Encargado, Centro, Institución'];
   if (genero === 'femenil' && cfg.ids.centro) {
-    result[cfg.ids.centro] = centroVal;
+    const opcion = resolverOpcion(fieldMap, cfg.ids.centro, centroVal);
+    if (opcion) {
+      result[cfg.ids.centro] = opcion;
+    } else {
+      // Centro que no existe en Airtable: el registro se guarda igual (no
+      // perdemos a la persona por un catalogo desalineado) y queda el aviso.
+      console.warn(`Centro sin opcion en Airtable: "${centroVal}" — se guarda sin centro`);
+    }
   } else {
     const encId = get('Encargado, Centro, Institución');
     if (encId) result[encId] = centroVal;
