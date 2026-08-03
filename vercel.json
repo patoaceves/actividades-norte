@@ -12,7 +12,7 @@
     },
     {
       "source": "/registro",
-      "destination": "/pages/registro"
+      "destination": "/api/og-page?page=registro"
     },
     {
       "source": "/contacto",
@@ -24,7 +24,7 @@
     },
     {
       "source": "/v",
-      "destination": "/api/v-og"
+      "destination": "/api/og-page?page=v"
     },
     {
       "source": "/calculadora",
