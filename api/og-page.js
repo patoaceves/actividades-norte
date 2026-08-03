@@ -22,7 +22,6 @@ const F = {
 const PAGES = {
   v:        { path: '/pages/v/',        tituloBase: 'Actividad - Actividades Norte' },
   registro: { path: '/pages/registro/', tituloBase: 'Registro - Actividades Norte' },
-  home:     { path: '/index.html',      tituloBase: 'Actividades Norte' },
 };
 
 // Foto de portada por casa (1200x630, generadas de los -hero). La casa viene
@@ -114,9 +113,7 @@ module.exports = async (req, res) => {
   const id = String((req.query && req.query.id) || '').trim().toUpperCase();
   let title = page.tituloBase;
   let ogSlug = OG_DEFAULT;
-  let desc  = page === PAGES.home
-    ? 'Plataforma de reservaciones de Actividades Norte.'
-    : 'Consulta los detalles y regístrate a la actividad.';
+  let desc  = 'Consulta los detalles y regístrate a la actividad.';
 
   if (/^A[VF][A-Z0-9-]{1,30}$/.test(id)) {
     try {
@@ -140,7 +137,7 @@ module.exports = async (req, res) => {
   <meta property="og:site_name" content="Actividades Norte">
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(desc)}">
-  <meta property="og:url" content="https://${host}/${page === PAGES.home ? '' : (page === PAGES.registro ? 'registro' : 'v')}${id ? '?id=' + encodeURIComponent(id) : ''}">
+  <meta property="og:url" content="https://${host}/${page === PAGES.registro ? 'registro' : 'v'}${id ? '?id=' + encodeURIComponent(id) : ''}">
   <meta property="og:image" content="https://${host}/assets/og/${ogSlug}.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
