@@ -3,6 +3,8 @@
 // en las dos bases de asistentes (Varonil y Femenil).
 // Filtra por correo en Airtable (campo limpio) y el nombre en JS.
 
+const { montoContadoMXN, montoCompletadoMXN } = require('./_lib/precios');
+
 const SOURCES = [
   {
     seccion: 'Varonil',
@@ -33,6 +35,67 @@ const SOURCES = [
     },
   },
 ];
+
+// Base central: de ahi salen el estatus real y los montos (las bases por
+// seccion solo tienen el registro basico del asistente).
+const CENTRAL = 'appxtlc0kwOVOI0lm';
+const CENTRAL_TABLAS = {
+  Varonil: {
+    tableId: 'tbl4GG7YODrvw8pIv',
+    f: { id: 'fldmuxpnOa02zfK7W', estatus: 'fldbJFVZR7xxjTLtj', actividad: 'fldidFGuSBEz01GG1',
+         fecha: 'fldhvG4LG0WZm7cfO', casa: 'flds8YnuqzHuGkLvj',
+         cuota: 'fldqGbXEagpSIvE7H', cobro: 'fldHk4Fi1aXrAN8IJ' },
+  },
+  Femenil: {
+    tableId: 'tblLKeKqNpF1AWg5b',
+    f: { id: 'fld3y52PNWeyD3BuC', estatus: 'fldSNdyrQTL3nHCQZ', actividad: 'fldzLvCjW5FhQP5TD',
+         fecha: 'fldYzeHdFMavqV3Cu', casa: 'fldzGrpSiBetxIriP',
+         cuota: 'fldt2TcxfsdR4anxA', cobro: 'fldXgA6lRJTgbG503' },
+  },
+};
+
+// Trae estatus y montos de los IDs encontrados. Best-effort: si algo falla,
+// el ID se devuelve igual (sin el detalle) en vez de romper la busqueda.
+async function enriquecer(seccion, ids) {
+  const cfg = CENTRAL_TABLAS[seccion];
+  const pat = process.env.AIRTABLE_PAT_ACTIVIDADES;
+  if (!cfg || !pat || !ids.length) return {};
+
+  const formula = `OR(${ids.map(i => `{ID Asistente}="${String(i).replace(/"/g, '\\"')}"`).join(',')})`;
+  const fields = Object.values(cfg.f).map(x => `fields[]=${x}`).join('&');
+  const url = `https://api.airtable.com/v0/${CENTRAL}/${cfg.tableId}`
+    + `?returnFieldsByFieldId=true&${fields}&pageSize=100`
+    + `&filterByFormula=${encodeURIComponent(formula)}`;
+
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${pat}` } });
+  const data = await r.json();
+  if (!r.ok) return {};
+
+  const out = {};
+  for (const rec of (data.records || [])) {
+    const fl = rec.fields, f = cfg.f;
+    const id = String(firstVal(fl[f.id]) || '').trim();
+    if (!id) continue;
+    const estatus = String(firstVal(fl[f.estatus]) || '').trim();
+    const cuota   = String(firstVal(fl[f.cuota]) || '').trim();
+    const pagado  = Number(firstVal(fl[f.cobro])) || 0;
+
+    // Cuanto falta segun el estatus (mismos calculos que usa el checkout)
+    let falta = 0;
+    if (estatus === 'Apartado')      falta = montoCompletadoMXN(cuota);
+    else if (estatus !== 'Pagado')   falta = Math.max(montoContadoMXN(cuota) - pagado, 0);
+
+    out[id] = {
+      estatus,
+      fecha: String(firstVal(fl[f.fecha]) || '').trim(),
+      casa:  String(firstVal(fl[f.casa]) || '').trim(),
+      actividadCentral: String(firstVal(fl[f.actividad]) || '').trim(),
+      pagado,
+      falta,
+    };
+  }
+  return out;
+}
 
 const ALLOWED_ORIGINS = [
   'https://registro.actividadesnorte.com',
@@ -134,6 +197,29 @@ module.exports = async function handler(req, res) {
       if (vistos.has(k)) return false;
       vistos.add(k); return true;
     });
+    // Detalle (estatus, pagado, por completar) desde la base central
+    try {
+      const porSeccion = {};
+      unicos.forEach(r => { (porSeccion[r.seccion] = porSeccion[r.seccion] || []).push(r.id); });
+      const detalles = await Promise.all(
+        Object.entries(porSeccion).map(async ([sec, ids]) => [sec, await enriquecer(sec, [...new Set(ids)])])
+      );
+      const mapa = Object.fromEntries(detalles);
+      unicos.forEach(r => {
+        const d = (mapa[r.seccion] || {})[r.id];
+        if (d) {
+          r.estatus   = d.estatus;
+          r.fecha     = d.fecha;
+          r.casa      = d.casa;
+          r.pagado    = d.pagado;
+          r.falta     = d.falta;
+          if (!r.actividad && d.actividadCentral) r.actividad = d.actividadCentral;
+        }
+      });
+    } catch (e) {
+      console.warn('No se pudo enriquecer con la base central:', e.message);
+    }
+
     return res.status(200).json({ count: unicos.length, resultados: unicos });
   } catch (err) {
     console.error('recuperar-id error:', err.message);

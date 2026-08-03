@@ -31,6 +31,19 @@
     .rec-card-id{font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:500;color:var(--green,#2A4030);letter-spacing:.04em}
     .rec-card-act{font-family:'Lora',serif;color:#2f342b;margin-top:4px}
     .rec-card-sec{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#6B7066);margin-top:6px}
+    .rec-card-meta{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.05em;color:var(--muted,#6B7066);margin-top:8px;line-height:1.9;text-transform:uppercase}
+    .rec-chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:100px;margin-top:10px}
+    .rec-chip.pagado{background:rgba(42,64,48,.1);color:var(--green,#2A4030)}
+    .rec-chip.apartado{background:#FBF3DC;color:#8a6634}
+    .rec-chip.pendiente{background:rgba(139,32,32,.08);color:#8B2020}
+    .rec-montos{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid rgba(42,64,48,.1)}
+    .rec-monto span{display:block;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted,#6B7066);margin-bottom:3px}
+    .rec-monto b{font-family:'Lora',serif;font-size:1.15rem;font-weight:600;color:var(--green,#2A4030);font-variant-numeric:tabular-nums}
+    .rec-monto b.falta{color:#8a6634}
+    .rec-pagar{display:inline-flex;align-items:center;gap:9px;margin-top:14px;font-family:'Lora',serif;font-size:.92rem;padding:11px 20px;background:var(--green,#2A4030);color:var(--cream,#F6F1E7);border-radius:8px;text-decoration:none;transition:background .15s}
+    .rec-pagar:hover{background:#1f3123}
+    .rec-pagar svg{transition:transform .2s ease}
+    .rec-pagar:hover svg{transform:translateX(4px)}
     .rec-note{margin-top:22px;font-size:.85rem;color:var(--muted,#6B7066);font-family:'Lora',serif}
     .rec-note a{color:var(--gold,#A07840)}
   </style>
@@ -137,10 +150,28 @@
           return;
         }
         showMsg(data.resultados.length===1?'Encontramos tu registro:':'Encontramos '+data.resultados.length+' registros:',false);
+        var mx=function(n){return '$'+Number(n||0).toLocaleString('es-MX')+'.00';};
         results.innerHTML=data.resultados.map(function(x){
+          var est=(x.estatus||'').toLowerCase();
+          var clase=est==='pagado'?'pagado':(est==='apartado'?'apartado':'pendiente');
+          var meta=[x.fecha,x.casa].filter(Boolean).map(esc).join('<br>');
+          var montos='';
+          if(x.pagado||x.falta){
+            montos='<div class="rec-montos">'+
+              (x.pagado?'<div class="rec-monto"><span>Pagado</span><b>'+mx(x.pagado)+'</b></div>':'')+
+              (x.falta?'<div class="rec-monto"><span>Por completar</span><b class="falta">'+mx(x.falta)+'</b></div>':'')+
+            '</div>';
+          }
+          // Con apartado pendiente, atajo directo al portal de pago
+          var cta=(est==='apartado')
+            ? '<a class="rec-pagar" href="/apartado?id='+encodeURIComponent(x.id)+'&email='+encodeURIComponent(email.value.trim())+'">Completar mi pago<svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>'
+            : '';
           return '<div class="rec-card"><div class="rec-card-id">'+esc(x.id)+'</div>'+
                  (x.actividad?'<div class="rec-card-act">'+esc(x.actividad)+'</div>':'')+
-                 '<div class="rec-card-sec">'+esc(x.seccion)+'</div></div>';
+                 (meta?'<div class="rec-card-meta">'+meta+'</div>':'')+
+                 '<div class="rec-card-sec">'+esc(x.seccion)+'</div>'+
+                 (x.estatus?'<div class="rec-chip '+clase+'">'+esc(x.estatus)+'</div>':'')+
+                 montos+cta+'</div>';
         }).join('');
       }catch(err){
         showMsg('No se pudo conectar. Revisa tu internet e intenta de nuevo.',true);
