@@ -25,6 +25,25 @@ const PAGES = {
   home:     { path: '/index.html',      tituloBase: 'Actividades Norte' },
 };
 
+// Foto de portada por casa (1200x630, generadas de los -hero). La casa viene
+// de Airtable como texto ("Casa del Bosque I"), asi que se normaliza.
+const OG_CASAS = {
+  'casa del bosque i':  'casa-del-bosque-i',
+  'casa del bosque ii': 'casa-del-bosque-ii',
+  'casa grande':        'casa-grande',
+  'el dique':           'el-dique',
+  'el estero':          'el-estero',
+  'el molino':          'el-molino',
+};
+const OG_DEFAULT = 'casa-del-bosque-ii';   // portada del inicio
+
+function slugCasa(casa) {
+  const k = String(casa || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ').trim().toLowerCase();
+  return OG_CASAS[k] || null;
+}
+
 // Crawlers de previews (WhatsApp, Facebook, Telegram, etc.). A ellos se les
 // sirve el HTML SIN los <link> de favicon: sin og:image y sin icono, la
 // tarjeta sale de puro texto. El navegador de las personas si los recibe.
@@ -94,6 +113,7 @@ module.exports = async (req, res) => {
 
   const id = String((req.query && req.query.id) || '').trim().toUpperCase();
   let title = page.tituloBase;
+  let ogSlug = OG_DEFAULT;
   let desc  = page === PAGES.home
     ? 'Plataforma de reservaciones de Actividades Norte.'
     : 'Consulta los detalles y regístrate a la actividad.';
@@ -109,6 +129,7 @@ module.exports = async (req, res) => {
         }
         title = `${id} | ${resto || act.nombre}`;
         desc = [act.fechaCompleta, act.casa].filter(Boolean).join(' | ') || desc;
+        ogSlug = slugCasa(act.casa) || ogSlug;
       }
     } catch (e) { /* preview generico si Airtable no responde a tiempo */ }
   }
@@ -120,15 +141,20 @@ module.exports = async (req, res) => {
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="https://${host}/${page === PAGES.home ? '' : (page === PAGES.registro ? 'registro' : 'v')}${id ? '?id=' + encodeURIComponent(id) : ''}">
-  <meta name="twitter:card" content="summary">`;
+  <meta property="og:image" content="https://${host}/assets/og/${ogSlug}.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://${host}/assets/og/${ogSlug}.jpg">`;
 
   let out = html.replace(`<title>${page.tituloBase}</title>`, metas);
 
   if (CRAWLERS.test(req.headers['user-agent'] || '')) {
-    // Sin favicon que agarrar, WhatsApp no arma el recuadro de imagen
+    // Los favicons compiten con og:image (WhatsApp a veces prefiere el icono):
+    // al crawler se le quitan para que use la foto de la casa.
     out = out.replace(/\s*<link[^>]+rel=["'](?:shortcut )?icon["'][^>]*>/gi, '')
-             .replace(/\s*<link[^>]+rel=["']apple-touch-icon["'][^>]*>/gi, '')
-             .replace(/\s*<link[^>]+rel=["']image_src["'][^>]*>/gi, '');
+             .replace(/\s*<link[^>]+rel=["']apple-touch-icon["'][^>]*>/gi, '');
   }
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
