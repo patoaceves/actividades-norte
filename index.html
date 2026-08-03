@@ -328,6 +328,11 @@
       min-height: 420px;
       text-decoration: none;
     }
+    /* Movil: el alto minimo de 420px + el padding grande dejaban un hueco
+       enorme entre el hero y el nombre de la seccion. */
+    @media (max-width: 719px) {
+      .section-tile { min-height: 0; padding: 44px clamp(24px, 6vw, 36px); }
+    }
 
     .section-tile.tile-varonil {
       background: var(--green-deep);

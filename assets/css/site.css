@@ -141,6 +141,16 @@ button { font: inherit; cursor: pointer; background: none; border: none; color: 
 /* El panel y su backdrop tapan el header (nav: z-index 100); el boton de
    cerrar queda por encima de todo para seguir siendo clickeable. */
 .nav-mobile-panel.open { transform: translateX(0); }
+.nav-mobile-close {
+  position: absolute; top: 22px; right: 24px;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cream); border-radius: 50%;
+  transition: color 0.2s, background 0.2s;
+}
+.nav-mobile-close:hover { color: var(--gold-soft); background: rgba(245, 239, 227, 0.06); }
+/* Con el panel abierto, el hamburguesa del header estorba: fuera. */
+body.nav-open .nav-menu-btn { opacity: 0; pointer-events: none; }
 .nav-mobile-panel a {
   font-family: var(--font-display);
   font-size: 24px;

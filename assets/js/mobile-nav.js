@@ -17,6 +17,15 @@
       panel.className = 'nav-mobile-panel';
       panel.setAttribute('aria-hidden', 'true');
 
+      // Boton de cerrar dentro del panel: el hamburguesa vive dentro del nav
+      // (z-index 100) y no puede pintarse encima del panel (z-index 120).
+      const cerrar = document.createElement('button');
+      cerrar.className = 'nav-mobile-close';
+      cerrar.setAttribute('aria-label', 'Cerrar menú');
+      cerrar.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+      cerrar.addEventListener('click', () => close());
+      panel.appendChild(cerrar);
+
       // Copia los links del nav-links al panel
       const links = nav.querySelectorAll('.nav-links a');
       links.forEach(link => {
@@ -45,6 +54,7 @@
       backdrop.classList.toggle('open', isOpen);
       panel.setAttribute('aria-hidden', String(!isOpen));
       document.body.style.overflow = isOpen ? 'hidden' : '';
+      document.body.classList.toggle('nav-open', isOpen);
     }
 
     function close() {
@@ -53,6 +63,7 @@
       backdrop.classList.remove('open');
       panel.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
+      document.body.classList.remove('nav-open');
     }
 
     btn.addEventListener('click', toggle);
