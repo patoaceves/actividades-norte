@@ -22,7 +22,13 @@ const F = {
 const PAGES = {
   v:        { path: '/pages/v/',        tituloBase: 'Actividad - Actividades Norte' },
   registro: { path: '/pages/registro/', tituloBase: 'Registro - Actividades Norte' },
+  home:     { path: '/index.html',      tituloBase: 'Actividades Norte' },
 };
+
+// Crawlers de previews (WhatsApp, Facebook, Telegram, etc.). A ellos se les
+// sirve el HTML SIN los <link> de favicon: sin og:image y sin icono, la
+// tarjeta sale de puro texto. El navegador de las personas si los recibe.
+const CRAWLERS = /whatsapp|facebookexternalhit|facebookcatalog|telegrambot|twitterbot|discordbot|slackbot|linkedinbot|skypeuripreview|bingpreview|embedly|vkshare|pinterest/i;
 
 const htmlCache = {}; // por pagina; la plantilla estatica no cambia entre requests
 
@@ -88,7 +94,9 @@ module.exports = async (req, res) => {
 
   const id = String((req.query && req.query.id) || '').trim().toUpperCase();
   let title = page.tituloBase;
-  let desc  = 'Consulta los detalles y regístrate a la actividad.';
+  let desc  = page === PAGES.home
+    ? 'Plataforma de reservaciones de Actividades Norte.'
+    : 'Consulta los detalles y regístrate a la actividad.';
 
   if (/^A[VF][A-Z0-9-]{1,30}$/.test(id)) {
     try {
@@ -111,10 +119,17 @@ module.exports = async (req, res) => {
   <meta property="og:site_name" content="Actividades Norte">
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(desc)}">
-  <meta property="og:url" content="https://${host}/${page === PAGES.registro ? 'registro' : 'v'}${id ? '?id=' + encodeURIComponent(id) : ''}">
+  <meta property="og:url" content="https://${host}/${page === PAGES.home ? '' : (page === PAGES.registro ? 'registro' : 'v')}${id ? '?id=' + encodeURIComponent(id) : ''}">
   <meta name="twitter:card" content="summary">`;
 
-  const out = html.replace(`<title>${page.tituloBase}</title>`, metas);
+  let out = html.replace(`<title>${page.tituloBase}</title>`, metas);
+
+  if (CRAWLERS.test(req.headers['user-agent'] || '')) {
+    // Sin favicon que agarrar, WhatsApp no arma el recuadro de imagen
+    out = out.replace(/\s*<link[^>]+rel=["'](?:shortcut )?icon["'][^>]*>/gi, '')
+             .replace(/\s*<link[^>]+rel=["']apple-touch-icon["'][^>]*>/gi, '')
+             .replace(/\s*<link[^>]+rel=["']image_src["'][^>]*>/gi, '');
+  }
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   // Cache en el edge: 5 min frescos, hasta 1h sirviendo stale mientras revalida

@@ -3,6 +3,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/",
+      "destination": "/api/og-page?page=home"
+    },
+    {
       "source": "/varonil",
       "destination": "/pages/varonil"
     },
