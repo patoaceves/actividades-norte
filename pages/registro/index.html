@@ -631,12 +631,19 @@
       border-width: 0 1.5px 1.5px 0;
       transform: rotate(45deg);
     }
-    .agreement-text strong {
+    /* Solo el TITULO del acuerdo (strong hijo directo) va en bloque. El strong
+       dentro del parrafo es enfasis inline: si tambien fuera block, partia la
+       frase en varias lineas y dejaba el punto final huerfano. */
+    .agreement-text > strong {
       display: block; margin-bottom: 4px;
       font-family: var(--font-body); font-size: 14px; font-weight: 500;
       color: var(--charcoal);
     }
-    .agreement-text strong .req { color: var(--gold); margin-left: 2px; }
+    .agreement-text > strong .req { color: var(--gold); margin-left: 2px; }
+    .agreement-text p strong {
+      display: inline; font-size: inherit; font-weight: 600;
+      color: var(--charcoal); font-style: inherit;
+    }
     .agreement-text p {
       font-size: 12px; line-height: 1.5;
       color: var(--muted);
