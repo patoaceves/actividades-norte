@@ -17,15 +17,6 @@
       panel.className = 'nav-mobile-panel';
       panel.setAttribute('aria-hidden', 'true');
 
-      // Boton de cerrar dentro del panel: el hamburguesa vive dentro del nav
-      // (z-index 100) y no puede pintarse encima del panel (z-index 120).
-      const cerrar = document.createElement('button');
-      cerrar.className = 'nav-mobile-close';
-      cerrar.setAttribute('aria-label', 'Cerrar menú');
-      cerrar.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
-      cerrar.addEventListener('click', () => close());
-      panel.appendChild(cerrar);
-
       // Copia los links del nav-links al panel
       const links = nav.querySelectorAll('.nav-links a');
       links.forEach(link => {
@@ -40,6 +31,19 @@
       panel.appendChild(inicio);
 
       document.body.appendChild(panel);
+    }
+
+    // Boton de cerrar DENTRO del panel: el hamburguesa vive dentro del nav
+    // (z-index 100) y no puede pintarse encima del panel (z-index 120).
+    // Va fuera del if de arriba para que exista aunque el panel ya estuviera.
+    if (!panel.querySelector('.nav-mobile-close')) {
+      const cerrar = document.createElement('button');
+      cerrar.type = 'button';
+      cerrar.className = 'nav-mobile-close';
+      cerrar.setAttribute('aria-label', 'Cerrar menú');
+      cerrar.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+      cerrar.addEventListener('click', function(){ close(); });
+      panel.insertBefore(cerrar, panel.firstChild);
     }
 
     if (!backdrop) {

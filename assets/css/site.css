@@ -143,11 +143,13 @@ button { font: inherit; cursor: pointer; background: none; border: none; color: 
 .nav-mobile-panel.open { transform: translateX(0); }
 .nav-mobile-close {
   position: absolute; top: 22px; right: 24px;
-  width: 40px; height: 40px;
+  width: 40px; height: 40px; padding: 0;
   display: flex; align-items: center; justify-content: center;
-  color: var(--cream); border-radius: 50%;
+  color: var(--cream); background: none; border: none;
+  border-radius: 50%; cursor: pointer; z-index: 2;
   transition: color 0.2s, background 0.2s;
 }
+.nav-mobile-close svg { display: block; width: 22px; height: 22px; }
 .nav-mobile-close:hover { color: var(--gold-soft); background: rgba(245, 239, 227, 0.06); }
 /* Con el panel abierto, el hamburguesa del header estorba: fuera. */
 body.nav-open .nav-menu-btn { opacity: 0; pointer-events: none; }
