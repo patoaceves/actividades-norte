@@ -24,7 +24,7 @@
     },
     {
       "source": "/v",
-      "destination": "/pages/v"
+      "destination": "/api/v-og"
     },
     {
       "source": "/calculadora",
