@@ -42,6 +42,15 @@
     .ap-back svg{transition:transform .2s ease}
     .ap-back:hover{color:var(--green,#2A4030)}
     .ap-back:hover svg{transform:translateX(-5px)}
+    /* Ayuda visual: donde viene el ID en el correo de confirmacion */
+    .ap-help{margin-top:18px;border:1px solid rgba(42,64,48,.14);border-radius:10px;background:#fff;overflow:hidden}
+    .ap-help summary{list-style:none;cursor:pointer;padding:14px 18px;font-family:'Lora',serif;font-size:.92rem;color:var(--green,#2A4030);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .ap-help summary::-webkit-details-marker{display:none}
+    .ap-help summary::after{content:'+';font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--gold,#A07840);transition:transform .2s}
+    .ap-help[open] summary::after{content:'\2212'}
+    .ap-help-body{padding:0 18px 18px}
+    .ap-help-body p{font-family:'Lora',serif;font-size:.88rem;color:var(--muted,#6B7066);line-height:1.7;margin-bottom:12px}
+    .ap-help-body img{width:100%;height:auto;display:block;border:1px solid rgba(42,64,48,.14);border-radius:8px}
     .ap-note{margin-top:22px;font-size:.85rem;color:var(--muted,#6B7066);font-family:'Lora',serif;line-height:1.7}
     .ap-note a{color:var(--gold,#A07840)}
   </style>
@@ -90,6 +99,14 @@
       <button class="ap-btn" id="ap-pagar">Continuar al pago<svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
       <a class="ap-back" href="#" id="ap-otro"><svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Usar otro ID</a>
     </div>
+
+    <details class="ap-help" id="ap-help">
+      <summary>¿Dónde encuentro mi ID de Asistente?</summary>
+      <div class="ap-help-body">
+        <p>Está en el correo de confirmación que recibiste al registrarte, en el recuadro de <strong>ID DE ASISTENTE</strong>, arriba de los datos de tu actividad. Si no lo ves en tu bandeja de entrada, revisa la carpeta de spam.</p>
+        <img src="/assets/png/ayuda-id-asistente.jpg" alt="Ejemplo del correo de confirmación con el ID de Asistente resaltado" loading="lazy">
+      </div>
+    </details>
 
     <p class="ap-note">¿No recuerdas tu ID de Asistente? Lo puedes <a href="/recuperar">recuperar aquí</a> con tu nombre y correo. Si necesitas ayuda, escríbenos a <a href="mailto:admin@actividadesnorte.com">admin@actividadesnorte.com</a> o por <a href="https://wa.me/528134025784?text=Hola%2C%20quisiera%20pedir%20soporte%20para%20la%20Plataforma%20de%20Reserva%20de%20Actividades%20Norte" target="_blank" rel="noopener">WhatsApp</a>.</p>
   </main>
@@ -185,6 +202,7 @@
           location.href = '/registro?completar=' + encodeURIComponent(d.idAsistente);
         };
         $('ap-form').hidden = true;
+        $('ap-help').hidden = true;
         $('ap-res').hidden = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch(e) {
@@ -201,7 +219,7 @@
     });
     $('ap-otro').addEventListener('click', function(e){
       e.preventDefault();
-      $('ap-res').hidden = true; $('ap-form').hidden = false;
+      $('ap-res').hidden = true; $('ap-form').hidden = false; $('ap-help').hidden = false;
       msg.hidden = true; idIn.value = ''; idIn.focus();
     });
   })();
