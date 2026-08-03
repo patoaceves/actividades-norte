@@ -11,6 +11,10 @@
       "destination": "/pages/femenil"
     },
     {
+      "source": "/apartado",
+      "destination": "/pages/apartado"
+    },
+    {
       "source": "/registro",
       "destination": "/api/og-page?page=registro"
     },

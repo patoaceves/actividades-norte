@@ -1645,7 +1645,49 @@
       }
     }
 
-    if (pagarId) {
+    // ── MODO COMPLETAR APARTADO (viene de /apartado) ──
+    const completarId = (params.get('completar') || '').trim().toUpperCase();
+
+    async function iniciarModoCompletar(id) {
+      document.getElementById('progress-wrap').style.display = 'none';
+      document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+      try {
+        // El correo no viaja en la URL: /api/apartado lo devuelve tras validar
+        const r = await fetch('/api/apartado', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idAsistente: id, email: sessionStorage.getItem('ap_email') || '' }),
+        });
+        const d = await parseResp(r);
+        document.getElementById('loading-state').classList.add('hidden');
+
+        if (!r.ok || d.noAplica) {
+          mostrarBloqueo(escapeHtml(d.mensaje || d.error || 'No pudimos retomar tu apartado.')
+            + ' <a href="/apartado" style="text-decoration:underline;">Volver a intentar</a>');
+          return;
+        }
+
+        genero = d.genero;
+        await initStripePayment({
+          email:       d.email || '',
+          nombre:      d.nombre || '',
+          recordId:    d.recordId,
+          idAsistente: d.idAsistente,
+          idActividad: d.idActividad,
+          tipoPago:    'Completado',
+          metodoPago:  null,
+          genero:      d.genero,
+          actividad:   d.actividad,
+        });
+      } catch (e) {
+        document.getElementById('loading-state').classList.add('hidden');
+        mostrarBloqueo('No pudimos retomar tu apartado: ' + escapeHtml(e.message));
+      }
+    }
+
+    if (completarId) {
+      iniciarModoCompletar(completarId);
+    } else if (pagarId) {
       iniciarModoPagar(pagarId);
     } else if (!actividadId || (!actividadId.startsWith('AV') && !actividadId.startsWith('AF'))) {
       // Oculta loading, muestra err

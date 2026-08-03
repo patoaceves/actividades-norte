@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Completar mi pago - Actividades Norte</title>
+  <meta name="description" content="Completa el pago restante de tu apartado con tu ID de Asistente.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/favicon-64.png">
+  <link rel="shortcut icon" href="/assets/png/favicon-64.png">
+  <link rel="apple-touch-icon" href="/assets/png/apple-touch-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <style>
+    .ap-wrap{max-width:600px;margin:0 auto;padding:clamp(28px,6vw,72px) var(--gutter,24px)}
+    .ap-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold,#A07840);margin-bottom:12px}
+    .ap-wrap h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.8rem,4vw,2.4rem);color:var(--green,#2A4030);margin-bottom:8px;letter-spacing:-.01em}
+    .ap-wrap h1 em{font-style:italic;color:var(--gold,#A07840)}
+    .ap-intro{color:var(--muted,#6B7066);font-family:'Lora',serif;line-height:1.6;margin-bottom:30px}
+    .ap-card{background:#fff;border:1px solid rgba(42,64,48,.14);border-radius:10px;padding:clamp(20px,4vw,28px)}
+    .ap-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+    .ap-field label{font-size:.85rem;color:var(--green,#2A4030);font-family:'Lora',serif}
+    .ap-field input{font-family:'Lora',serif;font-size:1rem;color:var(--green,#2A4030);background:var(--cream,#F6F1E7);border:1px solid rgba(42,64,48,.16);border-radius:8px;padding:12px 13px}
+    .ap-field input:focus{outline:none;border-color:var(--gold,#A07840);background:#fff}
+    .ap-field input#ap-id{font-family:'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase}
+    .ap-btn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:'Lora',serif;font-size:1rem;padding:14px;background:var(--green,#2A4030);color:var(--cream,#F6F1E7);border:none;border-radius:8px;cursor:pointer;margin-top:4px;transition:background .15s}
+    .ap-btn:hover{background:#1f3123}
+    .ap-btn svg{transition:transform .2s ease;flex-shrink:0}
+    .ap-btn:hover svg{transform:translateX(5px)}
+    .ap-btn:disabled{opacity:.6;cursor:default}
+    .ap-msg{margin-top:16px;font-family:'Lora',serif;font-size:.94rem;line-height:1.6;background:#FBF3DC;border:1px solid rgba(160,120,64,.35);border-radius:8px;padding:12px 16px;color:#1A1C18}
+    .ap-msg.err{background:#fff;border-color:rgba(139,32,32,.3);color:#8B2020}
+    /* Resumen del apartado */
+    .ap-res-act{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--green,#2A4030);line-height:1.3}
+    .ap-res-meta{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.06em;color:var(--muted,#6B7066);margin-top:8px;line-height:1.9}
+    .ap-res-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:14px 0;border-top:1px solid rgba(42,64,48,.12);margin-top:18px}
+    .ap-res-row span{font-family:'Lora',serif;font-size:.95rem;color:var(--muted,#6B7066)}
+    .ap-res-row b{font-family:'Lora',serif;font-size:1.45rem;font-weight:600;color:var(--green,#2A4030);font-variant-numeric:tabular-nums;white-space:nowrap}
+    .ap-id-chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.8rem;background:var(--cream,#F6F1E7);border:1px solid rgba(42,64,48,.14);border-radius:6px;padding:4px 10px;margin-bottom:12px;color:var(--green,#2A4030)}
+    .ap-back{display:inline-flex;align-items:center;gap:9px;margin-top:18px;color:var(--muted,#6B7066);font-family:'JetBrains Mono',monospace;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;text-decoration:none}
+    .ap-back svg{transition:transform .2s ease}
+    .ap-back:hover{color:var(--green,#2A4030)}
+    .ap-back:hover svg{transform:translateX(-5px)}
+    .ap-note{margin-top:22px;font-size:.85rem;color:var(--muted,#6B7066);font-family:'Lora',serif;line-height:1.7}
+    .ap-note a{color:var(--gold,#A07840)}
+  </style>
+  <script defer src="/assets/js/mobile-nav.js"></script>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-logo">
+      <img src="/assets/png/isotipo.png" alt="">
+      <span>Actividades <em>Norte</em></span>
+    </a>
+    <div class="nav-links">
+      <a href="/varonil">Varonil</a>
+      <a href="/femenil">Femenil</a>
+      <a href="/#casas">Casas</a>
+      <a href="/contacto">Contacto</a>
+    </div>
+    <a href="/#buscar" class="nav-cta">Buscar actividad</a>
+    <button class="nav-menu-btn" aria-label="Menú"><span></span><span></span><span></span></button>
+  </nav>
+    <main class="ap-wrap">
+    <div class="ap-eyebrow">Apartados</div>
+    <h1>Completa tu <em>pago</em></h1>
+    <p class="ap-intro">Si ya apartaste tu lugar, escribe tu ID de Asistente y el correo con el que te registraste para pagar el monto restante.</p>
+
+    <!-- Paso 1: identificarse -->
+    <div class="ap-card" id="ap-form">
+      <div class="ap-field">
+        <label for="ap-id">ID de Asistente</label>
+        <input type="text" id="ap-id" placeholder="AV0001234" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="ap-field">
+        <label for="ap-email">Correo de registro</label>
+        <input type="email" id="ap-email" placeholder="tucorreo@ejemplo.com" autocomplete="email">
+      </div>
+      <button class="ap-btn" id="ap-btn">Continuar<svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+      <div class="ap-msg err" id="ap-msg" hidden></div>
+    </div>
+
+    <!-- Paso 2: resumen y pago -->
+    <div class="ap-card" id="ap-res" hidden>
+      <div class="ap-id-chip" id="ap-res-id"></div>
+      <div class="ap-res-act" id="ap-res-act"></div>
+      <div class="ap-res-meta" id="ap-res-meta"></div>
+      <div class="ap-res-row"><span>Monto por completar</span><b id="ap-res-monto"></b></div>
+      <button class="ap-btn" id="ap-pagar">Continuar al pago<svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+      <a class="ap-back" href="#" id="ap-otro"><svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Usar otro ID</a>
+    </div>
+
+    <p class="ap-note">¿No recuerdas tu ID de Asistente? Lo puedes <a href="/recuperar">recuperar aquí</a> con tu nombre y correo. Si necesitas ayuda, escríbenos a <a href="mailto:admin@actividadesnorte.com">admin@actividadesnorte.com</a> o por <a href="https://wa.me/528134025784?text=Hola%2C%20quisiera%20pedir%20soporte%20para%20la%20Plataforma%20de%20Reserva%20de%20Actividades%20Norte" target="_blank" rel="noopener">WhatsApp</a>.</p>
+  </main>
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/png/isotipo.png" alt="">
+        <div class="footer-brand-name">Actividades Norte</div>
+        <p class="footer-brand-desc">Plataforma de reservaciones.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Secciones</div>
+        <ul>
+          <li><a href="/varonil">Varonil</a></li>
+          <li><a href="/femenil">Femenil</a></li>
+          <li><a href="/#casas">Casas</a></li>
+          <li><a href="/apartado">Completar pago</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Oficinas</div>
+        <ul>
+          <li class="contact-line">Níspero 211-A - Valle del Campestre<br>San Pedro Garza García, NL 66265</li>
+          <li><a href="https://wa.me/528134025784?text=Hola%2C%20quisiera%20pedir%20soporte%20para%20la%20Plataforma%20de%20Reserva%20de%20Actividades%20Norte" target="_blank" rel="noopener">+52 81 3402 5784</a></li>
+          <li><a href="mailto:admin@actividadesnorte.com">admin@actividadesnorte.com</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Horario</div>
+        <ul>
+          <li class="contact-line">Lun – Vie<br>10:00 a 18:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Actividades Norte</span>
+      <div class="footer-bottom-links">
+        <a href="/terminos">Términos</a>
+        <a href="/privacidad">Privacidad</a>
+        <a href="/politicas">Políticas de reservación</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+  (function(){
+    var $ = function(id){ return document.getElementById(id); };
+    var idIn = $('ap-id'), mailIn = $('ap-email'), btn = $('ap-btn'), msg = $('ap-msg');
+
+    // Prefill por si llegan desde un correo: /apartado?id=AV0001234
+    var qs = new URLSearchParams(location.search);
+    if (qs.get('id')) idIn.value = qs.get('id').trim().toUpperCase();
+    if (qs.get('email')) mailIn.value = qs.get('email').trim();
+
+    function error(t){ msg.textContent = t; msg.className = 'ap-msg err'; msg.hidden = false; }
+    function aviso(t){ msg.textContent = t; msg.className = 'ap-msg'; msg.hidden = false; }
+
+    async function parseResp(r){
+      var t = await r.text();
+      try { return JSON.parse(t); }
+      catch(e){ return { error: r.status === 504
+        ? 'El servidor tardo demasiado en responder. Intenta de nuevo en unos segundos.'
+        : 'Error del servidor (' + r.status + '). Intenta de nuevo.' }; }
+    }
+
+    async function buscar(){
+      msg.hidden = true;
+      var id = (idIn.value || '').trim().toUpperCase();
+      var mail = (mailIn.value || '').trim();
+      if (!id) { error('Escribe tu ID de Asistente.'); idIn.focus(); return; }
+      if (!mail || mail.indexOf('@') < 0) { error('Escribe el correo con el que te registraste.'); mailIn.focus(); return; }
+
+      btn.disabled = true; btn.textContent = 'Consultando…';
+      try {
+        var r = await fetch('/api/apartado', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idAsistente: id, email: mail }),
+        });
+        var d = await parseResp(r);
+
+        if (d.noAplica) { aviso(d.mensaje); return; }
+        if (!r.ok) { error(d.error || 'No pudimos validar tu registro.'); return; }
+
+        $('ap-res-id').textContent = d.idAsistente;
+        $('ap-res-act').textContent = d.actividad.nombre;
+        $('ap-res-meta').innerHTML = [d.actividad.fechaCompleta, d.actividad.casa]
+          .filter(Boolean).map(function(x){ return x.toUpperCase(); }).join('<br>');
+        $('ap-res-monto').textContent = '$' + Number(d.completadoMxn).toLocaleString('es-MX') + '.00';
+        $('ap-pagar').onclick = function(){
+          // El correo ya fue validado aqui; se guarda para que /registro lo
+          // reuse sin exponerlo en la URL.
+          try { sessionStorage.setItem('ap_email', mail); } catch(e) {}
+          location.href = '/registro?completar=' + encodeURIComponent(d.idAsistente);
+        };
+        $('ap-form').hidden = true;
+        $('ap-res').hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch(e) {
+        error('No pudimos validar tu registro: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Continuar<svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 6h15m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+      }
+    }
+
+    btn.addEventListener('click', buscar);
+    [idIn, mailIn].forEach(function(el){
+      el.addEventListener('keydown', function(e){ if (e.key === 'Enter') buscar(); });
+    });
+    $('ap-otro').addEventListener('click', function(e){
+      e.preventDefault();
+      $('ap-res').hidden = true; $('ap-form').hidden = false;
+      msg.hidden = true; idIn.value = ''; idIn.focus();
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -27,6 +27,17 @@ function montoApartadoMXN(cuotaRaw) {
   return Math.ceil((base + feeStripe) / 50) * 50;
 }
 
+// Monto de COMPLETADO (el 66% restante despues del apartado), en MXN.
+// Replica exacta del calculo de la automation "Forma Completado" de Airtable:
+// 66% de la cuota + comision de Stripe, redondeado SIEMPRE hacia arriba a 50.
+function montoCompletadoMXN(cuotaRaw) {
+  const n = parseCuota(cuotaRaw);
+  if (!n) return 0;
+  const base      = n * 0.66;
+  const feeStripe = (base * 0.036 + 3) * 1.22;
+  return Math.ceil((base + feeStripe) / 50) * 50;
+}
+
 // Monto en CENTAVOS para Stripe según tipo de pago.
 // Lanza error si la cuota es inválida (misma semántica que el
 // calcularMonto original de payment-intent.js).
@@ -35,7 +46,9 @@ function montoCentavos(cuotaRaw, tipoPago) {
   if (!n) throw new Error('Cuota inválida en Airtable');
   const pesos = tipoPago === 'Apartado'
     ? montoApartadoMXN(cuotaRaw)
-    : montoContadoMXN(cuotaRaw);
+    : tipoPago === 'Completado'
+      ? montoCompletadoMXN(cuotaRaw)
+      : montoContadoMXN(cuotaRaw);
   return pesos * 100;
 }
 
@@ -56,4 +69,4 @@ function montoPlanCentavos(baseCentavos, meses) {
   return Math.round((neto + 300 * IVA_FEES) / (1 - (0.036 + recargo) * IVA_FEES));
 }
 
-module.exports = { parseCuota, montoContadoMXN, montoApartadoMXN, montoCentavos, montoPlanCentavos };
+module.exports = { parseCuota, montoContadoMXN, montoApartadoMXN, montoCompletadoMXN, montoCentavos, montoPlanCentavos };
