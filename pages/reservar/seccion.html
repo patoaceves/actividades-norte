@@ -44,7 +44,6 @@
       max-width:560px; width:100%;
       box-shadow:0 30px 70px -20px rgba(0,0,0,.5), 0 8px 20px rgba(0,0,0,.15);
     }
-    .rsv-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
     .rsv-card h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.7rem,4vw,2.3rem);color:var(--green);margin:0 0 6px;letter-spacing:-.01em}
     .rsv-card .casa-tag{font-family:'Lora',serif;color:var(--muted);margin:0 0 22px}
     .rsv-sec-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -52,14 +51,11 @@
     .rsv-sec-btn{font-family:'Lora',serif;font-size:1rem;padding:17px;border-radius:12px;border:1.5px solid rgba(42,64,48,.18);background:#fff;color:var(--green);cursor:pointer;transition:.15s}
     .rsv-sec-btn:hover{border-color:var(--gold);transform:translateY(-2px)}
     .rsv-sec-btn.active{border-color:var(--green);background:var(--green);color:var(--cream)}
-    .rsv-pass{margin-top:20px;display:none}
-    .rsv-pass.show{display:block}
-    .rsv-pass label{display:block;font-size:.9rem;color:var(--green);margin-bottom:6px;font-family:'Lora',serif}
-    .rsv-pass-row{display:flex;gap:10px}
-    .rsv-pass input{flex:1;font-family:'Lora',serif;font-size:1rem;padding:13px;border:1px solid rgba(42,64,48,.2);border-radius:10px;background:var(--cream)}
-    .rsv-pass input:focus{outline:none;border-color:var(--gold);background:#fff}
-    .rsv-pass button{font-family:'Lora',serif;padding:13px 24px;background:var(--green);color:var(--cream);border:none;border-radius:10px;cursor:pointer}
-    .rsv-pass button:hover{background:#1f3123}
+    #viewPass label{display:block;font-size:.9rem;color:var(--green);margin-bottom:8px;font-family:'Lora',serif}
+    #passInput{width:100%;font-family:'Lora',serif;font-size:1rem;padding:14px;border:1px solid rgba(42,64,48,.2);border-radius:10px;background:var(--cream)}
+    #passInput:focus{outline:none;border-color:var(--gold);background:#fff}
+    .rsv-pass-btn{width:100%;margin-top:12px;font-family:'Lora',serif;font-size:1rem;padding:14px 24px;background:var(--green);color:var(--cream);border:none;border-radius:10px;cursor:pointer;transition:background .15s}
+    .rsv-pass-btn:hover{background:#1f3123}
     .rsv-err{color:#8B2020;font-size:.88rem;margin-top:8px;font-family:'Lora',serif;display:none}
     .rsv-err.show{display:block}
     .rsv-back-link{display:inline-flex;align-items:center;gap:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.72rem;text-decoration:none;text-transform:uppercase;letter-spacing:.08em;margin-top:20px}
@@ -90,23 +86,28 @@
 
   <main class="rsv-hero-bg">
     <div class="rsv-card">
-      <div class="rsv-eyebrow">Paso 1 de 2</div>
-      <h1>Selecciona tu acceso</h1>
-      <p class="casa-tag" id="casaTag"></p>
-      <div class="rsv-sec-btns">
-        <button class="rsv-sec-btn" data-sec="admin">Administrador</button>
-        <button class="rsv-sec-btn" data-sec="femenil">Femenil</button>
-        <button class="rsv-sec-btn" data-sec="varonil">Varonil</button>
-      </div>
-      <div class="rsv-pass" id="passBox">
-        <label id="passLabel">Contraseña</label>
-        <div class="rsv-pass-row">
-          <input type="password" id="passInput" placeholder="Contraseña" autocomplete="off">
-          <button id="passBtn">Entrar</button>
+      <!-- Vista 1: elegir acceso -->
+      <div class="rsv-view" id="viewSec">
+        <h1>Selecciona tu acceso</h1>
+        <p class="casa-tag" id="casaTag"></p>
+        <div class="rsv-sec-btns">
+          <button class="rsv-sec-btn" data-sec="admin">Administrador</button>
+          <button class="rsv-sec-btn" data-sec="femenil">Femenil</button>
+          <button class="rsv-sec-btn" data-sec="varonil">Varonil</button>
         </div>
-        <div class="rsv-err" id="passErr">Contraseña incorrecta. Intenta de nuevo.</div>
+        <a class="rsv-back-link" id="backCasa" href="#"><svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Volver a la casa</a>
       </div>
-      <a class="rsv-back-link" id="backCasa" href="#"><svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Volver a la casa</a>
+
+      <!-- Vista 2: contrasena (reemplaza a la anterior en la misma tarjeta) -->
+      <div class="rsv-view" id="viewPass" hidden>
+        <h1 id="passTitle">Acceso</h1>
+        <p class="casa-tag" id="casaTagPass"></p>
+        <label for="passInput" id="passLabel">Contraseña</label>
+        <input type="password" id="passInput" placeholder="Contraseña" autocomplete="off">
+        <button class="rsv-pass-btn" id="passBtn">Ingresar</button>
+        <div class="rsv-err" id="passErr">Contraseña incorrecta. Intenta de nuevo.</div>
+        <a class="rsv-back-link" id="backSec" href="#"><svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M17 6H2m0 0l5-5M2 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Elegir otro acceso</a>
+      </div>
     </div>
   </main>
 
@@ -122,16 +123,29 @@
     qs('casaTag').textContent = CASA_NOMBRE[casaKey];
     qs('backCasa').href = '/reservar?casa=' + encodeURIComponent(casaKey);
 
+    qs('casaTagPass').textContent = CASA_NOMBRE[casaKey];
+
     var secSel=null;
+    // Dos vistas dentro de la misma tarjeta: elegir acceso -> contrasena
+    function mostrarVista(cual){
+      qs('viewSec').hidden  = (cual !== 'sec');
+      qs('viewPass').hidden = (cual !== 'pass');
+    }
     document.querySelectorAll('.rsv-sec-btn').forEach(function(b){
       b.addEventListener('click',function(){
-        document.querySelectorAll('.rsv-sec-btn').forEach(function(x){x.classList.remove('active');});
-        b.classList.add('active');
         secSel=b.getAttribute('data-sec');
-        qs('passLabel').textContent='Contraseña de '+SEC_LABEL[secSel];
-        qs('passBox').classList.add('show'); qs('passErr').classList.remove('show');
-        qs('passInput').value=''; qs('passInput').focus();
+        qs('passTitle').textContent = SEC_LABEL[secSel];
+        qs('passLabel').textContent = 'Contraseña de ' + SEC_LABEL[secSel];
+        qs('passErr').classList.remove('show');
+        qs('passInput').value='';
+        mostrarVista('pass');
+        qs('passInput').focus();
       });
+    });
+    qs('backSec').addEventListener('click',function(e){
+      e.preventDefault();
+      secSel=null;
+      mostrarVista('sec');
     });
     function tryPass(){
       if(!secSel) return;
