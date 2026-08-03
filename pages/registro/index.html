@@ -1588,7 +1588,59 @@
     if (actividadId.startsWith('AF')) genero = 'femenil';
     else if (actividadId.startsWith('AV')) genero = 'varonil';
 
-    if (!actividadId || (!actividadId.startsWith('AV') && !actividadId.startsWith('AF'))) {
+    // ── MODO RETOMAR PAGO (boton "Completar mi pago" del correo) ──
+    // /registro?pagar=ID_ASISTENTE valida en el servidor que no exista ya un
+    // pago completado y recrea el checkout con los datos del registro previo.
+    const pagarId = (params.get('pagar') || '').trim().toUpperCase();
+
+    async function iniciarModoPagar(id) {
+      document.getElementById('progress-wrap').style.display = 'none';
+      document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+      try {
+        const r = await fetch('/api/pagar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idAsistente: id }),
+        });
+        const d = await parseResp(r);
+        document.getElementById('loading-state').classList.add('hidden');
+
+        if (d.yaPagado || d.enProceso) {
+          const sw = document.getElementById('success-wrap');
+          sw.querySelector('.success-title').innerHTML = d.yaPagado
+            ? 'Tu pago ya está <em>registrado</em>'
+            : 'Tu pago está <em>en proceso</em>';
+          sw.querySelector('.success-desc').textContent = d.yaPagado
+            ? 'Este ID de Asistente ya tiene un pago completado, no es necesario pagar de nuevo. Si tienes alguna duda, escríbenos a admin@actividadesnorte.com.'
+            : 'Ya tenemos un pago en proceso para este ID (por ejemplo, una guía OXXO pendiente de acreditarse). En cuanto se confirme recibirás tu comprobante. Si crees que es un error, escríbenos a admin@actividadesnorte.com.';
+          document.getElementById('success-id-asistente').textContent = d.idAsistente || id;
+          sw.classList.add('show');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+        if (!r.ok) { mostrarBloqueo(escapeHtml(d.error || 'No pudimos retomar tu pago. Intenta de nuevo.')); return; }
+
+        genero = d.genero;
+        await initStripePayment({
+          email:       d.email || '',
+          nombre:      '',
+          recordId:    d.recordId,
+          idAsistente: d.idAsistente,
+          idActividad: d.idActividad,
+          tipoPago:    d.tipoPago,
+          metodoPago:  d.metodoPago,
+          genero:      d.genero,
+          actividad:   d.actividad,
+        });
+      } catch (e) {
+        document.getElementById('loading-state').classList.add('hidden');
+        mostrarBloqueo('No pudimos retomar tu pago: ' + escapeHtml(e.message));
+      }
+    }
+
+    if (pagarId) {
+      iniciarModoPagar(pagarId);
+    } else if (!actividadId || (!actividadId.startsWith('AV') && !actividadId.startsWith('AF'))) {
       // Oculta loading, muestra err
       document.getElementById('loading-state').classList.add('hidden');
       document.getElementById('progress-wrap').style.display = 'none';
