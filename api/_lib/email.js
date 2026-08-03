@@ -26,6 +26,8 @@ function formatMXN(v) {
 // ── Diseño del correo: identidad del sitio, estilos inline email-safe ──
 // Opcion B "editorial crema": tarjeta blanca sobre crema, eyebrow mono dorado,
 // ID protagonista entre lineas finas, footer verde con la info del sitio.
+const { montoPlanCentavos } = require('./precios');
+
 const C = {
   verde: '#2A4030', crema: '#F6F1E7', crema2: '#EFE8DA', dorado: '#A07840',
   amarillo: '#FBF3DC', tinta: '#1A1C18', muted: '#6B7066',
@@ -173,14 +175,27 @@ function construirEmailBody({
     };
   }
 
-  // 3) 3 MSI con Tarjeta
+  // 3) Pago a 3 meses con tarjeta (nunca "sin intereses": el recargo del
+  //    plan lo absorbe el asistente, igual que en el checkout)
   if (metodoPago === '3MSI - Pago con Tarjeta') {
+    const baseNum = typeof contadoMxn === 'number'
+      ? contadoMxn
+      : parseInt(String(contadoMxn || '').replace(/[^\d]/g, ''), 10);
+    let montoMeses = msi; // fallback: valor de Airtable
+    if (baseNum > 0) {
+      const totalC = montoPlanCentavos(Math.round(baseNum * 100), 3);
+      if (totalC) {
+        const porMes = (Math.round(totalC / 3) / 100)
+          .toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        montoMeses = `MX$${porMes} /mes por 3 meses`;
+      }
+    }
     return {
       subject: subjectExito,
       html: envolver({
         eyebrow: 'Registro confirmado',
         saludo: saludoExito,
-        inner: `${cajaId(idAsistente)}${tablaDatos([...filasBase, filaDato('Monto total a 3 MSI', msi, true)])}${bloqueRetomarPago(idAsistente)}${bloqueFactura()}`,
+        inner: `${cajaId(idAsistente)}${tablaDatos([...filasBase, filaDato('Pago a meses', montoMeses, true)])}${bloqueRetomarPago(idAsistente)}${bloqueFactura()}`,
       }),
     };
   }
