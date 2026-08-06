@@ -35,11 +35,11 @@
     /* HERO */
     .cal-hero{position:relative;min-height:clamp(280px,40vh,420px);display:flex;align-items:flex-end;background-size:cover;background-position:center;color:var(--cream)}
     .cal-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(20,30,22,.88) 0%,rgba(20,30,22,.4) 60%,rgba(20,30,22,.55) 100%)}
-    .cal-hero-inner{position:relative;z-index:2;max-width:760px;margin:0 auto;width:100%;padding:clamp(28px,5vw,52px) var(--gutter,24px)}
+    .cal-hero-inner{position:relative;z-index:2;max-width:var(--max,1280px);margin:0 auto;width:100%;padding:clamp(28px,5vw,52px) var(--gutter,24px)}
     .cal-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:#E8D9BE;margin-bottom:10px}
     .cal-hero h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(1.9rem,4.5vw,3rem);letter-spacing:-.02em;margin:0 0 10px;line-height:1.05}
     .cal-hero-sec{font-family:'Lora',serif;font-size:1rem;color:#E8D9BE}
-    .rsv-wrap{max-width:760px;margin:0 auto;padding:clamp(24px,5vw,48px) var(--gutter,24px)}
+    .rsv-wrap{max-width:var(--max,1280px);margin:0 auto;padding:clamp(24px,5vw,48px) var(--gutter,24px)}
     .rsv-back-link{display:inline-flex;align-items:center;gap:9px;color:var(--muted);font-family:'Lora',serif;font-size:.95rem;text-decoration:none;margin-bottom:22px;transition:color .15s}
     .rsv-back-link:hover{color:var(--green)}
     .rsv-back-link svg{flex-shrink:0;transition:transform .2s ease}
@@ -72,10 +72,18 @@
     .rsv-tip{position:fixed;z-index:50;background:var(--green);color:var(--cream);font-family:'Lora',serif;font-size:.8rem;line-height:1.4;padding:8px 11px;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .12s;max-width:210px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
     .rsv-tip.show{opacity:1}
     .rsv-tip b{color:#fff;display:block;margin-bottom:2px;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
-    .rsv-range-box{margin-top:16px;background:var(--cream);border-radius:10px;padding:12px 14px;font-family:'Lora',serif;font-size:.92rem;color:var(--green);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-    .rsv-range-box .lbl{color:var(--muted);font-size:.82rem}
-    .rsv-range-box .clear{background:var(--green);border:none;color:var(--cream);cursor:pointer;font-family:'Lora',serif;font-size:.85rem;padding:9px 18px;border-radius:8px;transition:background .15s}
-    .rsv-range-box .clear:hover{background:#1f3123}
+    .rsv-range-box{margin-top:18px;background:#fff;border:1px solid rgba(42,64,48,.14);border-radius:10px;padding:16px 18px;display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+    .rsv-range-f{display:flex;flex-direction:column;gap:6px;flex:1 1 190px;min-width:0}
+    .rsv-range-f label{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+    .rsv-range-f input{font-family:'Lora',serif;font-size:.95rem;color:var(--green);background:#fff;border:1px solid rgba(42,64,48,.18);border-radius:8px;padding:11px 12px;width:100%}
+    .rsv-range-f input:focus{outline:none;border-color:var(--gold)}
+    .rsv-range-f input.err{border-color:#8B2020;background:#fff8f8}
+    .rsv-range-box .clear{background:#fff;border:1px solid rgba(42,64,48,.18);color:var(--green);cursor:pointer;font-family:'Lora',serif;font-size:.9rem;padding:11px 20px;border-radius:8px;transition:.15s;flex:0 0 auto}
+    .rsv-range-box .clear:hover{border-color:var(--gold);color:var(--gold)}
+    .rsv-range-msg{flex:1 1 100%;font-family:'Lora',serif;font-size:.85rem;color:var(--muted);margin:0}
+    .rsv-range-msg.err{color:#8B2020}
+    /* Dias que no pueden cerrar el rango (hay un dia sin disponibilidad en medio) */
+    .rsv-day.blocked{opacity:.28;cursor:not-allowed;pointer-events:none}
     .rsv-form-sec{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid rgba(42,64,48,.12)}
     .rsv-field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
     .rsv-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -153,8 +161,16 @@
       <p class="rsv-hint-drag">Haz clic en el día de inicio, mueve el mouse y haz clic en el día de fin.</p>
       <div class="rsv-grid" id="calGrid"></div>
       <div class="rsv-range-box">
-        <span><span class="lbl">Fechas seleccionadas:</span> <strong id="rangeText">- ninguna -</strong></span>
+        <div class="rsv-range-f">
+          <label for="fIni">Fecha de inicio</label>
+          <input type="date" id="fIni" min="2026-01-01" max="2026-12-31">
+        </div>
+        <div class="rsv-range-f">
+          <label for="fFin">Fecha de fin</label>
+          <input type="date" id="fFin" min="2026-01-01" max="2026-12-31">
+        </div>
         <button class="clear" id="clearRange">Limpiar</button>
+        <p class="rsv-range-msg" id="rangeText">Elige tu fecha de inicio y de fin.</p>
       </div>
     </div>
 
@@ -337,6 +353,7 @@ var PAISES = [
     (async function load(){
       qs("calGrid").innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px;font-family:Lora,serif">Cargando disponibilidad...</div>';
       try{ var r=await fetch("/api/disponibilidad?seccion="+encodeURIComponent(secSel)); var data=await r.json(); dias=data.dias||{}; }catch(e){ dias={}; }
+      if(todayISO>"2026-01-01"&&todayISO<"2026-12-31"){ qs("fIni").min=todayISO; qs("fFin").min=todayISO; }
       viewYear=2026; viewMonth=(new Date().getFullYear()===2026)?new Date().getMonth():0;
       renderCal(); updateCasas();
     })();
@@ -378,29 +395,87 @@ var PAISES = [
       if(selStart) return [selStart,selStart];
       return [null,null];
     }
+    // ¿Todos los dias entre a y b tienen alguna casa disponible?
+    function rangoValido(a,b){
+      if(!a||!b) return false;
+      var lo=a<=b?a:b, hi=a<=b?b:a, d=new Date(lo+"T00:00:00"), fin=new Date(hi+"T00:00:00");
+      while(d<=fin){
+        var iso=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+        var info=dias[iso];
+        if(!info||!info.count||iso<todayISO) return false;
+        d.setDate(d.getDate()+1);
+      }
+      return true;
+    }
     function paintSelection(){
       var ab=rangeAB(), a=ab[0], b=ab[1];
       document.querySelectorAll("#calGrid .rsv-day").forEach(function(cell){
         var iso=cell.dataset.iso; if(!iso) return;
-        cell.classList.remove("inrange","endpoint");
+        cell.classList.remove("inrange","endpoint","blocked");
+        // Con inicio ya elegido, se bloquean los dias que no pueden cerrar el
+        // rango porque hay un dia sin disponibilidad de por medio.
+        if(picking && selStart && iso!==selStart && !cell.classList.contains("c0") && !cell.classList.contains("past")){
+          if(!rangoValido(selStart,iso)) cell.classList.add("blocked");
+        }
         if(a&&b&&iso>=a&&iso<=b) cell.classList.add("inrange");
         if(iso===a||iso===b) cell.classList.add("endpoint");
       });
     }
     function onDayClick(iso){
       if(!picking){ selStart=iso; selEnd=null; picking=true; hoverEnd=null; }
-      else { if(iso<selStart){ selStart=iso; selEnd=null; } else { selEnd=iso; picking=false; hoverEnd=null; } }
+      else {
+        if(iso<selStart){ if(!rangoValido(iso,selStart)) return; selStart=iso; selEnd=null; }
+        else { if(!rangoValido(selStart,iso)) return; selEnd=iso; picking=false; hoverEnd=null; }
+      }
+      sincronizarCampos(); updateRangeText(); paintSelection(); updateCasas();
+    }
+    function onDayHover(iso){ if(picking && rangoValido(selStart,iso)){ hoverEnd=iso; paintSelection(); } }
+
+    // ── Campos de fecha <-> calendario ──
+    function sincronizarCampos(){
+      qs("fIni").value = selStart || "";
+      qs("fFin").value = selEnd || "";
+      qs("fIni").classList.remove("err"); qs("fFin").classList.remove("err");
+    }
+    function irAlMesDe(iso){
+      if(!iso) return;
+      var y=+iso.slice(0,4), m=+iso.slice(5,7)-1;
+      if(y!==viewYear || m!==viewMonth){ viewYear=y; viewMonth=m; renderCal(); }
+    }
+    function onCampoChange(){
+      var ini=qs("fIni").value, fin=qs("fFin").value;
+      var msg=qs("rangeText");
+      qs("fIni").classList.remove("err"); qs("fFin").classList.remove("err");
+
+      if(ini && (!dias[ini] || !dias[ini].count || ini<todayISO)){
+        qs("fIni").classList.add("err");
+        msg.textContent="Esa fecha de inicio no tiene casas disponibles."; msg.className="rsv-range-msg err";
+        selStart=null; selEnd=null; picking=false; paintSelection(); updateCasas(); return;
+      }
+      if(ini && fin && !rangoValido(ini,fin)){
+        qs("fFin").classList.add("err");
+        msg.textContent="Ese rango incluye días sin disponibilidad. Elige otras fechas."; msg.className="rsv-range-msg err";
+        selStart=ini; selEnd=null; picking=true; irAlMesDe(ini); paintSelection(); updateCasas(); return;
+      }
+      selStart = ini || null;
+      selEnd   = (ini && fin) ? fin : null;
+      picking  = !!(ini && !fin);
+      hoverEnd = null;
+      // El calendario sigue al campo que se acaba de tocar
+      irAlMesDe(fin || ini);
       updateRangeText(); paintSelection(); updateCasas();
     }
-    function onDayHover(iso){ if(picking){ hoverEnd=iso; paintSelection(); } }
+    qs("fIni").addEventListener("change", onCampoChange);
+    qs("fFin").addEventListener("change", onCampoChange);
 
     function updateRangeText(){
-      if(selStart&&selEnd&&selStart!==selEnd) qs("rangeText").textContent=fmtLegible(selStart)+"  \u2192  "+fmtLegible(selEnd);
-      else if(selStart&&picking) qs("rangeText").textContent=fmtLegible(selStart)+" (elige la fecha de fin)";
-      else if(selStart) qs("rangeText").textContent=fmtLegible(selStart);
-      else qs("rangeText").textContent="- ninguna -";
+      var msg=qs("rangeText"); msg.className="rsv-range-msg";
+      if(selStart&&selEnd&&selStart!==selEnd) msg.textContent="Del "+fmtLegible(selStart)+" al "+fmtLegible(selEnd);
+      else if(selStart&&picking) msg.textContent="Ahora elige la fecha de fin.";
+      else if(selStart) msg.textContent=fmtLegible(selStart);
+      else msg.textContent="Elige tu fecha de inicio y de fin.";
     }
-    qs("clearRange").addEventListener("click",function(){ selStart=null; selEnd=null; picking=false; hoverEnd=null; updateRangeText(); paintSelection(); updateCasas(); });
+    qs("clearRange").addEventListener("click",function(){ selStart=null; selEnd=null; picking=false; hoverEnd=null; sincronizarCampos(); updateRangeText(); paintSelection(); updateCasas(); });
 
     function casasEnRango(){
       if(!selStart) return null;

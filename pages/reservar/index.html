@@ -58,7 +58,9 @@
     .gallery-section, .gallery-carousel { min-width:0; max-width:100%; }
     .gallery-main { position:relative; width:100%; max-width:100%; aspect-ratio:16/9; max-height:560px; overflow:hidden; border-radius:var(--radius); border:1.5px solid var(--green-3); background:var(--cream-2); }
     @media (max-width:720px){ .gallery-main{ aspect-ratio:4/3; } }
-    #gallery-main-img { width:100%; height:100%; object-fit:cover; display:block; transition:opacity .3s; cursor:zoom-in; }
+    #gallery-main-img { width:100%; height:100%; object-fit:cover; object-position:center; display:block; transition:opacity .3s; cursor:zoom-in; }
+    /* Fotos verticales (mucho cielo arriba): encuadre hacia abajo */
+    #gallery-main-img.vertical { object-position:50% 72%; }
     #gallery-main-img.swapping { opacity:.3; }
     .gallery-nav { position:absolute; top:50%; transform:translateY(-50%); width:46px; height:46px; background:rgba(30,47,35,.55); backdrop-filter:blur(6px); border:1px solid rgba(245,239,227,.25); border-radius:50%; color:var(--cream); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; opacity:.85; }
     .gallery-nav:hover { background:rgba(30,47,35,.8); border-color:var(--gold-soft); opacity:1; }
@@ -255,7 +257,12 @@
 
     /* ── GALERÍA (misma del detalle de actividad) ── */
     var galleryPhotos = casa.fotos, galleryIdx = 0;
-    qs('gallery-main-img').src = galleryPhotos[0];
+    var _mi = qs('gallery-main-img');
+    // Las fotos verticales se encuadran hacia abajo (si no, solo se ve cielo)
+    _mi.addEventListener('load', function(){
+      this.classList.toggle('vertical', this.naturalHeight > this.naturalWidth * 1.05);
+    });
+    _mi.src = galleryPhotos[0];
     qs('gallery-counter').textContent = '1 / ' + galleryPhotos.length;
     qs('gallery-thumbs').innerHTML = galleryPhotos.map(function(src,i){
       return '<div class="gallery-thumb '+(i===0?'active':'')+'" data-idx="'+i+'"><img src="'+src+'" alt="" loading="lazy"></div>';
